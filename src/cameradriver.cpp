@@ -91,10 +91,6 @@ bool InputProcessing::CameraDriver::shot(const std::string &outputFile)
     // Get picture
     d->m_capture >> frame;
 
-    // (debug) show picture shot
-//    cv::imshow("Got image", frame);
-//    cv::destroyAllWindows();
-
     // Check if image get succeed
     if (frame.empty())
     {

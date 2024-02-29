@@ -20,13 +20,11 @@ public:
     ~Processor();
 
     // Sets directory where processor will try to find configuration
-    void setConfigDirPath(const std::string& path);
+    void setImageTemplateDir(const std::string& path);
 
-    // Process photo saved by path, matchPercent is lowest percent to say that image found
-    bool processPhoto(const std::string& imageFilePath, const double matchPercent = 0.8);
-    
-    // Returns empty string if no image loaded and UNKNOWN if did not recognized
-    std::string photoObjectType() const;
+    // Analyse photo saved by path, matchPercent is lowest percent to say that image found
+    // Returns "Unknown" or type
+    std::string processPhoto(const std::string& imageFilePath, const double matchPercent = 0.8);
     
     // Object type list manipulations
     void addType(const std::string& type);

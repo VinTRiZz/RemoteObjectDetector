@@ -19,7 +19,7 @@
 
 #define PRINT_LOG(what) std::cout << "[ " << __FUNCTION__ << " ] " << what << std::endl
 #define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
-#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __PRETTY_FUNCTION__ << " ] " << what << std::endl
+#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __FILE__ << ":" << __LINE__ << " ] " << what << std::endl
 
 namespace ObjectDetector
 {
@@ -104,9 +104,9 @@ ObjectDetector::Interface::~Interface()
 
 }
 
-void ObjectDetector::Interface::setImageProcessorConfigDir(const std::string &cfgPath)
+void ObjectDetector::Interface::setImageTemplateDir(const std::string &cfgPath)
 {
-    d->m_imgProcessor.setConfigDirPath(cfgPath);
+    d->m_imgProcessor.setImageTemplateDir(cfgPath);
 }
 
 void ObjectDetector::Interface::setOutputFile(const std::string &ofPath)
@@ -137,7 +137,6 @@ void ObjectDetector::Interface::start()
             PRINT_LOG("Preparing");
             setStatus(ObjectDetector::ProgramStatus::PROCESSING);
             d->m_camera = InputProcessing::CameraDriver();  // TODO: Detect cameras and use one
-            d->m_imgProcessor.setConfigDirPath(".");        // TODO: Setup config dir and process it
             std::fstream outputFile(d->m_ofpath, std::ios_base::trunc | std::ios_base::in | std::ios_base::out);
 
             if (!outputFile.is_open())

@@ -34,7 +34,7 @@ public:
     ~Interface();
 
     // Set path to image processor configuration
-    void setImageProcessorConfigDir(const std::string& cfgPath);
+    void setImageTemplateDir(const std::string& cfgPath);
 
     // ofPath is path to output file that will contain program output
     void setOutputFile(const std::string& ofPath);

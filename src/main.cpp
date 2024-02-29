@@ -33,47 +33,48 @@ void signalHandler(int signo)
 
 int main()
 {
-//    ObjectDetector::Interface app;
-//    pApp = &app;
+    ObjectDetector::Interface app;
+    pApp = &app;
 
-//    signal(SIGINT, signalHandler);
-//    signal(SIGTERM, signalHandler);
+    // Setup signals for OS
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
 
-//    app.init();
+    // Setup image processor
+    app.setImageTemplateDir("./imageTemplates");
 
-//    if (!STATUS_CONTAINS(app.status(), ObjectDetector::ProgramStatus::READY))
-//    {
-//        PRINT_LOG("Init status code: " << static_cast<int>(app.status()));
-//        return 1;
-//    }
+    // Init system
+    app.init();
 
-//    app.start();
-
-    const std::string typeOfObject {"Chess Queen"};
-    const std::string objectTemplate {"../../textures/white-queen.png"};
-    const std::string fileToSearchIn {"../../textures/white-knight.png"};
-
-    ImageAnalyse::Processor proc;
-
-    PRINT_LOG("Checking if file [ " << fileToSearchIn << " ] has object with type " << typeOfObject);
-
-    proc.addType(typeOfObject);
-
-    PRINT_LOG("Existing types:");
-    PRINT_LOG("---------------");
-    int cnt = 1;
-    for (auto & t : proc.availableTypes())
-        PRINT_LOG(cnt++ << ") " << t);
-    PRINT_LOG("---------------");
-
-    proc.setupType(typeOfObject, objectTemplate);
-    if (proc.processPhoto(fileToSearchIn, 0.4))
+    // Check if init succeed
+    if (!STATUS_CONTAINS(app.status(), ObjectDetector::ProgramStatus::READY))
     {
-        PRINT_LOG("It's definitely " << typeOfObject);
+        PRINT_LOG("Init status code: " << static_cast<int>(app.status()));
+        return 1;
     }
-    else
-    {
-        PRINT_LOG("Not found image");
-    }
+
+    // Start system
+    app.start();
+
+    // TODO: Remove, test code for image processor
+//    const std::string typeOfObject {"Chess Queen"};
+//    const std::string objectTemplate {"../../textures/white-queen.png"};
+//    const std::string fileToSearchIn {"../../textures/white-knight.png"};
+
+//    ImageAnalyse::Processor proc;
+
+//    PRINT_LOG("Checking if file [ " << fileToSearchIn << " ] has object with type " << typeOfObject);
+
+//    proc.addType(typeOfObject);
+
+//    PRINT_LOG("Existing types:");
+//    PRINT_LOG("---------------");
+//    int cnt = 1;
+//    for (auto & t : proc.availableTypes())
+//        PRINT_LOG(cnt++ << ") " << t);
+//    PRINT_LOG("---------------");
+
+//    proc.setupType(typeOfObject, objectTemplate);
+//    PRINT_LOG("On a picture object with type: " << proc.processPhoto(fileToSearchIn, 0.4));
     return 0;
 }

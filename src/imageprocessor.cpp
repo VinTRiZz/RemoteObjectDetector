@@ -11,7 +11,7 @@
 
 #define PRINT_LOG(what) std::cout << "[ " << __FUNCTION__ << " ] " << what << std::endl
 #define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
-#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __PRETTY_FUNCTION__ << " ] " << what << std::endl
+#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __FILE__ << ":" << __LINE__ << " ] " << what << std::endl
 
 namespace ImageAnalyse
 {
@@ -19,10 +19,14 @@ namespace ImageAnalyse
 struct ImageType
 {
 private:
+    // Path to template image
     std::string templatePath;
+
+    // OpenCV object to handle images
     cv::Mat templateImage;
 
 public:
+    // Name (type) of image type
     std::string name;
 
     ImageType() = default;
@@ -33,16 +37,19 @@ public:
         return (ot.name == name);
     }
 
+    // Set path to template file
     void setTemplate(const std::string& filePath)
     {
         templateImage = cv::imread(filePath);
     }
 
+    // Ask if object is actually the searching for, using match percent above that it's true
     bool isObject(const std::string& filePath, const double matchPercent = 0.8)
     {
         if (templateImage.empty())
             return false;
 
+        // Get image
         cv::Mat img = cv::imread(filePath);
         cv::Mat result;
 
@@ -52,6 +59,7 @@ public:
         // Compare to template
         cv::matchTemplate(img, templateImage, result, cv::TM_CCOEFF_NORMED); // TODO: Experiment with comp methods
 
+        // Setup min-max loc
         double minVal {}, maxVal {};
         cv::Point minLoc, maxLoc;
         cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
@@ -69,12 +77,10 @@ public:
 
 struct ImageAnalyse::Processor::AnalysatorPrivate
 {
-    std::string m_configDirPath;    // Path to directory with saved neural nets
-    std::string m_detectedType;     // Used to show what type of object on image must be
-
+    std::string m_templatesDir;    // Path to directory with saved neural nets
     std::vector<ImageType> m_types; // Contain types listed in config file in the same dir with neural nets
 
-    // Used to process saved neural nets in m_configDirPath directory
+    // Used to process saved neural nets in m_templatesDir directory
     void processDirectory()
     {
         // TODO: Read all NN in the dir
@@ -92,29 +98,20 @@ ImageAnalyse::Processor::~Processor()
 
 }
 
-void ImageAnalyse::Processor::setConfigDirPath(const std::string& path)
+void ImageAnalyse::Processor::setImageTemplateDir(const std::string& path)
 {
-    d->m_configDirPath = path;
+    d->m_templatesDir = path;
     d->processDirectory();  // Update contents
 }
 
-bool ImageAnalyse::Processor::processPhoto(const std::string& imageFilePath, const double matchPercent)
+std::string ImageAnalyse::Processor::processPhoto(const std::string& imageFilePath, const double matchPercent)
 {
-    d->m_detectedType = "";
     for (auto& t : d->m_types)
     {
         if (t.isObject(imageFilePath, matchPercent))
-        {
-            d->m_detectedType = t.name;
-            return true;
-        }
+            return t.name;
     }
-    return false;
-}
-
-std::string ImageAnalyse::Processor::photoObjectType() const
-{
-    return d->m_detectedType;
+    return "Unknown";
 }
 
 void ImageAnalyse::Processor::addType(const std::string& type)
