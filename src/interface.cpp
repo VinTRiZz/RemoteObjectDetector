@@ -2,7 +2,6 @@
 
 // Components
 #include "imageprocessor.h"
-#include "imageconverter.h"
 #include "cameradriver.h"
 
 // Event work
@@ -10,6 +9,10 @@
 #include <mutex>
 #include <future>
 #include <list>
+
+// Output work
+#include <fstream>
+#include <cstring>
 
 // Terminal data output
 #include <iostream>
@@ -126,14 +129,25 @@ void ObjectDetector::Interface::start()
     if (!STATUS_CONTAINS(status(), ObjectDetector::ProgramStatus::READY))
         return;
 
-    // Setup for start
-    PRINT_LOG("Preparing");
-    setStatus(ObjectDetector::ProgramStatus::PROCESSING);
-
-
+    // Create async thread to work
     d->m_workFut = std::async(
         [this]()
         {
+            // Setup for start
+            PRINT_LOG("Preparing");
+            setStatus(ObjectDetector::ProgramStatus::PROCESSING);
+            d->m_camera = InputProcessing::CameraDriver();  // TODO: Detect cameras and use one
+            d->m_imgProcessor.setConfigDirPath(".");        // TODO: Setup config dir and process it
+            std::fstream outputFile(d->m_ofpath, std::ios_base::trunc | std::ios_base::in | std::ios_base::out);
+
+            if (!outputFile.is_open())
+            {
+                PRINT_ERR("Output file open error: " << strerror(errno));
+                setStatus(ObjectDetector::ProgramStatus::INIT_SUCCESS);
+                d->event(ObjectDetector::EventType::STOPPED);
+                return;
+            }
+
             // Working loop
             PRINT_LOG("Starting");
             setStatus(ObjectDetector::ProgramStatus::IDLE);
@@ -145,9 +159,6 @@ void ObjectDetector::Interface::start()
                 {
                 case ObjectDetector::EventType::STOP:
                     setStatus(ObjectDetector::ProgramStatus::INIT_SUCCESS);
-                    break;
-
-                case ObjectDetector::SHOT:
                     break;
                 }
             }

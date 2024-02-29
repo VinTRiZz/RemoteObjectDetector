@@ -4,8 +4,7 @@
 // For stable types, such as uint8_t
 #include <stdint.h>
 
-// For smart pointers
-#include <memory>
+#include <string>
 
 namespace InputProcessing
 {
@@ -20,6 +19,10 @@ class CameraDriver
 {
 public:
     CameraDriver(const std::string& deviceFile = "/dev/video1");
+    CameraDriver(const CameraDriver& od);
+    CameraDriver(CameraDriver&& od);
+    CameraDriver& operator=(const CameraDriver& od);
+    CameraDriver& operator=(CameraDriver&& od);
     ~CameraDriver();
     
     // Get status of driver
@@ -36,7 +39,7 @@ public:
     
 private:
     struct CameraDriverPrivate;
-    std::unique_ptr<CameraDriverPrivate> d;
+    CameraDriverPrivate * d {nullptr};
 };
     
 }

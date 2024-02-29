@@ -23,9 +23,43 @@ InputProcessing::CameraDriver::CameraDriver(const std::string &deviceFile) :
 
 }
 
+InputProcessing::CameraDriver::CameraDriver(const InputProcessing::CameraDriver &od) :
+    d {new CameraDriverPrivate(od.d->m_deviceFilePath)}
+{
+    d->m_capture = od.d->m_capture;
+    d->m_status = od.d->m_status;
+}
+
+InputProcessing::CameraDriver::CameraDriver(InputProcessing::CameraDriver &&od) :
+    d {new CameraDriverPrivate(std::move(od.d->m_deviceFilePath))}
+{
+    d->m_capture = std::move(od.d->m_capture);
+    d->m_status = std::move(od.d->m_status);
+}
+
+InputProcessing::CameraDriver &InputProcessing::CameraDriver::operator=(const InputProcessing::CameraDriver &od)
+{
+    if (!d) d = new CameraDriverPrivate(od.d->m_deviceFilePath);
+
+    d->m_capture = od.d->m_capture;
+    d->m_status = od.d->m_status;
+    return *this;
+}
+
+InputProcessing::CameraDriver &InputProcessing::CameraDriver::operator=(InputProcessing::CameraDriver &&od)
+{
+    if (!d) d = new CameraDriverPrivate(od.d->m_deviceFilePath);
+
+    d->m_capture = std::move(od.d->m_capture);
+    d->m_status = std::move(od.d->m_status);
+    return *this;
+}
+
 InputProcessing::CameraDriver::~CameraDriver()
 {
     deinit();
+
+    if (d) delete d;
 }
 
 void InputProcessing::CameraDriver::init()

@@ -5,8 +5,8 @@ project(ObjectDetector)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # Build variables
-file(GLOB HEADERS src/*.h)
-file(GLOB SOURCES src/*.cpp)
+file(GLOB HEADERS src/*.h src/study/*.h)
+file(GLOB SOURCES src/*.cpp src/study/*.cpp)
 
 # Build output
 add_executable(ObjectDetector 
