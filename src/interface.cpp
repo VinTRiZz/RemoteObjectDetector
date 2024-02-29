@@ -5,22 +5,18 @@
 #include "imageconverter.h"
 #include "cameradriver.h"
 
-// Status work
-#include <atomic>
-
 // Event work
 #include <condition_variable>
 #include <mutex>
+#include <future>
 #include <list>
 
-#include <future>
-
-// User output
+// Terminal data output
 #include <iostream>
 
-#define PRINT_LOG(what) std::cout << "[LOG CHANNEL - INTERFACE: " << __FUNCTION__ << "] " << what << std::endl
-#define PRINT_SUC(what) std::cout << "[LOG CHANNEL - INTERFACE: " << __FUNCTION__ << "] [\033[32m OK! \033[0m] " << what << std::endl
-#define PRINT_ERR(what) std::cout << "[LOG CHANNEL - INTERFACE: " << __FUNCTION__ << "] [\033[31mERROR\033[0m] " << what << std::endl
+#define PRINT_LOG(what) std::cout << "[ " << __FUNCTION__ << " ] " << what << std::endl
+#define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
+#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __PRETTY_FUNCTION__ << " ] " << what << std::endl
 
 namespace ObjectDetector
 {
@@ -41,44 +37,49 @@ struct ObjectDetector::Interface::InterfacePrivate
 
     std::atomic<ObjectDetector::ProgramStatus> m_status {ObjectDetector::ProgramStatus::INIT_ERROR}; // Status of program
 
-    std::condition_variable m_eventVar;
-    std::mutex m_eventMutex;
-    std::list<EventType> m_eventList;
-    std::atomic<int> m_notifyCount {0}; // Used to avoid infinity signals
-    std::future<void> m_workFut;
+    std::condition_variable m_eventVar;     // Used to wait for events
+    std::mutex m_eventMutex;                // Used to block event-signal-needed variables
+    std::list<EventType> m_eventList;       // List of events to process
+    size_t m_notifyCount {0};               // Used to avoid infinity signals
+    std::future<void> m_workFut;            // Used for program working cycle
 
+
+    ImageAnalyse::Processor m_imgProcessor; // Used to process images got from camera
+    InputProcessing::CameraDriver m_camera; // Used to take pictures to process later
+
+
+    // Sends signal on every event got
     void event(EventType e, bool maxPriority = false)
     {
         std::unique_lock<std::mutex> lock(m_eventMutex);
 
+        // Add event as first to proceed if it has max priority
         if (maxPriority)
             m_eventList.push_front(e);
         else
             m_eventList.push_back(e);
 
-        PRINT_LOG("Got event " << (int)e);
         m_eventVar.notify_one(); // Start notify chain
     }
 
+    // Waits for event until got needed
     ObjectDetector::EventType waitForEvent(EventType e)
     {
-        PRINT_LOG("Called for event " << (int)e);
         while (m_status.load() == ObjectDetector::ProgramStatus::IDLE)
         {
             std::unique_lock<std::mutex> lock(m_eventMutex);
-            PRINT_LOG("Waiting for event " << (int)e);
             m_eventVar.wait(lock);
-            PRINT_LOG("Read event " << (int)m_eventList.front());
 
-            if ((e != ObjectDetector::EventType::ANY) && (e != m_eventList.front()) && (m_notifyCount.load() < m_eventList.size()))
+            if ((e != ObjectDetector::EventType::ANY) && (e != m_eventList.front()) && (m_notifyCount < m_eventList.size()))
             {
-                // Remove deaf event
-                m_notifyCount.store(m_notifyCount.load() + 1);
+                // Remove dead event (that are could not be proceed by any waiting subject)
+                m_notifyCount++;
                 m_eventVar.notify_one();
             }
             else
             {
-                m_notifyCount.store(0);
+                // Exit function in case of right event got and erase it from list
+                m_notifyCount = 0;
                 auto currentEvent = m_eventList.front();
                 m_eventList.pop_front();
                 return currentEvent;
@@ -100,6 +101,11 @@ ObjectDetector::Interface::~Interface()
 
 }
 
+void ObjectDetector::Interface::setImageProcessorConfigDir(const std::string &cfgPath)
+{
+    d->m_imgProcessor.setConfigDirPath(cfgPath);
+}
+
 void ObjectDetector::Interface::setOutputFile(const std::string &ofPath)
 {
     d->m_ofpath = ofPath;
@@ -112,12 +118,12 @@ void ObjectDetector::Interface::init()
 
 
     setStatus(ObjectDetector::ProgramStatus::READY);
-    PRINT_SUC("Complete");
+    PRINT_SUC("Init complete");
 }
 
 void ObjectDetector::Interface::start()
 {
-    if (status() != ObjectDetector::ProgramStatus::READY)
+    if (!STATUS_CONTAINS(status(), ObjectDetector::ProgramStatus::READY))
         return;
 
     // Setup for start
@@ -134,12 +140,16 @@ void ObjectDetector::Interface::start()
             d->event(ObjectDetector::EventType::STARTED);
             while (status() == ObjectDetector::ProgramStatus::IDLE)
             {
-                PRINT_LOG("Waiting for events");
-                if (d->waitForEvent(ObjectDetector::EventType::ANY) == ObjectDetector::EventType::STOP)
+                // Exit if STOP event got
+                switch ( d->waitForEvent(ObjectDetector::EventType::ANY) )
                 {
+                case ObjectDetector::EventType::STOP:
                     setStatus(ObjectDetector::ProgramStatus::INIT_SUCCESS);
+                    break;
+
+                case ObjectDetector::SHOT:
+                    break;
                 }
-                PRINT_LOG("Got some event");
             }
 
 
@@ -153,8 +163,8 @@ void ObjectDetector::Interface::start()
 
 void ObjectDetector::Interface::stop()
 {
-    d->event(ObjectDetector::EventType::STOP, true);
     PRINT_LOG("Called");
+    d->event(ObjectDetector::EventType::STOP, true);
 }
 
 void ObjectDetector::Interface::poll()
@@ -164,10 +174,10 @@ void ObjectDetector::Interface::poll()
 
 ObjectDetector::ProgramStatus ObjectDetector::Interface::status() const
 {
-    return d->m_status.load();
+    return d->m_status;
 }
 
 void ObjectDetector::Interface::setStatus(ObjectDetector::ProgramStatus s)
 {
-    d->m_status.store(s);
+    d->m_status = s;
 }

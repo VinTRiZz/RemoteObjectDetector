@@ -7,7 +7,7 @@
 // For uint16_t, int8_t etc.
 #include <stdint.h>
 
-#define STATUS_CONTAINS(status_1, status_2) (static_cast<int>(status_1) & static_cast<int>(status_2))
+#define STATUS_CONTAINS(status_1, status_2) (static_cast<int>(status_1)& static_cast<int>(status_2))
 
 namespace ObjectDetector
 {
@@ -22,8 +22,8 @@ enum class ProgramStatus : uint8_t
     PROCESSING       = 1 << 3,
     IDLE             = 1 << 4,
 
-    INIT_SUCCESS     = ProgramStatus::READY & ProgramStatus::SUCCESS,
-    INIT_ERROR       = ProgramStatus::READY & ProgramStatus::ERROR
+    INIT_SUCCESS     = ProgramStatus::READY& ProgramStatus::SUCCESS,
+    INIT_ERROR       = ProgramStatus::READY& ProgramStatus::ERROR
 };
 
 // Interface to work with main project object
@@ -32,6 +32,9 @@ class Interface
 public:
     Interface();
     ~Interface();
+
+    // Set path to image processor configuration
+    void setImageProcessorConfigDir(const std::string& cfgPath);
 
     // ofPath is path to output file that will contain program output
     void setOutputFile(const std::string& ofPath);

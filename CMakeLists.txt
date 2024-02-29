@@ -8,8 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 file(GLOB HEADERS src/*.h)
 file(GLOB SOURCES src/*.cpp)
 
-# include_directories(/home/lazarev_as/Projects/Qt/UtilityLibrary/include)
-
 # Build output
 add_executable(ObjectDetector 
         ${SOURCES}
@@ -18,4 +16,9 @@ add_executable(ObjectDetector
 
 target_link_libraries(ObjectDetector -lcrypto)
 target_link_libraries(ObjectDetector -lpthread)
-# target_link_libraries(ObjectDetector -Llibs/UtilityLibrary)
+
+find_package(OpenCV REQUIRED)
+target_link_libraries(ObjectDetector -lopencv_core)
+target_link_libraries(ObjectDetector -lopencv_imgproc)
+target_link_libraries(ObjectDetector -lopencv_highgui)
+target_link_libraries(ObjectDetector -lopencv_photo)

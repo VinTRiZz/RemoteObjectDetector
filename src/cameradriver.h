@@ -19,26 +19,20 @@ enum class DriverStatus
 class CameraDriver
 {
 public:
-    CameraDriver();
+    CameraDriver(const std::string& deviceFile = "/dev/video1");
     ~CameraDriver();
     
     // Get status of driver
     DriverStatus status();
     
-    // Init class
+    // Init class using camera choosen
     void init();
-    
-    // Returns count of devices
-    int detectDevices();
-    
-    // Set device by number got with detectDevices() function
-    void setDevice(int no);
+
+    // Deinit class, releasing camera choosen
+    void deinit();
     
     // Ask camera to create a picture
-    bool shot();
-    
-    // Get picture data byte array in .jpg format
-    std::shared_ptr<uint8_t *> getPictureBytes();
+    bool shot(const std::string& outputFile);
     
 private:
     struct CameraDriverPrivate;
