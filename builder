@@ -1,11 +1,11 @@
 #! /bin/bash
 
-CURRENT_DIR=$(pwd)
+SCRIPT_DIR=$(dirname $(realpath "$0"))
 
 # Create dirs
-mkdir ./BUILD &> /dev/null
-mkdir ./BUILD/bin &> /dev/null
-cd BUILD
+cd $SCRIPT_DIR
+mkdir "$SCRIPT_DIR"/BUILD &> /dev/null
+cd "$SCRIPT_DIR"/BUILD
 
 # Configure
 cmake .. &&
