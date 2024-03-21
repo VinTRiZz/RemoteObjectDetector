@@ -9,7 +9,7 @@ using namespace std;
 
 ObjectDetector::Interface * pApp {nullptr};
 
-#define PRINT_LOG(what) std::cout << "[MAIN] " << what << std::endl
+#define PRINT_LOG(what) std::cout << what << std::endl
 
 void signalHandler(int signo)
 {

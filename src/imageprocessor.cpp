@@ -9,14 +9,14 @@
 // Terminal data output
 #include <iostream>
 
-#define PRINT_LOG(what) std::cout << "[ " << __FUNCTION__ << " ] " << what << std::endl
+#define PRINT_LOG(what) std::cout << "[ INFO ] " << what << std::endl
 #define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
-#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] [ " << __FILE__ << ":" << __LINE__ << " ] " << what << std::endl
+#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] " << what << std::endl
 
 namespace ImageAnalyse
 {
 
-struct ImageType
+struct ImageObject
 {
 private:
     // Path to template image
@@ -29,10 +29,10 @@ public:
     // Name (type) of image type
     std::string name;
 
-    ImageType() = default;
-    ~ImageType() = default;
+    ImageObject() = default;
+    ~ImageObject() = default;
 
-    bool operator !=(const ImageType& ot)
+    bool operator !=(const ImageObject& ot)
     {
         return (ot.name == name);
     }
@@ -78,7 +78,7 @@ public:
 struct ImageAnalyse::Processor::AnalysatorPrivate
 {
     std::string m_templatesDir;    // Path to directory with saved neural nets
-    std::vector<ImageType> m_types; // Contain types listed in config file in the same dir with neural nets
+    std::vector<ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
 
     // Used to process saved neural nets in m_templatesDir directory
     void processDirectory()
@@ -116,7 +116,7 @@ std::string ImageAnalyse::Processor::processPhoto(const std::string& imageFilePa
 
 void ImageAnalyse::Processor::addType(const std::string& type)
 {
-    ImageAnalyse::ImageType typ;
+    ImageAnalyse::ImageObject typ;
     typ.name = type;
 
     // Check if type already exist
