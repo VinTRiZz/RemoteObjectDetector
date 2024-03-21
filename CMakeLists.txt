@@ -2,23 +2,42 @@
 cmake_minimum_required(VERSION 2.8)
 project(ObjectDetector)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+# Setup output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BIN)
 
 # Build variables
-file(GLOB HEADERS src/*.h)
-file(GLOB SOURCES src/*.cpp)
+file(GLOB HEADERS "src/*.hpp" "src/*/*.hpp")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")
 
-# Build output
-add_executable(ObjectDetector 
-        ${SOURCES}
-        ${HEADERS}
+# Setup build target
+add_executable(
+    ${PROJECT_NAME}
+    ${SOURCES}
+    ${HEADERS}
 )
 
-target_link_libraries(ObjectDetector -lcrypto)
-target_link_libraries(ObjectDetector -lpthread)
-
+# Search for packages
 find_package(OpenCV REQUIRED)
-target_link_libraries(ObjectDetector -lopencv_core)
-target_link_libraries(ObjectDetector -lopencv_imgproc)
-target_link_libraries(ObjectDetector -lopencv_highgui)
-target_link_libraries(ObjectDetector -lopencv_photo)
+
+# For easier develop
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+)
+
+# Link libraries to target
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE
+    
+    # Other libs
+    -lpthread
+    -lcrypto
+    
+    # OpenCV
+    -lopencv_core
+    -lopencv_imgproc
+    -lopencv_highgui
+    -lopencv_photo
+)

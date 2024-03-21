@@ -1,13 +1,11 @@
 #include "System/mainapp.hpp"
-
-#include <loggers.hpp>
-#include <iostream>
+#include "logging.hpp"
 
 Components::MainApp::MainApp(int argc, char *argv[])
 {
     if (argc > 0)
     {
-        LOG_USER_INFO("Program started with arguments:");
+        LOG_INFO("Program started with arguments:");
 
         LOG_EMPTY("----------------------------------------------------------------");
         for (int i = 0; i < argc; i++)
@@ -105,7 +103,6 @@ bool Components::MainApp::init()
                 }
             }
         }
-        std::cout << std::endl;
     }
 
     LOG_EMPTY("\033[32m Init complete \033[0m");

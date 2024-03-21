@@ -1,8 +1,8 @@
-#include "interface.h"
+#include "interface.hpp"
 
 // Components
-#include "imageprocessor.h"
-#include "cameradriver.h"
+#include "Images/imageprocessor.h"
+#include "Images/cameradriver.h"
 
 // Event work
 #include <condition_variable>
@@ -16,6 +16,8 @@
 
 // Terminal data output
 #include <iostream>
+
+#include "logging.hpp"
 
 #define PRINT_LOG(what) std::cout << "[ INFO ] " << what << std::endl
 #define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
