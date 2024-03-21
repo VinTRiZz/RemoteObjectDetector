@@ -5,7 +5,7 @@ Components::MainApp::MainApp(int argc, char *argv[])
 {
     if (argc > 0)
     {
-        LOG_INFO("Program started with arguments:");
+        LOG_MAINAPP_MESSAGE("Program started with arguments:");
 
         LOG_EMPTY("----------------------------------------------------------------");
         for (int i = 0; i < argc; i++)
@@ -24,13 +24,13 @@ Components::MainApp::~MainApp()
 
 void Components::MainApp::addModule(Components::Module m)
 {
-    LOG_EMPTY("\033[36m Added module: " + m->name() +"\033[0m");
+    LOG_MAINAPP_MESSAGE("Added module: " + m->name());
     m_moduleVect.push_back(m);
 }
 
 bool Components::MainApp::init()
 {
-    LOG_EMPTY("\033[33m Initialisation started \033[0m");
+    LOG_MAINAPP_MESSAGE("Initialisation started");
 
     size_t initedModuleCount {0};
     size_t currentModuleNo {1};
@@ -48,11 +48,11 @@ bool Components::MainApp::init()
         if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
         {
             initedModuleCount++;
-            LOG_EMPTY("\033[32mModule inited: " + module->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")\033[0m");
+            LOG_OPRES_SUCCESS("Module inited: " + module->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
             continue;
         }
 
-        LOG_EMPTY("\033[31mModule: " + module->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")\033[0m");
+        LOG_OPRES_ERROR("Module: " + module->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
     }
 
     for (auto& moduleInitPair : asyncInitResults)
@@ -62,11 +62,11 @@ bool Components::MainApp::init()
             moduleInitPair.first->setStatus(moduleInitPair.second.get());
             if (moduleInitPair.first->status() == ModuleStatus::MODULE_STATUS_INITED)
             {
-                LOG_EMPTY("\033[32mModule inited: " + moduleInitPair.first->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")\033[0m");
+                LOG_OPRES_SUCCESS("Module inited: " + moduleInitPair.first->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
             }
             else
             {
-                LOG_ERROR("Module: " + moduleInitPair.first->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
+                LOG_OPRES_ERROR("Module: " + moduleInitPair.first->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
             }
         }
     }
@@ -74,7 +74,7 @@ bool Components::MainApp::init()
     // Connect all to all. No big need to optimise (one time fast proceed)
     for (auto module : m_moduleVect)
     {
-        LOG_EMPTY(std::string("Connecting module ") + module->name() + " (" + std::to_string(module->uid()) + ")");
+        LOG_INFO(std::string("Connecting module ") + module->name() + " (" + std::to_string(module->uid()) + ")");
 
         for (auto pCon : m_moduleVect)
         {
@@ -87,7 +87,7 @@ bool Components::MainApp::init()
             {
                 if (pCon->uid() == con)
                 {
-                    LOG_EMPTY(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
+                    LOG_INFO(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
                     module->m_connections.push_back(pCon);
                     break;
                 }
@@ -97,7 +97,7 @@ bool Components::MainApp::init()
             {
                 if (pCon->type() == con)
                 {
-                    LOG_EMPTY(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
+                    LOG_INFO(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
                     module->m_connections.push_back(pCon);
                     break;
                 }
@@ -105,13 +105,13 @@ bool Components::MainApp::init()
         }
     }
 
-    LOG_EMPTY("\033[32m Init complete \033[0m");
+    LOG_MAINAPP_MESSAGE("Init complete");
     return (initedModuleCount == m_moduleVect.size());
 }
 
 int Components::MainApp::exec()
 {
-    LOG_EMPTY("\033[36mStarting app\033[0m");
+    LOG_MAINAPP_MESSAGE("Starting modules");
     std::vector<std::future<ModuleExitCode>> moduleFutures;
     std::vector<std::shared_ptr<std::thread>> moduleThreads;
 
@@ -123,11 +123,11 @@ int Components::MainApp::exec()
                 moduleFutures.push_back(module->startAsync());
             else
                 moduleThreads.push_back(module->startThread());
-            LOG_EMPTY(std::string("Module ") + module->name() + " started");
+            LOG_OPRES_SUCCESS(std::string("Module ") + module->name() + " started");
         }
         else
         {
-            LOG_ERROR(std::string("Module ") + module->name() + " not started");
+            LOG_OPRES_ERROR(std::string("Module ") + module->name() + " not started");
         }
     }
 
@@ -145,7 +145,7 @@ int Components::MainApp::exec()
             pThread->join();
     }
 
-    LOG_EMPTY("----------------------- App exit normal ----------------------");
+    LOG_MAINAPP_MESSAGE("App exit normal");
     this->exit();
     return 0; // TODO: Add exitcodes?
 }

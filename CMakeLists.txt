@@ -34,6 +34,9 @@ target_link_libraries(
     # Other libs
     -lpthread
     -lcrypto
+
+    # C++ 14 troubles
+    -lstdc++fs
     
     # OpenCV
     -lopencv_core
