@@ -34,20 +34,16 @@ Module createImageProcessor()
     imageProcessorConfig.initFunction = [pImageProc](Module m){
         pImageProc->setImageTemplateDir(IMAGE_TEMPLATES_DIRECTORY);
 
-        LOG_IMPORTANT("Testing work of image processor");
-
-        const std::string fileToSearchIn {"textures/white-knight.png"};
-
-        LOG_INFO("Existing types:");
-        LOG_EMPTY("---------------");
+        LOG_INFO("Found types in a directory:");
         int cnt = 1;
         for (auto & t : pImageProc->availableTypes())
             LOG_EMPTY("%i) %s", cnt++, t.c_str());
-        LOG_EMPTY("---------------");
+        LOG_EMPTY("------------------------------------");
 
+
+        LOG_IMPORTANT("Testing work of image processor");
+        const std::string fileToSearchIn {"textures/white-knight.png"};
         LOG_INFO("On a picture object with type: \033[32m%s\033[0m", pImageProc->processPhoto(fileToSearchIn, 0.8).c_str());
-
-
         LOG_IMPORTANT("Testing work of image processor COMPLETE");
 
         return ModuleStatus::MODULE_STATUS_INITED;

@@ -105,7 +105,29 @@ ImageAnalyse::Processor::~Processor()
 void ImageAnalyse::Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_templatesDir = path;
-    processTemplatesDirectory();  // Update contents
+    d->m_types.clear();
+    addTemplatesFromDir(path);
+}
+
+void ImageAnalyse::Processor::addTemplatesFromDir(const std::string &path)
+{
+    if (!stdfs::exists(path) || !stdfs::is_directory(path))
+    {
+        LOG_ERROR("Invalid directory: %s", path.c_str());
+        return;
+    }
+
+    for (const auto& dirent : stdfs::directory_iterator(path))
+    {
+        if (stdfs::is_regular_file(dirent.path()))
+        {
+            std::string newTypeName = dirent.path().filename();
+            newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
+
+            addType(newTypeName);
+            setupType(newTypeName, dirent.path());
+        }
+    }
 }
 
 std::string ImageAnalyse::Processor::processPhoto(const std::string& imageFilePath, const double matchPercent)
@@ -161,25 +183,4 @@ void ImageAnalyse::Processor::setupType(const std::string& type, const std::stri
     auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });
     if (pos != d->m_types.end())
         pos->setTemplate(templateFile);
-}
-
-void ImageAnalyse::Processor::processTemplatesDirectory()
-{
-    if (!stdfs::exists(d->m_templatesDir) || !stdfs::is_directory(d->m_templatesDir))
-    {
-        LOG_ERROR("Invalid directory: %s", d->m_templatesDir.c_str());
-        return;
-    }
-
-    for (const auto& dirent : stdfs::directory_iterator(d->m_templatesDir))
-    {
-        if (stdfs::is_regular_file(dirent.path()))
-        {
-            std::string newTypeName = dirent.path().filename();
-            newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
-
-            addType(newTypeName);
-            setupType(newTypeName, dirent.path());
-        }
-    }
 }

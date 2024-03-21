@@ -21,6 +21,7 @@ public:
 
     // Sets directory where processor will try to find configuration
     void setImageTemplateDir(const std::string& path);
+    void addTemplatesFromDir(const std::string& path);
 
     // Analyse photo saved by path, matchPercent is lowest percent to say that image found
     // Returns "Unknown" or type
@@ -38,8 +39,6 @@ public:
     void setupType(const std::string& type, const std::string& templateFile);
     
 private:
-    void processTemplatesDirectory();
-
     struct AnalysatorPrivate;
     std::unique_ptr<AnalysatorPrivate> d;
 };
