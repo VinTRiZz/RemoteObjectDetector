@@ -97,6 +97,15 @@ struct ModuleConfiguration
     std::function<ModuleExitCode(Module)>   workFunction;
     std::function<Message(Message)>         inputProcessor;
     std::function<void(Module)>             stopFunction;
+
+    // Used in MainApp class
+    void addRequiredConnectionUid(ModuleUid _uid);
+    void addRequiredConnectionType(ModuleTypes _type);
+
+private:
+    std::vector<ModuleUid> requiredConnections;
+    std::vector<ModuleTypes> requiredConnectionTypes;
+    friend class MainApp; // To work with methods down here
 };
 
 // Class to process messages between system modules
@@ -112,8 +121,6 @@ private:
 
     // Connections
     std::vector<Module> m_connections;
-    std::vector<ModuleUid> m_requiredConnections;
-    std::vector<ModuleTypes> m_requiredConnectionTypes;
 
     // For non-async using
     std::shared_ptr<std::thread> m_workingThread;
@@ -144,13 +151,9 @@ public:
     void setStatus(ModuleStatus s);
 
 
-    // Used in MainApp class
-    void addRequiredConnectionUid(ModuleUid _uid);
-    void addRequiredConnectionType(ModuleTypes _type);
-
     // Connections work
-    Message sendToModuleUid(ModuleUid _uid, Message msg);
-    Message sendToModuleType(ModuleTypes _type, Message msg);
+    Message sendToModuleUid(ModuleUid _uid, const std::string &msg);
+    Message sendToModuleType(ModuleTypes _type, const std::string &msg);
     std::vector<Module> connections() const;
     Message process(Message msg);
 

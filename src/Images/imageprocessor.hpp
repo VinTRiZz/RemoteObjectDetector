@@ -8,9 +8,10 @@
 #include <memory>
 
 // For data arrays
+#include <map>
 #include <vector>
 
-namespace ImageAnalyse
+namespace Analyse
 {
     
 class Processor
@@ -24,8 +25,8 @@ public:
     void addTemplatesFromDir(const std::string& path);
 
     // Analyse photo saved by path, matchPercent is lowest percent to say that image found
-    // Returns "Unknown" or type
-    std::string processPhoto(const std::string& imageFilePath, const double matchPercent = 0.8);
+    // Returns pairs < object - match percent >
+    std::map<std::string, float> getObjects(const std::string &imageFilePath, float matchPercent = 0.8);
     
     // Object type list manipulations
     void addType(const std::string& type);

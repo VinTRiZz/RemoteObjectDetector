@@ -20,7 +20,7 @@ enum class MessageType : uint8_t
     MESSAGE_TYPE_EMPTY,     // To print just text, without data, place etc. labels
 
     MESSAGE_TYPE_MAINAPP,   // Messages from MainApp class (application status)
-    MESSAGE_TYPE_IMPORTANT, // Important messages
+    MESSAGE_TYPE_DEBUG,     // Debug messages
 
     // App function results
     MESSAGE_TYPE_INFO,
@@ -48,7 +48,7 @@ const std::string LOGFILE_PATH {"./ObjectDetector.log"};
 // Etc logging
 #define LOG_EMPTY(message, ...)             log(Logging::MessageType::MESSAGE_TYPE_EMPTY,       stdfs::path(__FILE__).filename(), __LINE__,  message, ##__VA_ARGS__)
 #define LOG_MAINAPP_MESSAGE(message, ...)   log(Logging::MessageType::MESSAGE_TYPE_MAINAPP,     stdfs::path(__FILE__).filename(), __LINE__,  message, ##__VA_ARGS__)
-#define LOG_IMPORTANT(message, ...)         log(Logging::MessageType::MESSAGE_TYPE_IMPORTANT,   stdfs::path(__FILE__).filename(), __LINE__,  message, ##__VA_ARGS__)
+#define LOG_DEBUG(message, ...)         log(Logging::MessageType::MESSAGE_TYPE_DEBUG,   stdfs::path(__FILE__).filename(), __LINE__,  message, ##__VA_ARGS__)
 
 }
 

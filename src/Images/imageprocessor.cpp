@@ -16,7 +16,7 @@
 #include "logging.hpp"
 
 
-namespace ImageAnalyse
+namespace Analyse
 {
 
 struct ImageObject
@@ -47,7 +47,7 @@ public:
     }
 
     // Ask if object is actually the searching for, using match percent above that it's true
-    bool isObject(const std::string& filePath, const double matchPercent = 0.8)
+    float match(const std::string& filePath)
     {
         if (templateImage.empty())
             return false;
@@ -67,49 +67,38 @@ public:
         cv::Point minLoc, maxLoc;
         cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
 
-        if (maxVal >= matchPercent)
-        {
-            LOG_OPRES_SUCCESS("Type [ %s ] match percent: [ %f ]", name.c_str(), maxVal * 100.0);
-        }
-        else
-        {
-            LOG_OPRES_ERROR("Type [ %s ] match percent: [ %f ]", name.c_str(), maxVal * 100.0);
-        }
-
         // Check if image found
-        if (maxVal < matchPercent)
-            return false;
-        return true;
+        return maxVal;
     }
 };
 
 }
 
-struct ImageAnalyse::Processor::AnalysatorPrivate
+struct Analyse::Processor::AnalysatorPrivate
 {
     std::string m_templatesDir;    // Path to directory with saved neural nets
     std::vector<ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
 };
 
-ImageAnalyse::Processor::Processor() :
+Analyse::Processor::Processor() :
     d {new AnalysatorPrivate()}
 {
 
 }
 
-ImageAnalyse::Processor::~Processor()
+Analyse::Processor::~Processor()
 {
 
 }
 
-void ImageAnalyse::Processor::setImageTemplateDir(const std::string& path)
+void Analyse::Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_templatesDir = path;
     d->m_types.clear();
     addTemplatesFromDir(path);
 }
 
-void ImageAnalyse::Processor::addTemplatesFromDir(const std::string &path)
+void Analyse::Processor::addTemplatesFromDir(const std::string &path)
 {
     if (!stdfs::exists(path) || !stdfs::is_directory(path))
     {
@@ -130,19 +119,25 @@ void ImageAnalyse::Processor::addTemplatesFromDir(const std::string &path)
     }
 }
 
-std::string ImageAnalyse::Processor::processPhoto(const std::string& imageFilePath, const double matchPercent)
+std::map<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float matchPercent)
 {
+    std::map<std::string, float> matches;
+    float tempMatchPercent {0};
+
     for (auto& t : d->m_types)
     {
-        if (t.isObject(imageFilePath, matchPercent))
-            return t.name;
+        tempMatchPercent = t.match(imageFilePath);
+
+        if (tempMatchPercent > matchPercent)
+            matches[t.name] = tempMatchPercent * 100.0f;
     }
-    return "Unknown";
+
+    return matches;
 }
 
-void ImageAnalyse::Processor::addType(const std::string& type)
+void Analyse::Processor::addType(const std::string& type)
 {
-    ImageAnalyse::ImageObject typ;
+    Analyse::ImageObject typ;
     typ.name = type;
 
     // Check if type already exist
@@ -156,7 +151,7 @@ void ImageAnalyse::Processor::addType(const std::string& type)
     std::sort(d->m_types.begin(), d->m_types.end(), [](auto& t_a, auto& t_b){ return t_a.name < t_b.name;});
 }
 
-bool ImageAnalyse::Processor::removeType(const std::string& type)
+bool Analyse::Processor::removeType(const std::string& type)
 {
     // Check if type not exist
     auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });
@@ -167,7 +162,7 @@ bool ImageAnalyse::Processor::removeType(const std::string& type)
     return true;
 }
 
-std::vector<std::string> ImageAnalyse::Processor::availableTypes() const
+std::vector<std::string> Analyse::Processor::availableTypes() const
 {
     // Copy type names from internal vector
     std::vector<std::string> output;
@@ -177,7 +172,7 @@ std::vector<std::string> ImageAnalyse::Processor::availableTypes() const
     return output;
 }
 
-void ImageAnalyse::Processor::setupType(const std::string& type, const std::string& templateFile)
+void Analyse::Processor::setupType(const std::string& type, const std::string& templateFile)
 {
     // Find type and setup it, if found
     auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });

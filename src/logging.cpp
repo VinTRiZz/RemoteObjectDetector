@@ -35,9 +35,9 @@ void setupColorAndText(MessageType type, std::string& color, std::string& text)
         text  = "ERROR";
         break;
 
-    case MessageType::MESSAGE_TYPE_IMPORTANT:
+    case MessageType::MESSAGE_TYPE_DEBUG:
         color = "\033[35m";
-        text  = "IMPORTANT";
+        text  = "DEBUG";
         break;
 
     case MessageType::MESSAGE_TYPE_MAINAPP:
@@ -88,7 +88,9 @@ void Logging::log(Logging::MessageType type, const std::string &fileName, uint64
     currentTime.erase(currentTime.length() - 1);            // Erase garbage
 
     std::string logInfo = "[ " + currentTime + "] ";
-    if ((type != MessageType::MESSAGE_TYPE_EMPTY) && (type != MessageType::MESSAGE_TYPE_MAINAPP))
+    if ((type != MessageType::MESSAGE_TYPE_EMPTY) &&
+        (type != MessageType::MESSAGE_TYPE_MAINAPP) &&
+        (type != MessageType::MESSAGE_TYPE_OPRESULT_SUCCESS))
         logInfo += "[ " + fileName + ":" + std::to_string(line) + " ] ";
 
     // Save log data to file

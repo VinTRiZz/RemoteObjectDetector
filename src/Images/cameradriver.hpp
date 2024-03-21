@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace InputProcessing
+namespace Drivers
 {
 enum class DriverStatus
 {

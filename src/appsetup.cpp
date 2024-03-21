@@ -11,18 +11,16 @@
 using namespace Components;
 MainApp * pApp {nullptr};
 
-const std::string IMAGE_TEMPLATES_DIRECTORY {"textures"};
-
 
 // ---------------------------------------------- //
 // ---------------------------------------------- //
 // ------------- MODULES CREATING --------------- //
 // ---------------------------------------------- //
 // ---------------------------------------------- //
-Module createImageProcessor()
+Module createImageProcessor(const std::vector<std::string>& templateDirs)
 {
     // Create image processor
-    auto pImageProc = std::shared_ptr<ImageAnalyse::Processor>(new ImageAnalyse::Processor(), std::default_delete<ImageAnalyse::Processor>());
+    auto pImageProc = std::shared_ptr<Analyse::Processor>(new Analyse::Processor(), std::default_delete<Analyse::Processor>());
 
     // Setup configuration of module
     ModuleConfiguration imageProcessorConfig;
@@ -31,29 +29,65 @@ Module createImageProcessor()
     imageProcessorConfig.initAsync = true;
     imageProcessorConfig.workAsync = true;
 
-    imageProcessorConfig.initFunction = [pImageProc](Module m){
-        pImageProc->setImageTemplateDir(IMAGE_TEMPLATES_DIRECTORY);
+    // Setup init function for image processor
+    imageProcessorConfig.initFunction = [pImageProc, templateDirs](Module m){
 
-        LOG_INFO("Found types in a directory:");
+        for (auto& templateDir : templateDirs)
+            pImageProc->setImageTemplateDir(templateDir);
+
+        // Show what types found in a directory
+        LOG_INFO("Found types:");
         int cnt = 1;
         for (auto & t : pImageProc->availableTypes())
             LOG_EMPTY("%i) %s", cnt++, t.c_str());
         LOG_EMPTY("------------------------------------");
 
-
-        LOG_IMPORTANT("Testing work of image processor");
-        const std::string fileToSearchIn {"textures/white-knight.png"};
-        LOG_INFO("On a picture object with type: \033[32m%s\033[0m", pImageProc->processPhoto(fileToSearchIn, 0.8).c_str());
-        LOG_IMPORTANT("Testing work of image processor COMPLETE");
-
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
     imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
+
+        LOG_DEBUG("Testing work of image processor");
+        auto objects = pImageProc->getObjects(msg->payload, 0.4);
+
+        float mustBe = 0;
+        std::pair<std::string, float> foundObject;
+        for (auto& obj : objects)
+        {
+            if (obj.second > mustBe)
+                foundObject = obj;
+
+            LOG_OPRES_SUCCESS("Type [ %s ] match percent: [ %f ]", obj.first.c_str(), obj.second);
+        }
+        LOG_INFO("On a picture object with type: \033[32m%s\033[0m", foundObject.first.c_str());
+        LOG_DEBUG("Testing work of image processor COMPLETE");
+
         return msg;
     };
 
     return ModuleClass::createModule(imageProcessorConfig);
+}
+
+
+Module createCameraModule(const std::string& cameraFile)
+{
+    ModuleConfiguration cameraConfig;
+    cameraConfig.name = "Camera";
+    cameraConfig.initAsync = true;
+    cameraConfig.workAsync = true;
+    cameraConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
+
+
+    cameraConfig.initFunction = [](Module m){
+        return ModuleStatus::MODULE_STATUS_INITED;
+    };
+
+    cameraConfig.workFunction = [](Module m){
+        m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, "templates/white-king.png");
+        return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+    };
+
+    return ModuleClass::createModule(cameraConfig);
 }
 
 
@@ -68,7 +102,39 @@ void AppSetup::setupApp(MainApp &app)
 {
     pApp = &app; // For signal handling
 
-    app.addModule(createImageProcessor());
+    const std::string cameraArgumentName {"--camera="};
+
+    if (app.argCount() > 1)
+    {
+        if (app.argument(1) == "--help")
+        {
+            LOG_MAINAPP_MESSAGE("Usage: %s [ --help | %s/dev/exampleCamera1 ] [ templateFilesDirectory(ies) ]", cameraArgumentName.c_str());
+            kill(0, SIGINT);
+        }
+    }
+    else
+    {
+        LOG_MAINAPP_MESSAGE("No camera provided (try --help)");
+        kill(0, SIGINT);
+    }
+
+
+    auto args = app.args();
+    if (args.size() > 2)
+    {
+        args.erase(args.begin(), args.begin() + 2); // Remove 0 arg
+    }
+    else
+    {
+        LOG_MAINAPP_MESSAGE("No even 1 template directory provided (try --help)");
+        kill(0, SIGINT);
+    }
+
+    std::string cameraFile = app.argument(1);
+    cameraFile.erase(0, cameraArgumentName.size());
+
+    app.addModule(createCameraModule(cameraFile));
+    app.addModule(createImageProcessor(args));
 }
 
 
@@ -87,11 +153,12 @@ void signalHandler(int signo)
 {
     if (signo == SIGINT)
     {
-        LOG_WARNING("Interrupt signal got. Stopping app...");
+        LOG_MAINAPP_MESSAGE("Exiting...");
         if (pApp != nullptr)
         {
             pApp->exit();
-            LOG_OPRES_SUCCESS("App stopped");
+            LOG_OPRES_SUCCESS("App exited");
+            exit(0);
         }
         else
         {
@@ -113,5 +180,5 @@ void AppSetup::independentSetup()
     // Setup signals for OS
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
-    LOG_INFO("Setup complete");
+    LOG_MAINAPP_MESSAGE("Independent setup complete");
 }

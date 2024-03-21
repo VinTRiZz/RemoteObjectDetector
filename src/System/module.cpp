@@ -62,49 +62,54 @@ void Components::ModuleClass::setStatus(Components::ModuleStatus s)
     m_status = s;
 }
 
-void Components::ModuleClass::addRequiredConnectionUid(ModuleUid _uid)
+void Components::ModuleConfiguration::addRequiredConnectionUid(ModuleUid _uid)
 {
-    for (auto uid : m_requiredConnections)
+    for (auto uid : requiredConnections)
     {
         if (uid == _uid)
             return;
     }
-    m_requiredConnections.push_back(_uid);
+    requiredConnections.push_back(_uid);
 }
 
-void Components::ModuleClass::addRequiredConnectionType(ModuleTypes _type)
+void Components::ModuleConfiguration::addRequiredConnectionType(ModuleTypes _type)
 {
-    for (auto t : m_requiredConnectionTypes)
+    for (auto t : requiredConnectionTypes)
     {
         if (t == _type)
             return;
     }
 
-    for (auto uid : m_requiredConnections)
+    for (auto uid : requiredConnections)
     {
         if (reinterpret_cast<Components::ModuleClass*>(uid)->type() == _type)
             return;
     }
 
-    m_requiredConnectionTypes.push_back(_type);
+    requiredConnectionTypes.push_back(_type);
 }
 
-Components::Message Components::ModuleClass::sendToModuleUid(Components::ModuleUid _uid, Components::Message msg)
+Components::Message Components::ModuleClass::sendToModuleUid(Components::ModuleUid _uid, const std::string& msg)
 {
+    Message messageToSend = MessageStruct::create(this->uid(), _uid, msg);
     for (auto con : m_connections)
     {
         if (con->uid() == _uid)
-            return con->process(msg);
+            return con->process(messageToSend);
     }
     return Message();
 }
 
-Components::Message Components::ModuleClass::sendToModuleType(Components::ModuleTypes _type, Components::Message msg)
+Components::Message Components::ModuleClass::sendToModuleType(Components::ModuleTypes _type, const std::string& msg)
 {
+    Message messageToSend = MessageStruct::create(this->uid(), 0, msg);
     for (auto con : m_connections)
     {
         if (con->type() == _type)
-            return con->process(msg);
+        {
+            messageToSend->receiverUid = con->uid();
+            return con->process(messageToSend);
+        }
     }
     return Message();
 }

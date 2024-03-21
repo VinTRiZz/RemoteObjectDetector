@@ -9,7 +9,10 @@ Components::MainApp::MainApp(int argc, char *argv[])
 
         LOG_EMPTY("----------------------------------------------------------------");
         for (int i = 0; i < argc; i++)
+        {
+            m_argsVect.push_back(argv[i]);
             LOG_EMPTY(argv[i]);
+        }
 
         LOG_EMPTY("----------------------------------------------------------------");
     }
@@ -26,6 +29,60 @@ void Components::MainApp::addModule(Components::Module m)
 {
     LOG_MAINAPP_MESSAGE("Added module: " + m->name());
     m_moduleVect.push_back(m);
+}
+
+std::size_t Components::MainApp::argCount() const
+{
+    return m_argsVect.size();
+}
+
+std::vector<std::string> Components::MainApp::args() const
+{
+    return m_argsVect;
+}
+
+std::vector<Components::Module> Components::MainApp::modules() const
+{
+    return m_moduleVect;
+}
+
+Components::Module Components::MainApp::getModuleByName(const std::string &_name)
+{
+    for (auto m : m_moduleVect)
+    {
+        if (m->name() == _name)
+            return m;
+    }
+    return Module();
+}
+
+Components::Module Components::MainApp::getModuleByType(Components::ModuleTypes _type)
+{
+    for (auto m : m_moduleVect)
+    {
+        if (m->type() == _type)
+            return m;
+    }
+    return Module();
+}
+
+Components::Module Components::MainApp::getModuleByUid(Components::ModuleUid _uid)
+{
+    for (auto m : m_moduleVect)
+    {
+        if (m->uid() == _uid)
+            return m;
+    }
+    return Module();
+}
+
+std::string Components::MainApp::argument(std::size_t argNo)
+{
+    if (m_argsVect.size() > argNo)
+    {
+        return m_argsVect[argNo];
+    }
+    return "";
 }
 
 bool Components::MainApp::init()
@@ -83,7 +140,7 @@ bool Components::MainApp::init()
                 continue;
 
             // Connect to needed modules by ids
-            for (auto con : module->m_requiredConnections)
+            for (auto con : module->m_config.requiredConnections)
             {
                 if (pCon->uid() == con)
                 {
@@ -94,7 +151,7 @@ bool Components::MainApp::init()
             }
 
             // Connect to needed modules by types
-            for (auto con : module->m_requiredConnectionTypes)
+            for (auto con : module->m_config.requiredConnectionTypes)
             {
                 if (pCon->type() == con)
                 {

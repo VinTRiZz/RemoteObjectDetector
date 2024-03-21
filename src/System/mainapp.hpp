@@ -17,6 +17,16 @@ public:
 
     void addModule(Module m);
 
+    // Work with arguments passed to app
+    std::string argument(std::size_t argNo);
+    std::size_t argCount() const;
+    std::vector<std::string> args() const;
+
+    std::vector<Module> modules() const;
+    Module getModuleByName(const std::string& _name);
+    Module getModuleByType(ModuleTypes _type);
+    Module getModuleByUid(ModuleUid _uid);
+
     // Return true if inited successfully
     bool init();
 
@@ -28,6 +38,7 @@ public:
 
 private:
     std::vector<Module> m_moduleVect;
+    std::vector<std::string> m_argsVect;
 };
 
 }
