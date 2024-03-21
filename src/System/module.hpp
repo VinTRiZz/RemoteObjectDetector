@@ -157,10 +157,16 @@ public:
     std::vector<Module> connections() const;
     Message process(Message msg);
 
+
     // Used in threaded, otherwise useless
     // (locks internal data mutex)
     void lock();
     void unlock();
+
+    // Utils, can be rewrited to use in other way
+    void sleep_us(uint64_t time);
+    void sleep_ms(uint64_t time);
+    void sleep_s(uint64_t time);
 
 private:
     friend class MainApp; // To work with methods down here

@@ -71,6 +71,9 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
 
 Module createCameraModule(const std::string& cameraFile)
 {
+    auto pCamera = std::shared_ptr<Drivers::CameraDriver>(new Drivers::CameraDriver(cameraFile), std::default_delete<Drivers::CameraDriver>());
+    auto pDoneSignal = std::make_shared<bool>(false);
+
     ModuleConfiguration cameraConfig;
     cameraConfig.name = "Camera";
     cameraConfig.initAsync = true;
@@ -78,13 +81,40 @@ Module createCameraModule(const std::string& cameraFile)
     cameraConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
 
 
-    cameraConfig.initFunction = [](Module m){
+    cameraConfig.initFunction = [pCamera](Module m){
+
+        pCamera->init();
+
+        if (pCamera->status() != Drivers::DriverStatus::READY)
+        {
+            return ModuleStatus::MODULE_STATUS_ERROR;
+        }
+
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    cameraConfig.workFunction = [](Module m){
-        m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, "templates/white-king.png");
+    cameraConfig.workFunction = [pCamera, pDoneSignal](Module m){
+        m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
+
+        const std::string tempPhotoPath {"templates/white-king.png"};
+        while (!*pDoneSignal)
+        {
+            m->sleep_s(1);
+            if (!pCamera->shot(tempPhotoPath))
+            {
+                LOG_OPRES_ERROR("Camera did not shot");
+                continue;
+            }
+
+            LOG_OPRES_SUCCESS("Photo got, processing...");
+            m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, tempPhotoPath);
+        }
         return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+    };
+
+    cameraConfig.stopFunction = [pDoneSignal](Module m) {
+        *pDoneSignal = true;
+        m->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
     };
 
     return ModuleClass::createModule(cameraConfig);

@@ -167,6 +167,8 @@ void Components::ModuleClass::stop()
         m_config.stopFunction(m_pSelf.lock());
 }
 
+
+
 void Components::ModuleClass::lock()
 {
     m_workingThreadMx.lock();
@@ -175,4 +177,21 @@ void Components::ModuleClass::lock()
 void Components::ModuleClass::unlock()
 {
     m_workingThreadMx.unlock();
+}
+
+
+
+void Components::ModuleClass::sleep_us(uint64_t time)
+{
+    std::this_thread::sleep_for(std::chrono::microseconds(time));
+}
+
+void Components::ModuleClass::sleep_ms(uint64_t time)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(time));
+}
+
+void Components::ModuleClass::sleep_s(uint64_t time)
+{
+    std::this_thread::sleep_for(std::chrono::seconds(time));
 }

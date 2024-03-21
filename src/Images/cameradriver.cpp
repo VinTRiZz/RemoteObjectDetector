@@ -1,7 +1,7 @@
 #include "cameradriver.hpp"
 
 #include <opencv2/opencv.hpp>
-
+#include "logging.hpp"
 
 struct Drivers::CameraDriver::CameraDriverPrivate
 {
@@ -62,6 +62,11 @@ Drivers::CameraDriver::~CameraDriver()
     if (d) delete d;
 }
 
+Drivers::DriverStatus Drivers::CameraDriver::status()
+{
+    return d->m_status;
+}
+
 void Drivers::CameraDriver::init()
 {
     d->m_status = Drivers::DriverStatus::BUSY;
@@ -69,9 +74,12 @@ void Drivers::CameraDriver::init()
     d->m_capture.open(d->m_deviceFilePath);
     if (d->m_capture.isOpened())
     {
+        LOG_OPRES_ERROR("(Camera) Can't open file: %s", d->m_deviceFilePath.c_str());
         d->m_status = Drivers::DriverStatus::ERROR;
         return;
     }
+    LOG_OPRES_SUCCESS("(Camera) Init succeed");
+    d->m_status = Drivers::DriverStatus::READY;
 }
 
 void Drivers::CameraDriver::deinit()
