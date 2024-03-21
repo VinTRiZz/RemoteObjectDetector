@@ -38,6 +38,8 @@ public:
     void setupType(const std::string& type, const std::string& templateFile);
     
 private:
+    void processTemplatesDirectory();
+
     struct AnalysatorPrivate;
     std::unique_ptr<AnalysatorPrivate> d;
 };

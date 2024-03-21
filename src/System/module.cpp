@@ -89,6 +89,26 @@ void Components::ModuleClass::addRequiredConnectionType(ModuleTypes _type)
     m_requiredConnectionTypes.push_back(_type);
 }
 
+Components::Message Components::ModuleClass::sendToModuleUid(Components::ModuleUid _uid, Components::Message msg)
+{
+    for (auto con : m_connections)
+    {
+        if (con->uid() == _uid)
+            return con->process(msg);
+    }
+    return Message();
+}
+
+Components::Message Components::ModuleClass::sendToModuleType(Components::ModuleTypes _type, Components::Message msg)
+{
+    for (auto con : m_connections)
+    {
+        if (con->type() == _type)
+            return con->process(msg);
+    }
+    return Message();
+}
+
 std::vector<Components::Module> Components::ModuleClass::connections() const
 {
     return m_connections;

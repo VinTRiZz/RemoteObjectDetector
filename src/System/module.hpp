@@ -23,17 +23,10 @@ namespace Components
 // Defines what is this module
 enum ModuleTypes : uint16_t
 {
-    MODULE_TYPE_UNKNOWN,        // Can be used to detect dead modules, etc
-    MODULE_TYPE_TEST_MODULE,    // To test work of modules
-    MAIN_TIMER_MODULE,          // Main timer module for signals on a time
-    COMMISSION_MODULE,          // Commission module
-    MOTHERBOARD_MODULE,         // Motherboard module
-    CPU_MODULE,                 // CPU module
-    GPU_MANAGER_MODULE,         // GPU Manager module (AMD, Nvidia, etc.)
-    RAM_MODULE,                 // RAM card manager module
-    DRIVE_MODULE,               // HDD, SSD drives module
-    NETWORK_MANAGER_MODULE,     // Network manager
-    CONNECTOR_MODULE,           // Connector to backend
+    MODULE_TYPE_UNKNOWN,            // Can be used to detect dead modules, etc
+    MODULE_TYPE_TEST_MODULE,        // To test work of modules
+    MODULE_TYPE_IMAGE_PROCESSOR,    // Image processor
+    MODULE_TYPE_CAMERA,             // Camera module
 };
 
 
@@ -156,6 +149,8 @@ public:
     void addRequiredConnectionType(ModuleTypes _type);
 
     // Connections work
+    Message sendToModuleUid(ModuleUid _uid, Message msg);
+    Message sendToModuleType(ModuleTypes _type, Message msg);
     std::vector<Module> connections() const;
     Message process(Message msg);
 

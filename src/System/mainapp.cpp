@@ -82,7 +82,7 @@ bool Components::MainApp::init()
             if (pCon->uid() == module->uid())
                 continue;
 
-            // Connect if not listed yet
+            // Connect to needed modules by ids
             for (auto con : module->m_requiredConnections)
             {
                 if (pCon->uid() == con)
@@ -93,6 +93,7 @@ bool Components::MainApp::init()
                 }
             }
 
+            // Connect to needed modules by types
             for (auto con : module->m_requiredConnectionTypes)
             {
                 if (pCon->type() == con)
@@ -147,12 +148,11 @@ int Components::MainApp::exec()
 
     LOG_MAINAPP_MESSAGE("App exit normal");
     this->exit();
-    return 0; // TODO: Add exitcodes?
+    return 0;
 }
 
 void Components::MainApp::exit()
 {
-    // TODO: Work with __status
     for (auto module : m_moduleVect)
     {
         if (module->status() == ModuleStatus::MODULE_STATUS_RUNNING)

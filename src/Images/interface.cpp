@@ -1,8 +1,8 @@
 #include "interface.hpp"
 
 // Components
-#include "Images/imageprocessor.h"
-#include "Images/cameradriver.h"
+#include "imageprocessor.hpp"
+#include "cameradriver.hpp"
 
 // Event work
 #include <condition_variable>

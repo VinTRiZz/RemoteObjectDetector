@@ -1,4 +1,4 @@
-#include "imageprocessor.h"
+#include "imageprocessor.hpp"
 
 // Template matching from OpenCV
 #include <opencv2/opencv.hpp>
@@ -9,9 +9,12 @@
 // Terminal data output
 #include <iostream>
 
-#define PRINT_LOG(what) std::cout << "[ INFO ] " << what << std::endl
-#define PRINT_SUC(what) std::cout << "[\033[32m OK! \033[0m] " << what << std::endl
-#define PRINT_ERR(what) std::cout << "[\033[31mERROR\033[0m] " << what << std::endl
+// Directory processing
+#include <dirent.h>
+
+// Log info
+#include "logging.hpp"
+
 
 namespace ImageAnalyse
 {
@@ -64,7 +67,14 @@ public:
         cv::Point minLoc, maxLoc;
         cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
 
-        PRINT_LOG("Match percent: " << maxVal * 100.0);
+        if (maxVal >= matchPercent)
+        {
+            LOG_OPRES_SUCCESS("Type [ %s ] match percent: [ %f ]", name.c_str(), maxVal * 100.0);
+        }
+        else
+        {
+            LOG_OPRES_ERROR("Type [ %s ] match percent: [ %f ]", name.c_str(), maxVal * 100.0);
+        }
 
         // Check if image found
         if (maxVal < matchPercent)
@@ -79,12 +89,6 @@ struct ImageAnalyse::Processor::AnalysatorPrivate
 {
     std::string m_templatesDir;    // Path to directory with saved neural nets
     std::vector<ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
-
-    // Used to process saved neural nets in m_templatesDir directory
-    void processDirectory()
-    {
-        // TODO: Read all NN in the dir
-    }
 };
 
 ImageAnalyse::Processor::Processor() :
@@ -101,7 +105,7 @@ ImageAnalyse::Processor::~Processor()
 void ImageAnalyse::Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_templatesDir = path;
-    d->processDirectory();  // Update contents
+    processTemplatesDirectory();  // Update contents
 }
 
 std::string ImageAnalyse::Processor::processPhoto(const std::string& imageFilePath, const double matchPercent)
@@ -157,4 +161,25 @@ void ImageAnalyse::Processor::setupType(const std::string& type, const std::stri
     auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });
     if (pos != d->m_types.end())
         pos->setTemplate(templateFile);
+}
+
+void ImageAnalyse::Processor::processTemplatesDirectory()
+{
+    if (!stdfs::exists(d->m_templatesDir) || !stdfs::is_directory(d->m_templatesDir))
+    {
+        LOG_ERROR("Invalid directory: %s", d->m_templatesDir.c_str());
+        return;
+    }
+
+    for (const auto& dirent : stdfs::directory_iterator(d->m_templatesDir))
+    {
+        if (stdfs::is_regular_file(dirent.path()))
+        {
+            std::string newTypeName = dirent.path().filename();
+            newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
+
+            addType(newTypeName);
+            setupType(newTypeName, dirent.path());
+        }
+    }
 }
