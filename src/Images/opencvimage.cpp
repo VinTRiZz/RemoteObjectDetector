@@ -38,14 +38,15 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
 
     // Rotate 90
     templateImages.push_back({});
+    cv::Point p1, p2;
     cv::transpose(templateImages[0], templateImages[currentIndex]);
-    cv::flip(templateImages[0], templateImages[currentIndex], 1);
+    cv::flip(templateImages[currentIndex], templateImages[currentIndex], 1);
     currentIndex++;
 
     // Rotate -90
     templateImages.push_back({});
     cv::transpose(templateImages[0], templateImages[currentIndex]);
-    cv::flip(templateImages[0], templateImages[currentIndex], 1);
+//    cv::flip(templateImages[0], templateImages[currentIndex], -1);
     currentIndex++;
 
     // Rotate 180
@@ -73,9 +74,9 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
 
             // Compare
             if (maxVal > minimalMatch) return maxVal;
-            //                cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_CCOEFF_NORMED);
-            cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_CCORR_NORMED);
-            //                cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_SQDIFF_NORMED);
+                cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_CCOEFF_NORMED);
+//            cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_CCORR_NORMED);
+//                cv::matchTemplate(compareImage, templateImages[i], result, cv::TM_SQDIFF_NORMED);
             if (maxVal > minimalMatch) return maxVal;
             cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
             if (maxVal > minimalMatch) return maxVal;
