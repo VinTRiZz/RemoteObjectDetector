@@ -46,22 +46,22 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
     };
 
     imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
-
-        LOG_DEBUG("Testing work of image processor");
-        auto objects = pImageProc->getObjects(msg->payload, 0.4);
-
         float mustBe = 0;
-        std::pair<std::string, float> foundObject;
-        for (auto& obj : objects)
+        std::pair<std::string, float> foundObject {"Nothing", 0};
+        for (auto& obj : pImageProc->getObjects(msg->payload))
         {
             if (obj.second > mustBe)
+            {
+                mustBe = obj.second;
                 foundObject = obj;
-
-            LOG_OPRES_SUCCESS("Type [ %s ] match percent: [ %f ]", obj.first.c_str(), obj.second);
+            }
         }
-        LOG_INFO("On a picture object with type: \033[32m%s\033[0m", foundObject.first.c_str());
-        LOG_DEBUG("Testing work of image processor COMPLETE");
 
+        LOG_EMPTY("It's [ %s ] match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
+
+        // Response with deduced type
+        msg->payload = foundObject.first;
+        std::swap(msg->senderUid, msg->senderUid);
         return msg;
     };
 
@@ -75,6 +75,7 @@ Module createCameraModule(const std::string& cameraFile)
     auto pDoneSignal = std::make_shared<bool>(false);
 
     ModuleConfiguration cameraConfig;
+    cameraConfig.type = ModuleTypes::MODULE_TYPE_CAMERA;
     cameraConfig.name = "Camera";
     cameraConfig.initAsync = true;
     cameraConfig.workAsync = true;
@@ -96,7 +97,7 @@ Module createCameraModule(const std::string& cameraFile)
     cameraConfig.workFunction = [pCamera, pDoneSignal](Module m){
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
-        const std::string tempPhotoPath {"templates/white-king.png"};
+        const std::string tempPhotoPath {"photoshot.png"};
         while (!*pDoneSignal)
         {
             m->sleep_s(1);
@@ -120,6 +121,46 @@ Module createCameraModule(const std::string& cameraFile)
     return ModuleClass::createModule(cameraConfig);
 }
 
+
+Module createEmulatorModule()
+{
+    auto pDoneSignal = std::make_shared<bool>(false);
+
+    ModuleConfiguration emulatorConfig;
+    emulatorConfig.type = ModuleTypes::MODULE_TYPE_TEST_MODULE;
+    emulatorConfig.name = "Emulator";
+    emulatorConfig.initAsync = true;
+    emulatorConfig.workAsync = true;
+    emulatorConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
+
+
+    emulatorConfig.initFunction = [](Module m){
+        return ModuleStatus::MODULE_STATUS_INITED;
+    };
+
+    emulatorConfig.workFunction = [pDoneSignal](Module m){
+        m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
+        Message response;
+
+        const std::string path = "black_knight_2";
+
+        for (const auto& dirent : stdfs::directory_iterator(path))
+        {
+            if (stdfs::is_regular_file(dirent.path()))
+            {
+                LOG_DEBUG("Analysing picture: %s", dirent.path().filename().c_str());
+                response = m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, dirent.path());
+                LOG_DEBUG("Must be [ %s ]", response->payload.c_str());
+                LOG_EMPTY("");
+            }
+        }
+
+        m->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
+        return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+    };
+
+    return ModuleClass::createModule(emulatorConfig);
+}
 
 
 
@@ -163,8 +204,9 @@ void AppSetup::setupApp(MainApp &app)
     std::string cameraFile = app.argument(1);
     cameraFile.erase(0, cameraArgumentName.size());
 
-    app.addModule(createCameraModule(cameraFile));
+//    app.addModule(createCameraModule(cameraFile));
     app.addModule(createImageProcessor(args));
+    app.addModule(createEmulatorModule());
 }
 
 

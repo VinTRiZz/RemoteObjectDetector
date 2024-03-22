@@ -1,8 +1,5 @@
 #include "imageprocessor.hpp"
 
-// Template matching from OpenCV
-#include <opencv2/opencv.hpp>
-
 // STD algorithms
 #include <algorithm>
 
@@ -15,69 +12,16 @@
 // Log info
 #include "logging.hpp"
 
+// Fast comparing
+#include <thread>
+#include <mutex>
 
-namespace Analyse
-{
-
-struct ImageObject
-{
-private:
-    // Path to template image
-    std::string templatePath;
-
-    // OpenCV object to handle images
-    cv::Mat templateImage;
-
-public:
-    // Name (type) of image type
-    std::string name;
-
-    ImageObject() = default;
-    ~ImageObject() = default;
-
-    bool operator !=(const ImageObject& ot)
-    {
-        return (ot.name == name);
-    }
-
-    // Set path to template file
-    void setTemplate(const std::string& filePath)
-    {
-        templateImage = cv::imread(filePath);
-    }
-
-    // Ask if object is actually the searching for, using match percent above that it's true
-    float match(const std::string& filePath)
-    {
-        if (templateImage.empty())
-            return false;
-
-        // Get image
-        cv::Mat img = cv::imread(filePath);
-        cv::Mat result;
-
-        if (img.empty())
-            return false;
-
-        // Compare to template
-        cv::matchTemplate(img, templateImage, result, cv::TM_CCOEFF_NORMED); // TODO: Experiment with comp methods
-
-        // Setup min-max loc
-        double minVal {}, maxVal {};
-        cv::Point minLoc, maxLoc;
-        cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
-
-        // Check if image found
-        return maxVal;
-    }
-};
-
-}
+// OpenCV image comparator
+#include "opencvimage.hpp"
 
 struct Analyse::Processor::AnalysatorPrivate
 {
-    std::string m_templatesDir;    // Path to directory with saved neural nets
-    std::vector<ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
+    std::vector<Analyse::ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
 };
 
 Analyse::Processor::Processor() :
@@ -93,7 +37,6 @@ Analyse::Processor::~Processor()
 
 void Analyse::Processor::setImageTemplateDir(const std::string& path)
 {
-    d->m_templatesDir = path;
     d->m_types.clear();
     addTemplatesFromDir(path);
 }
@@ -119,18 +62,66 @@ void Analyse::Processor::addTemplatesFromDir(const std::string &path)
     }
 }
 
-std::map<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float matchPercent)
+std::map<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float minimalMatch)
 {
     std::map<std::string, float> matches;
-    float tempMatchPercent {0};
+    std::vector<std::shared_ptr<std::thread>> processThreads;
+
+    const uint16_t coreCount = std::thread::hardware_concurrency();
+    uint16_t currentCore {0};
+
+    std::mutex addMutex;
 
     for (auto& t : d->m_types)
     {
-        tempMatchPercent = t.match(imageFilePath);
+        if (coreCount > currentCore)
+        {
+            processThreads.push_back(
+                std::shared_ptr<std::thread>(
+                    new std::thread([&](){
+                        float tempMatchPercent {0};
+                        tempMatchPercent = t.match(imageFilePath, minimalMatch);
+                        addMutex.lock();
+                        matches[t.name] = tempMatchPercent;
+                        addMutex.unlock();
+                    }),
+                    [](std::thread * pThread)
+                    {
+                        if (pThread->joinable())
+                            pThread->join();
+                        delete pThread;
+                    }
+                )
+            );
 
-        if (tempMatchPercent > matchPercent)
-            matches[t.name] = tempMatchPercent * 100.0f;
+            currentCore++;
+        }
+        else
+        {
+            processThreads.begin()->reset();
+            processThreads.erase(processThreads.begin(), processThreads.begin() + 1);
+
+            processThreads.push_back(
+                std::shared_ptr<std::thread>(
+                    new std::thread([&](){
+                        float tempMatchPercent {0};
+                        tempMatchPercent = t.match(imageFilePath, minimalMatch);
+                        addMutex.lock();
+                        matches[t.name] = tempMatchPercent;
+                        addMutex.unlock();
+                    }),
+                    [](std::thread * pThread)
+                    {
+                        if (pThread->joinable())
+                            pThread->join();
+                        delete pThread;
+                    }
+                )
+            );
+        }
     }
+
+    processThreads.clear(); // Wait for all threads
 
     return matches;
 }
