@@ -38,7 +38,6 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
 
     // Rotate 90
     templateImages.push_back({});
-    cv::Point p1, p2;
     cv::transpose(templateImages[0], templateImages[currentIndex]);
     cv::flip(templateImages[currentIndex], templateImages[currentIndex], 1);
     currentIndex++;
@@ -46,7 +45,7 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
     // Rotate -90
     templateImages.push_back({});
     cv::transpose(templateImages[0], templateImages[currentIndex]);
-//    cv::flip(templateImages[0], templateImages[currentIndex], -1);
+    cv::flip(templateImages[currentIndex], templateImages[currentIndex], 0);
     currentIndex++;
 
     // Rotate 180
@@ -54,6 +53,7 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
     cv::flip(templateImages[0], templateImages[currentIndex], -1);
     currentIndex++;
 
+    // Setup image
     cv::Mat compareImage = cv::imread(filePath);
     std::pair<int, double> indexMatch {0, 0};
     std::vector<std::future<double>> futures;
@@ -97,7 +97,7 @@ float Analyse::ImageObject::match(const std::string &filePath, float minimalMatc
         }
     }
 
-    LOG_INFO("[ %s ] Match percent: %f", this->name.c_str(), indexMatch.second);
+//    LOG_INFO("[ %s ] Match percent: %f", this->name.c_str(), indexMatch.second);
 
     return indexMatch.second;
 }
