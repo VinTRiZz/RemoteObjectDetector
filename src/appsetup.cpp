@@ -47,15 +47,7 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
 
     imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
         float mustBe = 0;
-        std::pair<std::string, float> foundObject {"Nothing", 0};
-        for (auto& obj : pImageProc->getObjects(msg->payload))
-        {
-            if (obj.second > mustBe)
-            {
-                mustBe = obj.second;
-                foundObject = obj;
-            }
-        }
+        std::pair<std::string, float> foundObject = pImageProc->getObjects(msg->payload, 0.9, true);
 
         LOG_EMPTY("It's [ %s ] match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
 
@@ -142,7 +134,10 @@ Module createEmulatorModule()
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
         Message response;
 
-        const std::string path = "black_knight_2";
+//        const std::string path = "black_knight_rotates";
+        const std::string path = "black_knight_distort";
+//        const std::string path = "distorts";
+//        const std::string path = "figures"; // Object templates
 
         for (const auto& dirent : stdfs::directory_iterator(path))
         {

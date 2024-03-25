@@ -26,7 +26,7 @@ public:
 
     // Analyse photo saved by path, matchPercent is lowest percent to say that image found
     // Returns pairs < object - match percent >
-    std::map<std::string, float> getObjects(const std::string &imageFilePath, float minimalMatch = 0.8);
+    std::pair<std::string, float> getObjects(const std::string &imageFilePath, float minimalMatch = 0.8, bool easyMode = false);
     
     // Object type list manipulations
     void addType(const std::string& type);

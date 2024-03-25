@@ -19,6 +19,15 @@ private:
     // OpenCV object to handle images
     std::vector<cv::Mat> templateImages;
 
+    // Return count of variations created
+    void setupVariations(std::vector<cv::Mat>& templateImages);
+    size_t setupRotations(int currentIndex);
+
+    // Compare
+    static double templateCompare(cv::Mat& img, cv::Mat& templateImg, bool withOutput = false);
+
+    cv::Mat setupTemplate(const std::string& templateFilePath);
+
 public:
     // Name (type) of image type
     std::string name;
@@ -26,13 +35,11 @@ public:
     ImageObject() = default;
     ~ImageObject() = default;
 
-    bool operator !=(const ImageObject& ot);
+    // Returns percent of template image match to image file
+    float templateMatch(const std::string& imageFilePath, const std::string& templateFilePath);
 
-    // Set path to template file
-    void setTemplate(const std::string& filePath);
-
-    // Ask if object is actually the searching for, using match percent above that it's true
-    float match(const std::string& filePath, float minimalMatch);
+    // Crop image to contour
+    static cv::Mat cropToContour(cv::Mat &image);
 };
 
 

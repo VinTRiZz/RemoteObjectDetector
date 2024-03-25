@@ -62,10 +62,10 @@ void Analyse::Processor::addTemplatesFromDir(const std::string &path)
     }
 }
 
-std::map<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float minimalMatch)
+std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float minimalMatch, bool easyMode)
 {
     std::map<std::string, float> matches;
-    std::vector<std::shared_ptr<std::thread>> processThreads;
+    std::vector<std::shared_ptr<std::thread>> processThreads; // Separate computing
 
     const uint16_t coreCount = std::thread::hardware_concurrency();
     uint16_t currentCore {0};
@@ -80,7 +80,7 @@ std::map<std::string, float> Analyse::Processor::getObjects(const std::string &i
                 std::shared_ptr<std::thread>(
                     new std::thread([&](){
                         float tempMatchPercent {0};
-                        tempMatchPercent = t.match(imageFilePath, minimalMatch);
+                        tempMatchPercent = t.templateMatch(imageFilePath, templatePath);
                         addMutex.lock();
                         matches[t.name] = tempMatchPercent;
                         addMutex.unlock();
@@ -105,7 +105,7 @@ std::map<std::string, float> Analyse::Processor::getObjects(const std::string &i
                 std::shared_ptr<std::thread>(
                     new std::thread([&](){
                         float tempMatchPercent {0};
-                        tempMatchPercent = t.match(imageFilePath, minimalMatch);
+                        tempMatchPercent = t.match(imageFilePath, minimalMatch, easyMode);
                         addMutex.lock();
                         matches[t.name] = tempMatchPercent;
                         addMutex.unlock();
@@ -123,7 +123,18 @@ std::map<std::string, float> Analyse::Processor::getObjects(const std::string &i
 
     processThreads.clear(); // Wait for all threads
 
-    return matches;
+    float mustBe = 0;
+    std::pair<std::string, float> foundObject {"Nothing", 0};
+    for (auto& obj : matches)
+    {
+        if (obj.second > mustBe)
+        {
+            mustBe = obj.second;
+            foundObject = obj;
+        }
+    }
+
+    return foundObject;
 }
 
 void Analyse::Processor::addType(const std::string& type)
