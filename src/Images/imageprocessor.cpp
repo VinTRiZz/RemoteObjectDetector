@@ -18,10 +18,12 @@
 
 // OpenCV image comparator
 #include "imagetemplate.hpp"
+#include "objectdetector.hpp"
 
 struct Analyse::Processor::AnalysatorPrivate
 {
     std::vector<Analyse::ImageTemplate> m_types; // Contain types listed in config file in the same dir with neural nets
+    Analyse::ObjectDetector m_objectDetector; // Detects objects on an image to process them later
 };
 
 Analyse::Processor::Processor() :
@@ -64,62 +66,65 @@ void Analyse::Processor::addTemplatesFromDir(const std::string &path)
 
 std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float minimalMatch, bool easyMode)
 {
-    std::map<std::string, float> matches;
-    std::vector<std::shared_ptr<std::thread>> processThreads; // Separate computing
-
+    // Process speed increasing
+    std::vector<std::shared_ptr<std::thread>> processThreads;
     const uint16_t coreCount = std::thread::hardware_concurrency();
-    uint16_t currentCore {0};
 
-    std::mutex addMutex;
+    std::map<std::string, float> matches;
+    std::mutex matchAddMutex; // Mutex for adding match results
 
+    // Get objects on an image
+    auto imgMatrix = Analyse::loadImage(imageFilePath);
+    auto objectsFound = d->m_objectDetector.getObjects(imgMatrix);
+
+    objectsFound.push_back(imgMatrix); // TODO: Remove
+
+    // Deleter for pointer to a thread, used in std::shared_ptr
+    auto threadDeleteFunction =
+        [](std::thread * pThread)
+        {
+            if (pThread->joinable())
+                pThread->join();
+            delete pThread;
+        }
+    ;
+
+    // Used to process current image
+    auto processFunction =
+        [&](Analyse::ImageTemplate& t)
+        {
+        float tempMatchPercent {0};
+        tempMatchPercent = t.matchLoaded(imgMatrix);
+        matchAddMutex.lock();
+        matches[t.getName()] = tempMatchPercent;
+        matchAddMutex.unlock();
+        }
+    ;
+
+    for (uint16_t i = 0; i < coreCount; i++)
+        processThreads.push_back(std::shared_ptr<std::thread>());
+
+    // Process types
     for (auto& t : d->m_types)
     {
-        if (coreCount > currentCore)
+        for (auto& objectOnImage : objectsFound)
         {
-            processThreads.push_back(
-                std::shared_ptr<std::thread>(
-                    new std::thread([&](){
-                        float tempMatchPercent {0};
-                        tempMatchPercent = t.match(imageFilePath);
-                        addMutex.lock();
-                        matches[t.getName()] = tempMatchPercent;
-                        addMutex.unlock();
-                    }),
-                    [](std::thread * pThread)
-                    {
-                        if (pThread->joinable())
-                            pThread->join();
-                        delete pThread;
-                    }
-                )
-            );
-
-            currentCore++;
-            continue;
-        }
-
-        processThreads.begin()->reset();
-        processThreads.erase(processThreads.begin(), processThreads.begin() + 1);
-
-        processThreads.push_back(
-            std::shared_ptr<std::thread>(
-                new std::thread([&](){
-                    float tempMatchPercent {0};
-                    tempMatchPercent = t.match(imageFilePath);
-                    addMutex.lock();
-                    matches[t.getName()] = tempMatchPercent;
-                    addMutex.unlock();
-                }),
-                [](std::thread * pThread)
+            for (uint16_t i = 0; i < coreCount; i++)
+            {
+                if (!processThreads[i].use_count())
                 {
-                    if (pThread->joinable())
-                        pThread->join();
-                    delete pThread;
+                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(t)), threadDeleteFunction);
+                    break;
                 }
-            )
-        );
-    }
 
+                if (i == coreCount - 1)
+                {
+                    processThreads.begin()->reset();
+                    processThreads[0] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(t)), threadDeleteFunction);
+                }
+            }
+        }
+    }
     processThreads.clear(); // Wait for all threads
 
     float mustBe = 0;

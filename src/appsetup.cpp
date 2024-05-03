@@ -8,6 +8,9 @@
 #include "Images/imageprocessor.hpp"
 #include "Images/cameradriver.hpp"
 
+#warning "IOSTREAM!"
+#include <iostream>
+
 using namespace Components;
 MainApp * pApp {nullptr};
 
@@ -81,6 +84,10 @@ Module createCameraModule(const std::string& cameraFile)
 
         if (pCamera->status() != Drivers::DriverStatus::READY)
         {
+            LOG_EMPTY("========================================");
+            LOG_ERROR("Camera adaptor not inited. Try to install drivers for your camera. Connected USB devices:");
+            system("lsusb | sed -n 's/Bus [0-9]\\{3\\} [a-zA-Z]\\{1,\\} [0-9]\\{3\\}: ID [a-z0-9:]\\{9\\}/Device:/; /Linux Foundation/d; p'");
+            LOG_EMPTY("========================================");
             return ModuleStatus::MODULE_STATUS_ERROR;
         }
 
@@ -91,13 +98,6 @@ Module createCameraModule(const std::string& cameraFile)
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
         const std::string tempPhotoPath {"photoshot.png"};
-
-        if (pCamera->status() != Drivers::DriverStatus::READY)
-        {
-            LOG_ERROR("Camera adaptor not inited. Try to install drivers for your camera. Connected USB devices:");
-            system("lsusb | sed -n 's/Bus [0-9]\\{3\\} [a-zA-Z]\\{1,\\} [0-9]\\{3\\}: ID [a-z0-9:]\\{9\\}/USB Device:/; /Linux Foundation/d; p'");
-            return ModuleExitCode::MODULE_EXIT_CODE_ERROR;
-        }
 
         while (!*pDoneSignal)
         {
@@ -146,9 +146,9 @@ Module createEmulatorModule()
         const std::string basepath = "test/";
 
 //        const std::string path = basepath +"black_knight_rotates";
-//        const std::string path = basepath + "black_knight_distort";
+        const std::string path = basepath + "black_knight_distort";
 //        const std::string path = basepath + "distorts";
-        const std::string path = basepath + "figures"; // Object templates
+//        const std::string path = basepath + "figures"; // Object templates
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -161,7 +161,13 @@ Module createEmulatorModule()
             if (stdfs::is_regular_file(dirent.path()))
             {
                 LOG_INFO("Analysing picture: %s", dirent.path().filename().c_str());
+
+                auto timeNow = std::chrono::high_resolution_clock::now();
                 response = m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, dirent.path());
+                auto timeElapsed = std::chrono::high_resolution_clock::now();
+                auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(timeElapsed - timeNow);
+
+                LOG_DEBUG("Analyse time: %.3f s", dur.count() / 1000.0f );
             }
         }
 
