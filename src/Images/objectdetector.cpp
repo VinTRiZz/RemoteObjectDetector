@@ -36,28 +36,35 @@ std::vector<cv::Mat> ObjectDetector::getObjects(cv::Mat &mainImage)
 
     try
     {
-        cv::Mat img = cv::imread("test/normal.png");
+        cv::Mat img = cv::imread("test/normal2.png");
         if (img.empty())
         {
             LOG_ERROR("Image load error");
             return {};
         }
-        LOG_DEBUG("NH 0");
 
         cv::Mat greyCopy;
         cv::cvtColor(img, greyCopy, cv::COLOR_BGR2GRAY);
-        LOG_DEBUG("NH 1");
 
         cv::threshold(greyCopy, greyCopy, 128, 255, cv::THRESH_BINARY);
-        LOG_DEBUG("NH 2");
 
         std::vector<std::vector<cv::Point>> contours;
         cv::findContours(greyCopy, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-        LOG_DEBUG("NH 3");
 
         cv::Mat res = img.clone();
         cv::drawContours(res, contours, -1, cv::Scalar(0, 255, 0), 2);
-        cv::imwrite("test/normal-found.png", res);
+//        cv::imwrite("test/normal2-found.png", res);
+
+        int no = 1;
+        for (auto& contour : contours)
+        {
+            cv::Rect boundingRect = cv::boundingRect(contour);
+
+            cv::Mat contouredObject = cv::Mat::zeros(boundingRect.height, boundingRect.width, img.type());
+            // Don't write data yet
+//            cv::imwrite(std::string("test/normal2-found-") + std::to_string(no) + ".png", contouredObject);
+        }
+
     } catch (std::exception& ex)
     {
         LOG_ERROR(ex.what());
