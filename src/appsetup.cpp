@@ -36,7 +36,7 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
             pImageProc->setImageTemplateDir(templateDir);
 
         // Show what types found in a directory
-        LOG_INFO("Found types:");
+        LOG_INFO("Templates list:");
         int cnt = 1;
         for (auto & t : pImageProc->availableTypes())
             LOG_EMPTY("%i) %s", cnt++, t.c_str());
@@ -49,7 +49,8 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
         float mustBe = 0;
         std::pair<std::string, float> foundObject = pImageProc->getObjects(msg->payload, 0.9, true);
 
-        LOG_EMPTY("It's [ %s ] match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
+        LOG_DEBUG("It's [ %s ]; match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
+        LOG_EMPTY("");
 
         // Response with deduced type
         msg->payload = foundObject.first;
@@ -90,6 +91,14 @@ Module createCameraModule(const std::string& cameraFile)
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
         const std::string tempPhotoPath {"photoshot.png"};
+
+        if (pCamera->status() != Drivers::DriverStatus::READY)
+        {
+            LOG_ERROR("Camera adaptor not inited. Try to install drivers for your camera. Connected USB devices:");
+            system("lsusb | sed -n 's/Bus [0-9]\\{3\\} [a-zA-Z]\\{1,\\} [0-9]\\{3\\}: ID [a-z0-9:]\\{9\\}/USB Device:/; /Linux Foundation/d; p'");
+            return ModuleExitCode::MODULE_EXIT_CODE_ERROR;
+        }
+
         while (!*pDoneSignal)
         {
             m->sleep_s(1);
@@ -134,19 +143,25 @@ Module createEmulatorModule()
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
         Message response;
 
-//        const std::string path = "black_knight_rotates";
-        const std::string path = "black_knight_distort";
-//        const std::string path = "distorts";
-//        const std::string path = "figures"; // Object templates
+        const std::string basepath = "test/";
+
+//        const std::string path = basepath +"black_knight_rotates";
+//        const std::string path = basepath + "black_knight_distort";
+//        const std::string path = basepath + "distorts";
+        const std::string path = basepath + "figures"; // Object templates
+
+        if (!stdfs::exists(path) || !stdfs::is_directory(path))
+        {
+            LOG_ERROR("Invalid analyse directory: %s", path.c_str());
+            return ModuleExitCode::MODULE_EXIT_CODE_ERROR;
+        }
 
         for (const auto& dirent : stdfs::directory_iterator(path))
         {
             if (stdfs::is_regular_file(dirent.path()))
             {
-                LOG_DEBUG("Analysing picture: %s", dirent.path().filename().c_str());
+                LOG_INFO("Analysing picture: %s", dirent.path().filename().c_str());
                 response = m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, dirent.path());
-                LOG_DEBUG("Must be [ %s ]", response->payload.c_str());
-                LOG_EMPTY("");
             }
         }
 
@@ -199,7 +214,7 @@ void AppSetup::setupApp(MainApp &app)
     std::string cameraFile = app.argument(1);
     cameraFile.erase(0, cameraArgumentName.size());
 
-//    app.addModule(createCameraModule(cameraFile));
+    app.addModule(createCameraModule(cameraFile));
     app.addModule(createImageProcessor(args));
     app.addModule(createEmulatorModule());
 }

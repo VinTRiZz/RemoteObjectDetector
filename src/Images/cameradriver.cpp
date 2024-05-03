@@ -72,9 +72,9 @@ void Drivers::CameraDriver::init()
     d->m_status = Drivers::DriverStatus::BUSY;
 
     d->m_capture.open(d->m_deviceFilePath);
-    if (d->m_capture.isOpened())
+    if (!d->m_capture.isOpened())
     {
-        LOG_OPRES_ERROR("(Camera) Can't open file: %s", d->m_deviceFilePath.c_str());
+        LOG_OPRES_ERROR("(Camera) Can't open file: [ %s ] Error text: [ %s ]", d->m_deviceFilePath.c_str(), strerror(errno));
         d->m_status = Drivers::DriverStatus::ERROR;
         return;
     }
@@ -107,4 +107,5 @@ bool Drivers::CameraDriver::shot(const std::string &outputFile)
     }
 
     d->m_status = Drivers::DriverStatus::READY;
+    return true;
 }

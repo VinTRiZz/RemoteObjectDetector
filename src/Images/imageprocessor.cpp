@@ -17,11 +17,11 @@
 #include <mutex>
 
 // OpenCV image comparator
-#include "opencvimage.hpp"
+#include "imagetemplate.hpp"
 
 struct Analyse::Processor::AnalysatorPrivate
 {
-    std::vector<Analyse::ImageObject> m_types; // Contain types listed in config file in the same dir with neural nets
+    std::vector<Analyse::ImageTemplate> m_types; // Contain types listed in config file in the same dir with neural nets
 };
 
 Analyse::Processor::Processor() :
@@ -80,9 +80,9 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
                 std::shared_ptr<std::thread>(
                     new std::thread([&](){
                         float tempMatchPercent {0};
-                        tempMatchPercent = t.templateMatch(imageFilePath, templatePath);
+                        tempMatchPercent = t.match(imageFilePath);
                         addMutex.lock();
-                        matches[t.name] = tempMatchPercent;
+                        matches[t.getName()] = tempMatchPercent;
                         addMutex.unlock();
                     }),
                     [](std::thread * pThread)
@@ -95,30 +95,29 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
             );
 
             currentCore++;
+            continue;
         }
-        else
-        {
-            processThreads.begin()->reset();
-            processThreads.erase(processThreads.begin(), processThreads.begin() + 1);
 
-            processThreads.push_back(
-                std::shared_ptr<std::thread>(
-                    new std::thread([&](){
-                        float tempMatchPercent {0};
-                        tempMatchPercent = t.match(imageFilePath, minimalMatch, easyMode);
-                        addMutex.lock();
-                        matches[t.name] = tempMatchPercent;
-                        addMutex.unlock();
-                    }),
-                    [](std::thread * pThread)
-                    {
-                        if (pThread->joinable())
-                            pThread->join();
-                        delete pThread;
-                    }
-                )
-            );
-        }
+        processThreads.begin()->reset();
+        processThreads.erase(processThreads.begin(), processThreads.begin() + 1);
+
+        processThreads.push_back(
+            std::shared_ptr<std::thread>(
+                new std::thread([&](){
+                    float tempMatchPercent {0};
+                    tempMatchPercent = t.match(imageFilePath);
+                    addMutex.lock();
+                    matches[t.getName()] = tempMatchPercent;
+                    addMutex.unlock();
+                }),
+                [](std::thread * pThread)
+                {
+                    if (pThread->joinable())
+                        pThread->join();
+                    delete pThread;
+                }
+            )
+        );
     }
 
     processThreads.clear(); // Wait for all threads
@@ -139,24 +138,24 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
 
 void Analyse::Processor::addType(const std::string& type)
 {
-    Analyse::ImageObject typ;
-    typ.name = type;
+    Analyse::ImageTemplate typ;
+    typ.setName(type);
 
     // Check if type already exist
-    auto exist = std::binary_search(d->m_types.begin(), d->m_types.end(), typ, [](auto& t_a, auto& t_b){ return t_a.name < t_b.name;});
+    auto exist = std::binary_search(d->m_types.begin(), d->m_types.end(), typ, [](auto& t_a, auto& t_b){ return t_a.getName() < t_b.getName();});
     if (exist) return;
 
     // Add if not exist
     d->m_types.push_back(typ);
 
     // Sort to detect faster
-    std::sort(d->m_types.begin(), d->m_types.end(), [](auto& t_a, auto& t_b){ return t_a.name < t_b.name;});
+    std::sort(d->m_types.begin(), d->m_types.end(), [](auto& t_a, auto& t_b){ return t_a.getName() < t_b.getName();});
 }
 
 bool Analyse::Processor::removeType(const std::string& type)
 {
     // Check if type not exist
-    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });
+    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.getName() == type); });
     if (pos == d->m_types.end())
         return false;
 
@@ -170,14 +169,14 @@ std::vector<std::string> Analyse::Processor::availableTypes() const
     std::vector<std::string> output;
     output.resize(d->m_types.size());
     for (size_t pos = 0; pos < d->m_types.size(); pos++)
-        output[pos] = d->m_types[pos].name;
+        output[pos] = d->m_types[pos].getName();
     return output;
 }
 
 void Analyse::Processor::setupType(const std::string& type, const std::string& templateFile)
 {
     // Find type and setup it, if found
-    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.name == type); });
+    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.getName() == type); });
     if (pos != d->m_types.end())
         pos->setTemplate(templateFile);
 }
