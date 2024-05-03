@@ -3,3 +3,4 @@
 
 # Ignore BUILD dir
 BUILD/
+BIN/
