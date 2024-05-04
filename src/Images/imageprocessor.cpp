@@ -79,8 +79,6 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
     auto imgMatrix = Common::loadImage(imageFilePath);
     auto objectsFound = d->m_objectDetector.getObjects(imgMatrix);
 
-    objectsFound.push_back(imgMatrix); // TODO: Remove
-
     // Deleter for pointer to a thread, used in std::shared_ptr
     auto threadDeleteFunction =
         [](std::thread * pThread)
@@ -93,12 +91,12 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
 
     // Used to process current image
     auto processFunction =
-        [&](Analyse::ImageTemplate& t)
+        [&](Analyse::ImageTemplate& templateType, cv::Mat& foundObject)
         {
         float tempMatchPercent {0};
-        tempMatchPercent = t.matchLoaded(imgMatrix);
+        tempMatchPercent = templateType.matchLoaded(foundObject);
         matchAddMutex.lock();
-        matches[t.getName()] = tempMatchPercent;
+        matches[templateType.getName()] = tempMatchPercent;
         matchAddMutex.unlock();
         }
     ;
@@ -107,7 +105,7 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
         processThreads.push_back(std::shared_ptr<std::thread>());
 
     // Process types
-    for (auto& t : d->m_types)
+    for (auto& templateType : d->m_types)
     {
         for (auto& objectOnImage : objectsFound)
         {
@@ -115,14 +113,14 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
             {
                 if (!processThreads[i].use_count())
                 {
-                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(t)), threadDeleteFunction);
+                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
                     break;
                 }
 
                 if (i == coreCount - 1)
                 {
                     processThreads.begin()->reset();
-                    processThreads[0] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(t)), threadDeleteFunction);
+                    processThreads[0] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
                 }
             }
         }
