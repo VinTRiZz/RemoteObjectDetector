@@ -94,7 +94,8 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
         [&](Analyse::ImageTemplate& templateType, cv::Mat& foundObject)
         {
         float tempMatchPercent {0};
-        tempMatchPercent = templateType.matchLoaded(foundObject);
+//        tempMatchPercent = templateType.matchLoaded(foundObject);
+        tempMatchPercent = templateType.matchContours(foundObject);
         matchAddMutex.lock();
         matches[templateType.getName()] = tempMatchPercent;
         matchAddMutex.unlock();
