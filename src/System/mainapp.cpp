@@ -5,19 +5,10 @@ Components::MainApp::MainApp(int argc, char *argv[])
 {
     if (argc > 0)
     {
-        LOG_MAINAPP_MESSAGE("Program started with arguments:");
-
-        LOG_EMPTY("----------------------------------------------------------------");
+        LOG_MAINAPP_MESSAGE("Program started");
         for (int i = 0; i < argc; i++)
-        {
             m_argsVect.push_back(argv[i]);
-            LOG_EMPTY(argv[i]);
-        }
-
-        LOG_EMPTY("----------------------------------------------------------------");
     }
-
-    // TODO: Use args to configure application?
 }
 
 Components::MainApp::~MainApp()

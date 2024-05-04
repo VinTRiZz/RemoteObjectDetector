@@ -118,6 +118,7 @@ double ImageTemplate::matchLoaded(cv::Mat &img)
     double maxMatch {0};
 
     // Compare using image copyies
+    int no = 0;
     for (auto& templateRotation : m_templateRotations)
     {
         double compRes = match(img, templateRotation);
@@ -176,13 +177,8 @@ double ImageTemplate::match(cv::Mat &img, cv::Mat &templateImage)
         //            cv::matchTemplate(img, templateImage, result, cv::TM_SQDIFF_NORMED);
         cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
 
-        // Show if anything found
-        //            cv::Mat croppedCopy = img;
-        //            cv::rectangle(croppedCopy, maxLoc, cv::Point(maxLoc.x + templateImage.cols, maxLoc.y + templateImage.rows), cv::Scalar(0, 0, 255));
-        //            cv::imwrite(filepath + " : " + m_templateName + " [ " + std::to_string(maxVal) + " ].png", croppedCopy);
-
     } catch (cv::Exception& ex) {
-        LOG_OPRES_ERROR("Got OpenCV exception: %s", ex.what());
+//        LOG_OPRES_ERROR("Got OpenCV exception: %s", ex.what());
         return 0;
     }
 
