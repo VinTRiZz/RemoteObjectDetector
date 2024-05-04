@@ -2,24 +2,10 @@
 
 #include "logging.hpp"
 
+#include "common.hpp"
+
 namespace Analyse
 {
-
-cv::Mat loadImage(const std::string &filepath)
-{
-    // Read image
-    cv::Mat result = cv::imread(filepath);
-    if (result.empty())
-    {
-        LOG_OPRES_ERROR("Can't read template by path: %s", filepath.c_str());
-        return {};
-    }
-
-    cv::Mat greyResult;
-    cv::cvtColor(result, greyResult, cv::COLOR_BGR2GRAY);
-    return greyResult;
-    //        return result;
-}
 
 
 ImageTemplate::ImageTemplate()
@@ -56,7 +42,7 @@ ImageTemplate &ImageTemplate::operator =(const ImageTemplate &imgTemplate)
 void ImageTemplate::setTemplate(const std::string &filepath)
 {
     m_templateFilePath = filepath;
-    m_loadedTemplateImage = loadImage(filepath);
+    m_loadedTemplateImage = Common::loadImage(filepath);
 }
 
 
@@ -90,7 +76,7 @@ double ImageTemplate::match(const std::string &filepath)
         setupRotations();
 
     // Setup image
-    cv::Mat compareImage = loadImage(filepath);
+    cv::Mat compareImage = Common::loadImage(filepath);
     if (compareImage.empty())
     {
         LOG_OPRES_ERROR("Image load error. Path: %s", filepath.c_str());

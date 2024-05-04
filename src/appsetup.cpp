@@ -8,9 +8,6 @@
 #include "Images/imageprocessor.hpp"
 #include "Images/cameradriver.hpp"
 
-#warning "IOSTREAM!"
-#include <iostream>
-
 using namespace Components;
 MainApp * pApp {nullptr};
 
@@ -35,23 +32,35 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
     // Setup init function for image processor
     imageProcessorConfig.initFunction = [pImageProc, templateDirs](Module m){
 
+        // Setup all directories as source with templates
         for (auto& templateDir : templateDirs)
             pImageProc->setImageTemplateDir(templateDir);
 
+        // Check if templates set up
+        if (!pImageProc->availableTypes().size())
+        {
+            LOG_ERROR("No templates detected in directories");
+            return ModuleStatus::MODULE_STATUS_ERROR;
+        }
+
         // Show what types found in a directory
-        LOG_INFO("Templates list:");
+        LOG_INFO("Detected templates:");
         int cnt = 1;
+        LOG_EMPTY("------------------------------------");
         for (auto & t : pImageProc->availableTypes())
             LOG_EMPTY("%i) %s", cnt++, t.c_str());
         LOG_EMPTY("------------------------------------");
 
+        // Say that all's good
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
+    // Setup request processor
     imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
         float mustBe = 0;
         std::pair<std::string, float> foundObject = pImageProc->getObjects(msg->payload, 0.9, true);
 
+        // This output can be replaced with sending result to any other source
         LOG_DEBUG("It's [ %s ]; match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
         LOG_EMPTY("");
 
@@ -67,9 +76,10 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
 
 Module createCameraModule(const std::string& cameraFile)
 {
+    // Create camera adaptor
     auto pCamera = std::shared_ptr<Drivers::CameraDriver>(new Drivers::CameraDriver(cameraFile), std::default_delete<Drivers::CameraDriver>());
-    auto pDoneSignal = std::make_shared<bool>(false);
 
+    // Setup configuration of module
     ModuleConfiguration cameraConfig;
     cameraConfig.type = ModuleTypes::MODULE_TYPE_CAMERA;
     cameraConfig.name = "Camera";
@@ -77,11 +87,12 @@ Module createCameraModule(const std::string& cameraFile)
     cameraConfig.workAsync = true;
     cameraConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
 
-
+    // Setup camera for use
     cameraConfig.initFunction = [pCamera](Module m){
 
         pCamera->init();
 
+        // Check if camera has been inited
         if (pCamera->status() != Drivers::DriverStatus::READY)
         {
             LOG_EMPTY("========================================");
@@ -94,28 +105,36 @@ Module createCameraModule(const std::string& cameraFile)
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    cameraConfig.workFunction = [pCamera, pDoneSignal](Module m){
+    // Start camera shoting photos
+    cameraConfig.workFunction = [pCamera](Module m){
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
         const std::string tempPhotoPath {"temp/photoshot.png"};
 
-        while (!*pDoneSignal)
+        // Try to shot photos every second
+        while (m->status() == ModuleStatus::MODULE_STATUS_RUNNING)
         {
-            m->sleep_s(1);
-            if (!pCamera->shot(tempPhotoPath))
+            if (pCamera->status() == Drivers::DriverStatus::ERROR)
             {
-                LOG_OPRES_ERROR("Camera did not shot");
+                LOG_ERROR("Camera adaptor error (is camera conencted?)");
+                LOG_WARNING("Camera reinit...");
+                pCamera->deinit();
+                m->sleep_s(5);
+                pCamera->init();
+                m->sleep_s(5);
                 continue;
             }
 
-            LOG_OPRES_SUCCESS("Photo got, processing...");
-            m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, tempPhotoPath);
+            if (pCamera->shot(tempPhotoPath))
+                m->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, tempPhotoPath);
+
+            m->sleep_s(1);
         }
         return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
     };
 
-    cameraConfig.stopFunction = [pDoneSignal](Module m) {
-        *pDoneSignal = true;
+    // Setup stop function for camera module
+    cameraConfig.stopFunction = [](Module m) {
         m->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
     };
 
@@ -125,8 +144,6 @@ Module createCameraModule(const std::string& cameraFile)
 
 Module createEmulatorModule()
 {
-    auto pDoneSignal = std::make_shared<bool>(false);
-
     ModuleConfiguration emulatorConfig;
     emulatorConfig.type = ModuleTypes::MODULE_TYPE_TEST_MODULE;
     emulatorConfig.name = "Emulator";
@@ -139,12 +156,14 @@ Module createEmulatorModule()
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    emulatorConfig.workFunction = [pDoneSignal](Module m){
+    emulatorConfig.workFunction = [](Module m){
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
         Message response;
 
+        LOG_DEBUG("Camera emulator started");
+
 //        const std::string basepath = "test/";
-        const std::string basepath = "temp";
+        const std::string basepath = "temp/";
 
 //        const std::string path = basepath +"black_knight_rotates";
 //        const std::string path = basepath + "black_knight_distort";
@@ -159,6 +178,9 @@ Module createEmulatorModule()
 
         for (const auto& dirent : stdfs::directory_iterator(path))
         {
+            if (m->status() != ModuleStatus::MODULE_STATUS_RUNNING)
+                break;
+
             if (stdfs::is_regular_file(dirent.path()))
             {
                 LOG_INFO("Analysing picture: %s", dirent.path().filename().c_str());
@@ -172,8 +194,12 @@ Module createEmulatorModule()
             }
         }
 
-        m->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
+        LOG_DEBUG("Camera emulator exited");
         return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+    };
+
+    emulatorConfig.stopFunction = [](Module m){
+        m->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
     };
 
     return ModuleClass::createModule(emulatorConfig);
@@ -190,39 +216,41 @@ void AppSetup::setupApp(MainApp &app)
 {
     pApp = &app; // For signal handling
 
-    const std::string cameraArgumentName {"--camera="};
-
-    if (app.argCount() > 1)
-    {
-        if (app.argument(1) == "--help")
-        {
-            LOG_MAINAPP_MESSAGE("Usage: %s [ --help | %s/dev/exampleCamera1 ] [ templateFilesDirectory(ies) ]", cameraArgumentName.c_str());
-            kill(0, SIGINT);
-        }
-    }
-    else
+    // Check if camera provided
+    if (app.argCount() < 1)
     {
         LOG_MAINAPP_MESSAGE("No camera provided (try --help)");
         kill(0, SIGINT);
     }
 
+    // Camera argument from command line
+    const std::string cameraArgumentName {"--camera="};
 
-    auto args = app.args();
-    if (args.size() > 2)
+    // Check if asked for help
+    if (app.argument(1) == "--help")
     {
-        args.erase(args.begin(), args.begin() + 2); // Remove 0 arg
+        LOG_MAINAPP_MESSAGE("Usage: %s [ --help | %s/dev/exampleCamera1 ] [ templateFilesDirectory(ies) ]", app.argument(0).c_str(), cameraArgumentName.c_str());
+        kill(0, SIGINT);
     }
-    else
+
+    // Setup camera
+    std::string cameraFile = app.argument(1);
+    cameraFile.erase(0, cameraArgumentName.size());
+
+    // Check if template directories provided
+    if (app.argCount() < 2)
     {
         LOG_MAINAPP_MESSAGE("No even 1 template directory provided (try --help)");
         kill(0, SIGINT);
     }
 
+    // Setup array of template data (remove camera and zero args)
+    auto args = app.args();
+    args.erase(args.begin(), args.begin() + 2); // Remove 0 and camera (1) arg
+
     system("mkdir temp &> /dev/null"); // Create temporary dir for camera output
 
-    std::string cameraFile = app.argument(1);
-    cameraFile.erase(0, cameraArgumentName.size());
-
+    // Create app modules
 //    app.addModule(createCameraModule(cameraFile));
     app.addModule(createImageProcessor(args));
     app.addModule(createEmulatorModule());

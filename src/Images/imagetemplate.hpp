@@ -9,8 +9,6 @@
 namespace Analyse
 {
 
-cv::Mat loadImage(const std::string& filepath);
-
 class ImageTemplate
 {
 public:

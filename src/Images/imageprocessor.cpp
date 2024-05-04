@@ -20,6 +20,8 @@
 #include "imagetemplate.hpp"
 #include "objectdetector.hpp"
 
+#include "common.hpp"
+
 struct Analyse::Processor::AnalysatorPrivate
 {
     std::vector<Analyse::ImageTemplate> m_types; // Contain types listed in config file in the same dir with neural nets
@@ -74,7 +76,7 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
     std::mutex matchAddMutex; // Mutex for adding match results
 
     // Get objects on an image
-    auto imgMatrix = Analyse::loadImage(imageFilePath);
+    auto imgMatrix = Common::loadImage(imageFilePath);
     auto objectsFound = d->m_objectDetector.getObjects(imgMatrix);
 
     objectsFound.push_back(imgMatrix); // TODO: Remove
