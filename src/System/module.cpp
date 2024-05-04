@@ -1,5 +1,7 @@
 #include "System/module.hpp"
 
+#include <thread>
+
 Components::ModuleClass::ModuleClass(const Components::ModuleConfiguration &config) :
     m_config {config}
 {

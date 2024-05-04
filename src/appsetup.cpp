@@ -97,7 +97,7 @@ Module createCameraModule(const std::string& cameraFile)
     cameraConfig.workFunction = [pCamera, pDoneSignal](Module m){
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
-        const std::string tempPhotoPath {"photoshot.png"};
+        const std::string tempPhotoPath {"temp/photoshot.png"};
 
         while (!*pDoneSignal)
         {
@@ -143,11 +143,12 @@ Module createEmulatorModule()
         m->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
         Message response;
 
-        const std::string basepath = "test/";
+//        const std::string basepath = "test/";
+        const std::string basepath = "temp";
 
 //        const std::string path = basepath +"black_knight_rotates";
-        const std::string path = basepath + "black_knight_distort";
-//        const std::string path = basepath + "distorts";
+//        const std::string path = basepath + "black_knight_distort";
+        const std::string path = basepath + "distorts";
 //        const std::string path = basepath + "figures"; // Object templates
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
@@ -217,10 +218,12 @@ void AppSetup::setupApp(MainApp &app)
         kill(0, SIGINT);
     }
 
+    system("mkdir temp &> /dev/null"); // Create temporary dir for camera output
+
     std::string cameraFile = app.argument(1);
     cameraFile.erase(0, cameraArgumentName.size());
 
-    app.addModule(createCameraModule(cameraFile));
+//    app.addModule(createCameraModule(cameraFile));
     app.addModule(createImageProcessor(args));
     app.addModule(createEmulatorModule());
 }

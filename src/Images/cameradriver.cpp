@@ -106,6 +106,8 @@ bool Drivers::CameraDriver::shot(const std::string &outputFile)
         return false;
     }
 
+    cv::imwrite(outputFile.c_str(), frame);
+
     d->m_status = Drivers::DriverStatus::READY;
     return true;
 }

@@ -39,7 +39,6 @@ target_link_libraries(
     -lstdc++fs
     
     # OpenCV
-    -lopencv_datasets
     -lopencv_videoio
     -lopencv_imgcodecs
     -lopencv_photo
