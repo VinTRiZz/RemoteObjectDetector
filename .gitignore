@@ -4,3 +4,4 @@
 # Ignore BUILD dir
 BUILD/
 BIN/
+CMakeLists.txt.*
