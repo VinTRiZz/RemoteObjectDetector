@@ -17,7 +17,7 @@
 #include <mutex>
 
 // OpenCV image comparator
-#include "imagetemplate.hpp"
+#include "imagecomparator.hpp"
 
 #include "common.hpp"
 
@@ -206,5 +206,5 @@ void Analyse::Processor::setupType(const std::string& type, const std::string& t
     // Find type and setup it, if found
     auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.getName() == type); });
     if (pos != d->m_types.end())
-        pos->setTemplate(templateFile);
+        pos->setImage(templateFile);
 }

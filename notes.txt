@@ -1,0 +1,3 @@
+// Убрать фоновое изображение
+cv::Ptr<cv::BackgroundSubtractor> pBackSub = cv::createBackgroundSubtractorKNN(); // cv::createBackgroundSubtractorMOG2();
+pBackSub->apply(mainImage, mainThreshed);

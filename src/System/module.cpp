@@ -36,7 +36,7 @@ Components::ModuleClass::ModuleClass(Components::ModuleClass &&m) :
 
 Components::ModuleClass::~ModuleClass()
 {
-    // Do something on detele if needed
+
 }
 
 Components::ModuleTypes Components::ModuleClass::type() const

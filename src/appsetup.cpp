@@ -175,9 +175,9 @@ Module createEmulatorModule()
         const std::string basepath = "temp/";
 
 //        const std::string path = basepath +"black_knight_rotates";
-//        const std::string path = basepath + "black_knight_distort";
+        const std::string path = basepath + "black_knight_distort";
 //        const std::string path = basepath + "distorts";
-        const std::string path = basepath + "figures"; // Object templates
+//        const std::string path = basepath + "figures"; // Object templates
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -199,7 +199,7 @@ Module createEmulatorModule()
                 auto timeElapsed = std::chrono::high_resolution_clock::now();
                 auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(timeElapsed - timeNow);
 
-                LOG_DEBUG("Analyse time: %.3f s", dur.count() / 1000.0f );
+                LOG_DEBUG("Result: [ %s ] Time: [ %.3f s ]", response->payload.c_str(), dur.count() / 1000.0f );
                 LOG_EMPTY("");
             }
         }

@@ -18,6 +18,7 @@ cv::Mat loadImage(const std::string &filepath)
         return {};
     }
 
+    // Convert image to gray to better search
     cv::Mat greyResult;
     cv::cvtColor(result, greyResult, cv::COLOR_BGR2GRAY);
     return greyResult;
@@ -25,21 +26,23 @@ cv::Mat loadImage(const std::string &filepath)
 
 void addContours(cv::Mat &img, ContoursType &imageContours)
 {
+    // Search into temporary array
     ContoursType tempRes;
     cv::findContours(img, tempRes, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
+    // If nothing found, return
     if (!tempRes.size())
-    {
-        LOG_DEBUG("Not found contours");
         return;
-    }
 
+    // Search for largest contour
     std::vector<cv::Point>* largestContour;
     double currentArea {0};
 
+    // If nothing found or just one countour in array, will be set to first
     largestContour = &tempRes[0];
     for (auto& contour : tempRes)
     {
+        // Count area of contour
         double tempArea = cv::contourArea(contour);
         if (currentArea < tempArea)
         {
@@ -48,17 +51,18 @@ void addContours(cv::Mat &img, ContoursType &imageContours)
         }
     }
 
+    // Add only largest contour into array
     imageContours.push_back(*largestContour);
 }
 
 void drawFound(cv::Mat &img, ContoursType &foundObjectContours, const std::string &baseName)
 {
-    cv::Mat resultImg = img.clone();
+    // Save image objects
     int no = 1;
     for (auto& contour : foundObjectContours)
     {
         cv::Rect boundingRect = cv::boundingRect(contour);
-        cv::Mat contouredObject = resultImg(boundingRect);
+        cv::Mat contouredObject = img(boundingRect);
         cv::imwrite(baseName + "_Object-" + std::to_string(no++) + ".png", contouredObject);
     }
 }
@@ -68,37 +72,31 @@ std::vector<cv::Mat> getObjects(const std::string &imageFullPath)
     std::vector<cv::Mat> result;
     try
     {
+        // Get image
         cv::Mat mainImage = Common::loadImage(imageFullPath);
-
         if (mainImage.empty())
         {
             LOG_ERROR("Image load error");
             return {};
         }
 
+        // Image binarization (set bytes with lower 128 values to 0, upper to 1)
         cv::Mat mainThreshed;
         cv::threshold(mainImage, mainThreshed, 128, 255, cv::THRESH_BINARY);
 
+        // Search for objects
         Common::ContoursType contours;
         Common::addContours(mainThreshed, contours);
 
-        std::string basepath = "temp/";
-        basepath += std::filesystem::path(imageFullPath).filename();
-        basepath.erase(basepath.size() - 4, basepath.size());
-
-        //        Common::ContoursType contours2;
+        // Get objects array from contours
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
 
             if (boundingRect.area() < MINIMAL_OBJECT_SIZE)
                 continue;
-
-            //            contours2.push_back(contour);
             result.push_back(mainImage(boundingRect));
         }
-
-        //        Common::drawFound(mainImage, contours2, basepath);
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());

@@ -18,7 +18,6 @@ Components::MainApp::~MainApp()
 
 void Components::MainApp::addModule(Components::Module m)
 {
-    LOG_MAINAPP_MESSAGE("Added module: " + m->name());
     m_moduleVect.push_back(m);
 }
 
@@ -38,36 +37,40 @@ std::string Components::MainApp::argument(std::size_t argNo)
     {
         return m_argsVect[argNo];
     }
-    return "";
+    return {};
 }
 
 bool Components::MainApp::init()
 {
     LOG_MAINAPP_MESSAGE("Initialisation started");
 
+    // For output only
     size_t initedModuleCount {0};
     size_t currentModuleNo {1};
 
+    // Init modules
     std::vector<std::pair<Module, std::future<ModuleStatus>>> asyncInitResults;
     for (auto module : m_moduleVect)
     {
+        // If module must be inited async, then start it
         if (module->m_config.initAsync)
         {
             asyncInitResults.push_back( std::make_pair(module, module->initAsync()) );
             continue;
         }
-        module->init();
 
+        // Init module in same thread if it can't be inited async
+        module->init();
         if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
         {
             initedModuleCount++;
             LOG_OPRES_SUCCESS("Module inited: " + module->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
             continue;
         }
-
         LOG_OPRES_ERROR("Module: " + module->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
     }
 
+    // Check init results
     for (auto& moduleInitPair : asyncInitResults)
     {
         if (moduleInitPair.second.valid())
@@ -87,8 +90,6 @@ bool Components::MainApp::init()
     // Connect all to all. No big need to optimise (one time fast proceed)
     for (auto module : m_moduleVect)
     {
-        LOG_INFO(std::string("Connecting module ") + module->name() + " (" + std::to_string(module->uid()) + ")");
-
         for (auto pCon : m_moduleVect)
         {
             // Skip self
@@ -100,7 +101,6 @@ bool Components::MainApp::init()
             {
                 if (pCon->uid() == con)
                 {
-                    LOG_INFO(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
                     module->m_connections.push_back(pCon);
                     break;
                 }
@@ -111,7 +111,6 @@ bool Components::MainApp::init()
             {
                 if (pCon->type() == con)
                 {
-                    LOG_INFO(std::string("-------> Connected to module ") + pCon->name() + " (" + std::to_string(pCon->uid()) + ")");
                     module->m_connections.push_back(pCon);
                     break;
                 }
@@ -119,16 +118,19 @@ bool Components::MainApp::init()
         }
     }
 
-    LOG_MAINAPP_MESSAGE("Init complete");
+    LOG_MAINAPP_MESSAGE("Initialisation complete");
     return (initedModuleCount == m_moduleVect.size());
 }
 
 int Components::MainApp::exec()
 {
     LOG_MAINAPP_MESSAGE("Starting modules");
+
+    // Futures for async and threads for not async modules
     std::vector<std::future<ModuleExitCode>> moduleFutures;
     std::vector<std::shared_ptr<std::thread>> moduleThreads;
 
+    // Start modules
     for (auto module : m_moduleVect)
     {
         if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
@@ -145,21 +147,20 @@ int Components::MainApp::exec()
         }
     }
 
-    // Wait for async
+    // Wait for async modules to complete
     for (auto& fut : moduleFutures)
     {
         if (fut.valid())
             fut.get();
     }
 
-    // Wait for threads
+    // Wait for threads to complete
     for (auto pThread : moduleThreads)
     {
         if (pThread->joinable())
             pThread->join();
     }
 
-    LOG_MAINAPP_MESSAGE("App exit normal");
     this->exit();
     return 0;
 }
@@ -171,4 +172,6 @@ void Components::MainApp::exit()
         if (module->status() == ModuleStatus::MODULE_STATUS_RUNNING)
             module->stop();
     }
+
+    LOG_MAINAPP_MESSAGE("App exit normal");
 }

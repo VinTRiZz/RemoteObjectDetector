@@ -4,6 +4,9 @@
 // For stable types, such as uint8_t
 #include <stdint.h>
 
+// For d-pointer
+#include <memory>
+
 // Data containers
 #include <string>
 
@@ -21,13 +24,13 @@ class CameraAdaptor
 public:
     // Constructors
     CameraAdaptor(const std::string& deviceFile = "/dev/video0");
-    CameraAdaptor(const CameraAdaptor& od);
-    CameraAdaptor(CameraAdaptor&& od);
+    CameraAdaptor(const CameraAdaptor& _oa);
+    CameraAdaptor(CameraAdaptor&& _oa);
     ~CameraAdaptor();
 
     // Operators
-    CameraAdaptor& operator=(const CameraAdaptor& od);
-    CameraAdaptor& operator=(CameraAdaptor&& od);
+    CameraAdaptor& operator=(const CameraAdaptor& _oa);
+    CameraAdaptor& operator=(CameraAdaptor&& _oa);
     
     // Get status of driver
     AdaptorStatus status();
@@ -43,7 +46,7 @@ public:
     
 private:
     struct CameraDriverPrivate;
-    CameraDriverPrivate * d {nullptr};
+    std::unique_ptr<CameraDriverPrivate> d {nullptr};
 };
     
 }

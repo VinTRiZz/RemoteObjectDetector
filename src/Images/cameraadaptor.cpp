@@ -5,9 +5,9 @@
 
 struct Adaptors::CameraAdaptor::CameraDriverPrivate
 {
-    const std::string m_deviceFilePath;
+    std::string m_deviceFilePath;
     Adaptors::AdaptorStatus m_status;
-    cv::VideoCapture m_capture;
+    cv::VideoCapture m_capture; // OpenCV video capture interface
 
     CameraDriverPrivate(const std::string devPath) :
         m_deviceFilePath {devPath}
@@ -23,43 +23,39 @@ Adaptors::CameraAdaptor::CameraAdaptor(const std::string &deviceFile) :
 
 }
 
-Adaptors::CameraAdaptor::CameraAdaptor(const Adaptors::CameraAdaptor &od) :
-    d {new CameraDriverPrivate(od.d->m_deviceFilePath)}
+Adaptors::CameraAdaptor::CameraAdaptor(const Adaptors::CameraAdaptor &_oa) :
+    d {new CameraDriverPrivate(_oa.d->m_deviceFilePath)}
 {
-    d->m_capture = od.d->m_capture;
-    d->m_status = od.d->m_status;
+    d->m_capture = _oa.d->m_capture;
+    d->m_status = _oa.d->m_status;
 }
 
-Adaptors::CameraAdaptor::CameraAdaptor(Adaptors::CameraAdaptor &&od) :
-    d {new CameraDriverPrivate(std::move(od.d->m_deviceFilePath))}
+Adaptors::CameraAdaptor::CameraAdaptor(Adaptors::CameraAdaptor &&_oa) :
+    d {new CameraDriverPrivate(std::move(_oa.d->m_deviceFilePath))}
 {
-    d->m_capture = std::move(od.d->m_capture);
-    d->m_status = std::move(od.d->m_status);
+    d->m_capture = std::move(_oa.d->m_capture);
+    d->m_status = std::move(_oa.d->m_status);
 }
 
-Adaptors::CameraAdaptor &Adaptors::CameraAdaptor::operator=(const Adaptors::CameraAdaptor &od)
+Adaptors::CameraAdaptor &Adaptors::CameraAdaptor::operator=(const Adaptors::CameraAdaptor &_oa)
 {
-    if (!d) d = new CameraDriverPrivate(od.d->m_deviceFilePath);
-
-    d->m_capture = od.d->m_capture;
-    d->m_status = od.d->m_status;
+    d->m_deviceFilePath = _oa.d->m_deviceFilePath;
+    d->m_capture = _oa.d->m_capture;
+    d->m_status = _oa.d->m_status;
     return *this;
 }
 
-Adaptors::CameraAdaptor &Adaptors::CameraAdaptor::operator=(Adaptors::CameraAdaptor &&od)
+Adaptors::CameraAdaptor &Adaptors::CameraAdaptor::operator=(Adaptors::CameraAdaptor &&_oa)
 {
-    if (!d) d = new CameraDriverPrivate(od.d->m_deviceFilePath);
-
-    d->m_capture = std::move(od.d->m_capture);
-    d->m_status = std::move(od.d->m_status);
+    d->m_deviceFilePath = std::move(_oa.d->m_deviceFilePath);
+    d->m_capture = std::move(_oa.d->m_capture);
+    d->m_status = std::move(_oa.d->m_status);
     return *this;
 }
 
 Adaptors::CameraAdaptor::~CameraAdaptor()
 {
     deinit();
-
-    if (d) delete d;
 }
 
 Adaptors::AdaptorStatus Adaptors::CameraAdaptor::status()
@@ -71,6 +67,7 @@ void Adaptors::CameraAdaptor::init()
 {
     d->m_status = Adaptors::AdaptorStatus::BUSY;
 
+    // Try to open file provided into class
     d->m_capture.open(d->m_deviceFilePath);
     if (!d->m_capture.isOpened())
     {
@@ -78,6 +75,7 @@ void Adaptors::CameraAdaptor::init()
         d->m_status = Adaptors::AdaptorStatus::ERROR;
         return;
     }
+
     LOG_OPRES_SUCCESS("(Camera) Init succeed");
     d->m_status = Adaptors::AdaptorStatus::READY;
 }
@@ -106,6 +104,7 @@ bool Adaptors::CameraAdaptor::shot(const std::string &outputFile)
         return false;
     }
 
+    // Save picture to path
     cv::imwrite(outputFile.c_str(), frame);
 
     d->m_status = Adaptors::AdaptorStatus::READY;

@@ -41,7 +41,9 @@ target_link_libraries(
     # OpenCV
     -lopencv_videoio
     -lopencv_imgcodecs
+    -lopencv_video
     -lopencv_photo
     -lopencv_imgproc
+    -lopencv_flann
     -lopencv_core
 )
