@@ -8,30 +8,31 @@ namespace Analyse
 {
 
 
-ImageTemplate::ImageTemplate()
+ImageComparator::ImageComparator()
 {
 
 }
 
 
-ImageTemplate::ImageTemplate(const ImageTemplate &imgTemplate)
+ImageComparator::ImageComparator(const ImageComparator &imgTemplate)
 {
-    m_templateName = imgTemplate.m_templateName;
+    m_typeName = imgTemplate.m_typeName;
     m_templateFilePath = imgTemplate.m_templateFilePath;
     m_templateRotations = imgTemplate.m_templateRotations;
     m_loadedTemplateImage = imgTemplate.m_loadedTemplateImage;
+    m_contours = imgTemplate.m_contours;
 }
 
 
-ImageTemplate::~ImageTemplate()
+ImageComparator::~ImageComparator()
 {
 
 }
 
 
-ImageTemplate &ImageTemplate::operator =(const ImageTemplate &imgTemplate)
+ImageComparator &ImageComparator::operator =(const ImageComparator &imgTemplate)
 {
-    m_templateName = imgTemplate.m_templateName;
+    m_typeName = imgTemplate.m_typeName;
     m_templateFilePath = imgTemplate.m_templateFilePath;
     m_templateRotations = imgTemplate.m_templateRotations;
     m_loadedTemplateImage = imgTemplate.m_loadedTemplateImage;
@@ -39,7 +40,7 @@ ImageTemplate &ImageTemplate::operator =(const ImageTemplate &imgTemplate)
 }
 
 
-void ImageTemplate::setTemplate(const std::string &filepath)
+void ImageComparator::setTemplate(const std::string &filepath)
 {
     m_templateFilePath = filepath;
     m_loadedTemplateImage = Common::loadImage(filepath);
@@ -47,55 +48,36 @@ void ImageTemplate::setTemplate(const std::string &filepath)
 }
 
 
-std::string ImageTemplate::getTemplate() const
+std::string ImageComparator::getTemplate() const
 {
     return m_templateFilePath;
 }
 
 
-void ImageTemplate::setName(const std::string &name)
+void ImageComparator::setName(const std::string &name)
 {
-    m_templateName = name;
+    m_typeName = name;
 }
 
 
-std::string ImageTemplate::getName() const
+std::string ImageComparator::getName() const
 {
-    return m_templateName;
+    return m_typeName;
 }
 
 
-double ImageTemplate::match(const std::string &filepath)
+double ImageComparator::bestMatch(cv::Mat &img)
 {
-    if (m_loadedTemplateImage.empty())
+    if ((img.cols > m_loadedTemplateImage.cols) || (img.rows > m_loadedTemplateImage.rows))
     {
-        LOG_ERROR("Template load error. Path: %s", m_templateFilePath.c_str());
-        return 0;
+        return matchHist(img);
     }
 
-    // Setup image
-    cv::Mat compareImage = Common::loadImage(filepath);
-    if (compareImage.empty())
-    {
-        LOG_OPRES_ERROR("Image load error. Path: %s", filepath.c_str());
-        return 0;
-    }
-
-    double maxMatch {0};
-
-    // Compare using image copyies
-    for (auto& templateRotation : m_templateRotations)
-    {
-        double compRes = match(compareImage, templateRotation);
-        if (compRes > maxMatch)
-            maxMatch = compRes;
-    }
-
-    return maxMatch;
+    return matchTemplate(img);
 }
 
 
-double ImageTemplate::matchLoaded(cv::Mat &img)
+double ImageComparator::matchTemplate(cv::Mat &img)
 {
     if (m_loadedTemplateImage.empty())
     {
@@ -124,7 +106,7 @@ double ImageTemplate::matchLoaded(cv::Mat &img)
     return maxMatch;
 }
 
-double ImageTemplate::matchHist(cv::Mat &img)
+double ImageComparator::matchHist(cv::Mat &img)
 {
     if (m_loadedTemplateImage.empty())
     {
@@ -160,7 +142,7 @@ double ImageTemplate::matchHist(cv::Mat &img)
     return maxMatch;
 }
 
-double ImageTemplate::matchContour(cv::Mat &img)
+double ImageComparator::matchContour(cv::Mat &img)
 {
     if (m_loadedTemplateImage.empty())
     {
@@ -179,28 +161,22 @@ double ImageTemplate::matchContour(cv::Mat &img)
     ContoursType imageContours;
     Common::addContours(img, imageContours);
 
-    double imageContourArea = cv::contourArea(imageContours[0]);
-
     try {
-        double resultMatch {0};
+        double resultMatch {1}; // To not use infinity value
         for (auto& contour : m_contours)
         {
-            double templateContourArea = cv::contourArea(contour);
-            double diff = std::abs(imageContourArea - templateContourArea);
-            if (diff <= 100)
+            for (auto& imageContour : imageContours)
             {
-                double tempMatchRes = cv::matchShapes(m_contours, imageContours, cv::CONTOURS_MATCH_I2, 0);
+                double tempMatchRes = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I2, 0);
+                tempMatchRes = 1.0 - tempMatchRes;
+//                LOG_DEBUG("[%s] Compare result: %f", m_templateName.c_str(), tempMatchRes);
                 if (tempMatchRes > resultMatch)
                 {
                     resultMatch = tempMatchRes;
-                    LOG_OPRES_SUCCESS("Compared 2 vectors!");
-                    continue;
                 }
-                LOG_OPRES_ERROR("Not compared");
-                continue;
             }
-            LOG_OPRES_ERROR("Diff more than 100: %f", diff);
         }
+        return resultMatch;
     } catch (cv::Exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());
     }
@@ -209,9 +185,10 @@ double ImageTemplate::matchContour(cv::Mat &img)
 }
 
 
-void ImageTemplate::setupRotations()
+void ImageComparator::setupRotations()
 {
     m_templateRotations.push_back(m_loadedTemplateImage);
+    Common::addContours(m_loadedTemplateImage, m_contours);
 
     size_t currentIndex = 0;
 
@@ -238,9 +215,10 @@ void ImageTemplate::setupRotations()
     std::remove_if(m_templateRotations.begin(), m_templateRotations.end(), [](auto& matr){ return matr.empty(); });
 
     // Remove dublicates
+    m_contours.erase(std::unique(m_contours.begin(), m_contours.end(), [](auto& cont1, auto& cont2){ return (cv::matchShapes(cont1, cont2, cv::CONTOURS_MATCH_I2, 0) < 1.0); }), m_contours.end());
 
-
-    const std::string basepath = "templ_rots/";
+//    std::string basepath = "templ_rots/";
+//    basepath = basepath + m_templateName + "-";
 
 //    cv::imwrite(basepath + "Temp_normal.png", m_templateRotations[0]);
 //    cv::imwrite(basepath + "Temp_mirrV.png", m_templateRotations[4]);
@@ -260,7 +238,7 @@ void ImageTemplate::setupRotations()
 }
 
 
-double ImageTemplate::match(cv::Mat &img, cv::Mat &templateImage)
+double ImageComparator::match(cv::Mat &img, cv::Mat &templateImage)
 {
     if (img.empty() || templateImage.empty())
     {
@@ -301,7 +279,7 @@ double ImageTemplate::match(cv::Mat &img, cv::Mat &templateImage)
 }
 
 
-void ImageTemplate::createRotations(size_t &currentIndex)
+void ImageComparator::createRotations(size_t &currentIndex)
 {
     // Rotate 90
     currentIndex++;

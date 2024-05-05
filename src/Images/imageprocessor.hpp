@@ -14,13 +14,6 @@
 namespace Analyse
 {
 
-enum ProcessorCompareMode
-{
-    PROCESSOR_COMPARE_MODE_MATCH,   // Work good when no distortion
-    PROCESSOR_COMPARE_MODE_HIST,    // Work good with distortion and rotation
-    PROCESSOR_COMPARE_MODE_CONTOUR  // Do not work yet
-};
-    
 class Processor
 {
 public:
@@ -33,7 +26,7 @@ public:
 
     // Analyse photo saved by path, matchPercent is lowest percent to say that image found
     // Returns pair < object - match percent >
-    std::pair<std::string, float> getObject(const std::string &imageFilePath, ProcessorCompareMode compareMode = ProcessorCompareMode::PROCESSOR_COMPARE_MODE_MATCH);
+    std::pair<std::string, float> getObject(const std::string &imageFilePath);
     
     // Object type list manipulations
     void addType(const std::string& type);

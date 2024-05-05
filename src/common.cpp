@@ -26,7 +26,10 @@ void addContours(cv::Mat &img, ContoursType &imageContours)
     cv::findContours(img, tempRes, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     if (!tempRes.size())
+    {
+        LOG_DEBUG("Not found contours");
         return;
+    }
 
     std::vector<cv::Point>* largestContour;
     double currentArea {0};

@@ -11,14 +11,14 @@ namespace Analyse
 
 typedef std::vector<std::vector<cv::Point>> ContoursType;
 
-class ImageTemplate
+class ImageComparator
 {
 public:
-    ImageTemplate();
-    ImageTemplate(const ImageTemplate& imgTemplate);
-    ~ImageTemplate();
+    ImageComparator();
+    ImageComparator(const ImageComparator& imgTemplate);
+    ~ImageComparator();
 
-    ImageTemplate& operator =(const ImageTemplate& imgTemplate);
+    ImageComparator& operator =(const ImageComparator& imgTemplate);
 
     void setTemplate(const std::string& filepath);
     std::string getTemplate() const;
@@ -26,18 +26,19 @@ public:
     void setName(const std::string& name);
     std::string getName() const;
 
-    double match(const std::string& filepath);
-    double matchLoaded(cv::Mat& img);
-    double matchHist(cv::Mat& img);
-    double matchContour(cv::Mat& img);
+    double bestMatch(cv::Mat& img);
 
 private:
-    std::string m_templateName {"Unknown"}; // Name for template, registered in system
-    std::string m_templateFilePath; // Path to localfile
+    std::string m_typeName {"Unknown"}; // Name for template, registered in system
+    std::string m_templateFilePath; // Path to localfile template image
 
-    cv::Mat m_loadedTemplateImage; // Main image
+    cv::Mat m_loadedTemplateImage; // Main template image
     std::vector<cv::Mat> m_templateRotations; // Optimisation for next time compare
     ContoursType m_contours; // Contours based on rotations
+
+    double matchTemplate(cv::Mat& img);
+    double matchHist(cv::Mat& img);
+    double matchContour(cv::Mat& img);
 
     void setupRotations();
     double match(cv::Mat& img, cv::Mat& templateImage);

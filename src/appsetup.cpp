@@ -126,12 +126,10 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
 
     // Setup request processor
     imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
-//        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_MATCH);
-//        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_HIST);
-        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_CONTOUR);
+        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload);
 
         // This output can be replaced with sending result to any other source
-        LOG_DEBUG("It's [ %s ]; match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
+        LOG_DEBUG("Found [ %s ]", foundObject.first.c_str());
 
         // Response with deduced type
         msg->payload = foundObject.first;

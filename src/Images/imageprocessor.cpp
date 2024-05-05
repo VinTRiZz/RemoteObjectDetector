@@ -24,7 +24,7 @@
 
 struct Analyse::Processor::AnalysatorPrivate
 {
-    std::vector<Analyse::ImageTemplate> m_types; // Contain types listed in config file in the same dir with neural nets
+    std::vector<Analyse::ImageComparator> m_types; // Contain types listed in config file in the same dir with neural nets
     Analyse::ObjectDetector m_objectDetector; // Detects objects on an image to process them later
 };
 
@@ -66,7 +66,7 @@ void Analyse::Processor::addTemplatesFromDir(const std::string &path)
     }
 }
 
-std::pair<std::string, float> Analyse::Processor::getObject(const std::string &imageFilePath, ProcessorCompareMode compareMode)
+std::pair<std::string, float> Analyse::Processor::getObject(const std::string &imageFilePath)
 {
     // Process speed increasing
     std::vector<std::shared_ptr<std::thread>> processThreads;
@@ -90,23 +90,11 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
 
     // Used to process current image
     auto processFunction =
-        [&](Analyse::ImageTemplate& templateType, cv::Mat& foundObject)
+        [&](Analyse::ImageComparator& templateType, cv::Mat& foundObject)
         {
             float tempMatchPercent {0};
-            switch (compareMode)
-            {
-            case PROCESSOR_COMPARE_MODE_MATCH:
-            tempMatchPercent = templateType.matchLoaded(foundObject);
-                break;
 
-            case PROCESSOR_COMPARE_MODE_HIST:
-            tempMatchPercent = templateType.matchHist(foundObject);
-                break;
-
-            case PROCESSOR_COMPARE_MODE_CONTOUR:
-            tempMatchPercent = templateType.matchContour(foundObject);
-                break;
-            }
+            tempMatchPercent = templateType.bestMatch(foundObject);
 
             matchAddMutex.lock();
             matches[templateType.getName()] = tempMatchPercent;
@@ -142,6 +130,41 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
 
     float mustBe = 0;
     std::pair<std::string, float> foundObject {"Nothing", 0};
+
+    // Normalize values
+//    if (compareMode == PROCESSOR_COMPARE_MODE_CONTOUR)
+//    {
+//        // Get max
+//        double maxVal {0};
+//        for (auto& obj : matches)
+//        {
+//            double equVal = 1.0 / obj.second;
+//            if (equVal > maxVal)
+//                maxVal = equVal;
+//        }
+
+//        // Get min
+//        double minVal {maxVal};
+//        for (auto& obj : matches)
+//        {
+//            double equVal = 1.0 / obj.second;
+//            if (equVal < minVal)
+//                minVal = equVal;
+//        }
+
+//        // Normalize
+//        double coeff = maxVal - minVal;
+
+//        LOG_DEBUG("Normalization coeffs: %.3f %.3f %.3f", minVal, maxVal, coeff);
+
+//        for (auto& obj : matches)
+//        {
+//            double equVal = 1.0 / obj.second;
+//            obj.second = (equVal - minVal) / coeff;
+//            LOG_DEBUG("Res of normalize: %s - %f", obj.first.c_str(), obj.second);
+//        }
+//    }
+
     for (auto& obj : matches)
     {
         if (obj.second > mustBe)
@@ -156,7 +179,7 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
 
 void Analyse::Processor::addType(const std::string& type)
 {
-    Analyse::ImageTemplate typ;
+    Analyse::ImageComparator typ;
     typ.setName(type);
 
     // Check if type already exist
