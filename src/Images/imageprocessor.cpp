@@ -78,6 +78,11 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     // Get objects on an image
     auto objectsFound = d->m_objectDetector.getObjects(imageFilePath);
 
+    // Check if image is large (can contain more than one object)
+    const uint64_t LARGE_IMAGE_BORDER {500 * 500};
+    cv::Mat img = Common::loadImage(imageFilePath);
+    bool imageIsLarge = img.rows * img.cols >= LARGE_IMAGE_BORDER;
+
     // Deleter for pointer to a thread, used in std::shared_ptr
     auto threadDeleteFunction =
         [](std::thread * pThread)
@@ -94,7 +99,9 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
         {
             float tempMatchPercent {0};
 
-            tempMatchPercent = templateType.bestMatch(foundObject);
+            Analyse::ImageCompareMethod compareMethod = imageIsLarge ? Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST : Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
+
+            tempMatchPercent = templateType.bestMatch(foundObject, compareMethod);
 
             matchAddMutex.lock();
             matches[templateType.getName()] = tempMatchPercent;

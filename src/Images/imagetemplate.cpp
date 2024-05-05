@@ -66,14 +66,21 @@ std::string ImageComparator::getName() const
 }
 
 
-double ImageComparator::bestMatch(cv::Mat &img)
+double ImageComparator::bestMatch(cv::Mat &img, ImageCompareMethod compMethod)
 {
-    if ((img.cols > m_loadedTemplateImage.cols) || (img.rows > m_loadedTemplateImage.rows))
+    switch (compMethod)
     {
+    case ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE:
+        return matchTemplate(img);
+
+    case ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST:
         return matchHist(img);
+
+    case ImageCompareMethod::IMAGE_COMPARE_METHOD_CONTOUR:
+        return matchContour(img);
     }
 
-    return matchTemplate(img);
+    return 0;
 }
 
 

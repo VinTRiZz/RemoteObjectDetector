@@ -9,6 +9,13 @@
 namespace Analyse
 {
 
+enum ImageCompareMethod
+{
+    IMAGE_COMPARE_METHOD_TEMPLATE,
+    IMAGE_COMPARE_METHOD_HIST,
+    IMAGE_COMPARE_METHOD_CONTOUR
+};
+
 typedef std::vector<std::vector<cv::Point>> ContoursType;
 
 class ImageComparator
@@ -26,7 +33,7 @@ public:
     void setName(const std::string& name);
     std::string getName() const;
 
-    double bestMatch(cv::Mat& img);
+    double bestMatch(cv::Mat& img, ImageCompareMethod compMethod = ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST);
 
 private:
     std::string m_typeName {"Unknown"}; // Name for template, registered in system
