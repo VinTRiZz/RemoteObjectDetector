@@ -3,6 +3,8 @@
 
 // Types
 #include <stdint.h>
+
+// Data containers
 #include <string>
 #include <vector>
 
@@ -18,7 +20,6 @@
 
 namespace Components
 {
-
 
 // Defines what is this module
 enum ModuleTypes : uint16_t
@@ -50,34 +51,28 @@ enum ModuleExitCode : int8_t
 };
 
 
+// Typedefs
 typedef uint64_t ModuleUid;
+
+struct MessageStruct;
+typedef std::shared_ptr<MessageStruct> Message;
+
+class ModuleClass;
+typedef std::shared_ptr<ModuleClass> Module;
+typedef std::weak_ptr<ModuleClass> ModuleWeak;
+
 
 // Structure to send messages between modules, see Message typedef
 struct MessageStruct
 {
-    static std::shared_ptr<MessageStruct> create(ModuleUid sender, ModuleUid receiver, const std::string& payload)
-    {
-        std::shared_ptr<MessageStruct> result = std::make_shared<MessageStruct>(
-            MessageStruct()
-        );
+    // Creates Message object
+    static Message create(ModuleUid sender, ModuleUid receiver, const std::string& payload);
 
-        result->senderUid = sender;
-        result->receiverUid = receiver;
-        result->payload = payload;
-
-        return result;
-    }
-
+    // Module-to-module communication
     ModuleUid senderUid;
     ModuleUid receiverUid;
     std::string payload;
 };
-
-
-typedef std::shared_ptr<MessageStruct> Message;
-class ModuleClass;
-typedef std::shared_ptr<ModuleClass> Module;
-typedef std::weak_ptr<ModuleClass> ModuleWeak;
 
 
 // Setup struct
@@ -90,15 +85,17 @@ struct ModuleConfiguration
 
     bool workAsync {true};  // Switch to false if need a thread
 
+    // Module identification parameters
     ModuleTypes type;
     std::string name {"Unknown module"}; // Optional
 
+    // Module interface
     std::function<ModuleStatus(Module)>     initFunction;
     std::function<ModuleExitCode(Module)>   workFunction;
     std::function<Message(Message)>         inputProcessor;
     std::function<void(Module)>             stopFunction;
 
-    // Used in MainApp class
+    // Add requires for MainApp class to configure module
     void addRequiredConnectionUid(ModuleUid _uid);
     void addRequiredConnectionType(ModuleTypes _type);
 
@@ -107,6 +104,7 @@ private:
     std::vector<ModuleTypes> requiredConnectionTypes;
     friend class MainApp; // To work with methods down here
 };
+
 
 // Class to process messages between system modules
 class ModuleClass
@@ -133,10 +131,10 @@ public:
     // Used to create a module (created just to add self pointer)
     static Module createModule(const ModuleConfiguration &config);
 
+    // Constructors
     ModuleClass(const ModuleClass& m);
     ModuleClass(ModuleClass&& m);
     ~ModuleClass();
-
 
     // Intermodule connection work
     ModuleTypes type() const;
@@ -145,11 +143,9 @@ public:
     // Get module name
     std::string name() const;
 
-
     // ModuleClass status work
     ModuleStatus status() const;
     void setStatus(ModuleStatus s);
-
 
     // Connections work
     Message sendToModuleUid(ModuleUid _uid, const std::string &msg);

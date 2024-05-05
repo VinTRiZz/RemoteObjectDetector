@@ -32,41 +32,6 @@ std::vector<std::string> Components::MainApp::args() const
     return m_argsVect;
 }
 
-std::vector<Components::Module> Components::MainApp::modules() const
-{
-    return m_moduleVect;
-}
-
-Components::Module Components::MainApp::getModuleByName(const std::string &_name)
-{
-    for (auto m : m_moduleVect)
-    {
-        if (m->name() == _name)
-            return m;
-    }
-    return Module();
-}
-
-Components::Module Components::MainApp::getModuleByType(Components::ModuleTypes _type)
-{
-    for (auto m : m_moduleVect)
-    {
-        if (m->type() == _type)
-            return m;
-    }
-    return Module();
-}
-
-Components::Module Components::MainApp::getModuleByUid(Components::ModuleUid _uid)
-{
-    for (auto m : m_moduleVect)
-    {
-        if (m->uid() == _uid)
-            return m;
-    }
-    return Module();
-}
-
 std::string Components::MainApp::argument(std::size_t argNo)
 {
     if (m_argsVect.size() > argNo)

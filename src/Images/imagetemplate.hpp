@@ -1,10 +1,11 @@
 #ifndef IMAGETEMPLATE_H
 #define IMAGETEMPLATE_H
 
-#include <memory>
-#include <string>
-
+// OpenCV header
 #include <opencv2/opencv.hpp>
+
+// Data containers
+#include <string>
 
 namespace Analyse
 {

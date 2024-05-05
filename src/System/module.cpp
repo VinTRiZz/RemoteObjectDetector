@@ -197,3 +197,16 @@ void Components::ModuleClass::sleep_s(uint64_t time)
 {
     std::this_thread::sleep_for(std::chrono::seconds(time));
 }
+
+std::shared_ptr<Components::MessageStruct> Components::MessageStruct::create(ModuleUid sender, ModuleUid receiver, const std::string &payload)
+{
+    std::shared_ptr<MessageStruct> result = std::make_shared<MessageStruct>(
+                MessageStruct()
+                );
+
+    result->senderUid = sender;
+    result->receiverUid = receiver;
+    result->payload = payload;
+
+    return result;
+}

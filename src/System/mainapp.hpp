@@ -1,8 +1,10 @@
 #ifndef COMPONENTS_MAIN_APP_H
 #define COMPONENTS_MAIN_APP_H
 
+// Data containers
 #include <vector>
 
+// Modules
 #include "module.hpp"
 
 namespace Components
@@ -15,17 +17,13 @@ public:
     MainApp(int argc, char* argv[]);
     ~MainApp();
 
+    // Add module to system
     void addModule(Module m);
 
     // Work with arguments passed to app
     std::string argument(std::size_t argNo);
     std::size_t argCount() const;
     std::vector<std::string> args() const;
-
-    std::vector<Module> modules() const;
-    Module getModuleByName(const std::string& _name);
-    Module getModuleByType(ModuleTypes _type);
-    Module getModuleByUid(ModuleUid _uid);
 
     // Return true if inited successfully
     bool init();

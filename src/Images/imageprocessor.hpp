@@ -7,7 +7,7 @@
 // For smart pointers
 #include <memory>
 
-// For data arrays
+// Data containers
 #include <map>
 #include <vector>
 
@@ -22,21 +22,24 @@ public:
 
     // Sets directory where processor will try to find configuration
     void setImageTemplateDir(const std::string& path);
+
+    // Add templates from directory if they exist
     void addTemplatesFromDir(const std::string& path);
 
-    // Analyse photo saved by path, matchPercent is lowest percent to say that image found
+    // Analyse image saved by path
     // Returns pair < object - match percent >
     std::pair<std::string, float> getObject(const std::string &imageFilePath);
     
-    // Object type list manipulations
+    // Add type of object without describing
     void addType(const std::string& type);
+
+    // Remove type from known. If succeed, return true
     bool removeType(const std::string& type);
 
     // Get vector with all types processor can detect
     std::vector<std::string> availableTypes() const;
     
-    // Setup another type using config file (used to add types)
-    // Template file is path to a file with image what to use as a template
+    // Setup type using image by path to make type valid
     void setupType(const std::string& type, const std::string& templateFile);
     
 private:

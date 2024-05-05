@@ -6,8 +6,10 @@
 namespace AppSetup
 {
 
+// Setup everything not depending on app itself
 void independentSetup();
 
+// Setup MainApp class
 void setupApp(Components::MainApp& app);
 
 }

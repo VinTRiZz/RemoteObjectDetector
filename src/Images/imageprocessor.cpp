@@ -18,14 +18,12 @@
 
 // OpenCV image comparator
 #include "imagetemplate.hpp"
-#include "objectdetector.hpp"
 
 #include "common.hpp"
 
 struct Analyse::Processor::AnalysatorPrivate
 {
-    std::vector<Analyse::ImageComparator> m_types; // Contain types listed in config file in the same dir with neural nets
-    Analyse::ObjectDetector m_objectDetector; // Detects objects on an image to process them later
+    std::vector<Analyse::ImageComparator> m_types; // Contain all types available
 };
 
 Analyse::Processor::Processor() :
@@ -47,19 +45,23 @@ void Analyse::Processor::setImageTemplateDir(const std::string& path)
 
 void Analyse::Processor::addTemplatesFromDir(const std::string &path)
 {
+    // Check if directory exist and it's directory
     if (!stdfs::exists(path) || !stdfs::is_directory(path))
     {
         LOG_ERROR("Invalid directory: %s", path.c_str());
         return;
     }
 
+    // Iterate in directory
     for (const auto& dirent : stdfs::directory_iterator(path))
     {
+        // If a file, try to get image from it
         if (stdfs::is_regular_file(dirent.path()))
         {
             std::string newTypeName = dirent.path().filename();
             newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
 
+            // Setup type as a name of file
             addType(newTypeName);
             setupType(newTypeName, dirent.path());
         }
@@ -72,11 +74,12 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     std::vector<std::shared_ptr<std::thread>> processThreads;
     const uint16_t coreCount = std::thread::hardware_concurrency();
 
+    // Match percent for types
     std::map<std::string, float> matches;
     std::mutex matchAddMutex; // Mutex for adding match results
 
     // Get objects on an image
-    auto objectsFound = d->m_objectDetector.getObjects(imageFilePath);
+    auto objectsFound = Common::getObjects(imageFilePath);
 
     // Check if image is large (can contain more than one object)
     const uint64_t LARGE_IMAGE_BORDER {500 * 500};
@@ -97,81 +100,57 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     auto processFunction =
         [&](Analyse::ImageComparator& templateType, cv::Mat& foundObject)
         {
+            // Temporary variable to save result of compare without blocking thread
             float tempMatchPercent {0};
 
+            // Check what method to use for compare
             Analyse::ImageCompareMethod compareMethod = imageIsLarge ? Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST : Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
 
+            // Compare
             tempMatchPercent = templateType.bestMatch(foundObject, compareMethod);
 
+            // Add match to result map
             matchAddMutex.lock();
             matches[templateType.getName()] = tempMatchPercent;
             matchAddMutex.unlock();
         }
     ;
 
+    // Setup thread vector
     for (uint16_t i = 0; i < coreCount; i++)
         processThreads.push_back(std::shared_ptr<std::thread>());
 
     // Process types
     for (auto& templateType : d->m_types)
     {
+        // Process objects found on an image
         for (auto& objectOnImage : objectsFound)
         {
+            // Insert processing into threads
             for (uint16_t i = 0; i < coreCount; i++)
             {
+                // Add thread if any free exist
                 if (!processThreads[i].use_count())
                 {
                     processThreads[i] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
                     break;
                 }
 
+                // Wait for first thread and set it after join
                 if (i == coreCount - 1)
                 {
-                    processThreads.begin()->reset();
                     processThreads[0] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
                 }
             }
         }
     }
-    processThreads.clear(); // Wait for all threads
+    processThreads.clear(); // Wait for all threads to end
 
+    // Variables to contain result of compare
     float mustBe = 0;
     std::pair<std::string, float> foundObject {"Nothing", 0};
 
-    // Normalize values
-//    if (compareMode == PROCESSOR_COMPARE_MODE_CONTOUR)
-//    {
-//        // Get max
-//        double maxVal {0};
-//        for (auto& obj : matches)
-//        {
-//            double equVal = 1.0 / obj.second;
-//            if (equVal > maxVal)
-//                maxVal = equVal;
-//        }
-
-//        // Get min
-//        double minVal {maxVal};
-//        for (auto& obj : matches)
-//        {
-//            double equVal = 1.0 / obj.second;
-//            if (equVal < minVal)
-//                minVal = equVal;
-//        }
-
-//        // Normalize
-//        double coeff = maxVal - minVal;
-
-//        LOG_DEBUG("Normalization coeffs: %.3f %.3f %.3f", minVal, maxVal, coeff);
-
-//        for (auto& obj : matches)
-//        {
-//            double equVal = 1.0 / obj.second;
-//            obj.second = (equVal - minVal) / coeff;
-//            LOG_DEBUG("Res of normalize: %s - %f", obj.first.c_str(), obj.second);
-//        }
-//    }
-
+    // Search for max match percent
     for (auto& obj : matches)
     {
         if (obj.second > mustBe)
@@ -196,7 +175,7 @@ void Analyse::Processor::addType(const std::string& type)
     // Add if not exist
     d->m_types.push_back(typ);
 
-    // Sort to detect faster
+    // Sort types using lexicographical comparison
     std::sort(d->m_types.begin(), d->m_types.end(), [](auto& t_a, auto& t_b){ return t_a.getName() < t_b.getName();});
 }
 
@@ -207,6 +186,7 @@ bool Analyse::Processor::removeType(const std::string& type)
     if (pos == d->m_types.end())
         return false;
 
+    // Remove type if found
     d->m_types.erase(pos);
     return true;
 }
@@ -216,8 +196,8 @@ std::vector<std::string> Analyse::Processor::availableTypes() const
     // Copy type names from internal vector
     std::vector<std::string> output;
     output.resize(d->m_types.size());
-    for (size_t pos = 0; pos < d->m_types.size(); pos++)
-        output[pos] = d->m_types[pos].getName();
+    size_t pos {0};
+    std::generate(output.begin(), output.end(), [this, &pos](){ return d->m_types[pos++].getName(); });
     return output;
 }
 

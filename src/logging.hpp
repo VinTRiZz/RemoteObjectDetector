@@ -32,9 +32,11 @@ enum class MessageType : uint8_t
     MESSAGE_TYPE_OPRESULT_ERROR
 };
 
+// Print and save message
 void log(MessageType type, const std::string& fileName, uint64_t line, const std::string& message, ...);
 
-const std::string LOGFILE_PATH {"./ObjectDetector.log"};
+// Path of log file
+const std::string LOGFILE_PATH {"./ObjectSearcher.log"};
 
 // Main logging
 #define LOG_INFO(message, ...)      log(Logging::MessageType::MESSAGE_TYPE_INFO,    stdfs::path(__FILE__).filename(), __LINE__, message, ##__VA_ARGS__)
