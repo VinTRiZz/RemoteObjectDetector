@@ -21,7 +21,7 @@ public:
 
     void setWeightsFile(const std::string& filepath);
 
-    std::vector<cv::Mat> getObjects(cv::Mat& mainImage);
+    std::vector<cv::Mat> getObjects(const std::string &imageFullPath);
 
 private:
     bool m_canWork {false};

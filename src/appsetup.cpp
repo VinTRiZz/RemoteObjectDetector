@@ -17,63 +17,6 @@ MainApp * pApp {nullptr};
 // ------------- MODULES CREATING --------------- //
 // ---------------------------------------------- //
 // ---------------------------------------------- //
-Module createImageProcessor(const std::vector<std::string>& templateDirs)
-{
-    // Create image processor
-    auto pImageProc = std::shared_ptr<Analyse::Processor>(new Analyse::Processor(), std::default_delete<Analyse::Processor>());
-
-    // Setup configuration of module
-    ModuleConfiguration imageProcessorConfig;
-    imageProcessorConfig.type = ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR;
-    imageProcessorConfig.name = "Image processor";
-    imageProcessorConfig.initAsync = true;
-    imageProcessorConfig.workAsync = true;
-
-    // Setup init function for image processor
-    imageProcessorConfig.initFunction = [pImageProc, templateDirs](Module m){
-
-        // Setup all directories as source with templates
-        for (auto& templateDir : templateDirs)
-            pImageProc->setImageTemplateDir(templateDir);
-
-        // Check if templates set up
-        if (!pImageProc->availableTypes().size())
-        {
-            LOG_ERROR("No templates detected in directories");
-            return ModuleStatus::MODULE_STATUS_ERROR;
-        }
-
-        // Show what types found in a directory
-        LOG_INFO("Detected templates:");
-        int cnt = 1;
-        LOG_EMPTY("------------------------------------");
-        for (auto & t : pImageProc->availableTypes())
-            LOG_EMPTY("%i) %s", cnt++, t.c_str());
-        LOG_EMPTY("------------------------------------");
-
-        // Say that all's good
-        return ModuleStatus::MODULE_STATUS_INITED;
-    };
-
-    // Setup request processor
-    imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
-        float mustBe = 0;
-        std::pair<std::string, float> foundObject = pImageProc->getObjects(msg->payload, 0.9, true);
-
-        // This output can be replaced with sending result to any other source
-        LOG_DEBUG("It's [ %s ]; match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
-        LOG_EMPTY("");
-
-        // Response with deduced type
-        msg->payload = foundObject.first;
-        std::swap(msg->senderUid, msg->senderUid);
-        return msg;
-    };
-
-    return ModuleClass::createModule(imageProcessorConfig);
-}
-
-
 Module createCameraModule(const std::string& cameraFile)
 {
     // Create camera adaptor
@@ -142,6 +85,65 @@ Module createCameraModule(const std::string& cameraFile)
 }
 
 
+
+Module createImageProcessor(const std::vector<std::string>& templateDirs)
+{
+    // Create image processor
+    auto pImageProc = std::shared_ptr<Analyse::Processor>(new Analyse::Processor(), std::default_delete<Analyse::Processor>());
+
+    // Setup configuration of module
+    ModuleConfiguration imageProcessorConfig;
+    imageProcessorConfig.type = ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR;
+    imageProcessorConfig.name = "Image processor";
+    imageProcessorConfig.initAsync = true;
+    imageProcessorConfig.workAsync = true;
+
+    // Setup init function for image processor
+    imageProcessorConfig.initFunction = [pImageProc, templateDirs](Module m){
+
+        // Setup all directories as source with templates
+        for (auto& templateDir : templateDirs)
+            pImageProc->setImageTemplateDir(templateDir);
+
+        // Check if templates set up
+        if (!pImageProc->availableTypes().size())
+        {
+            LOG_ERROR("No templates detected in directories");
+            return ModuleStatus::MODULE_STATUS_ERROR;
+        }
+
+        // Show what types found in a directory
+        LOG_INFO("Detected templates:");
+        int cnt = 1;
+        LOG_EMPTY("------------------------------------");
+        for (auto & t : pImageProc->availableTypes())
+            LOG_EMPTY("%i) %s", cnt++, t.c_str());
+        LOG_EMPTY("------------------------------------");
+
+        // Say that all's good
+        return ModuleStatus::MODULE_STATUS_INITED;
+    };
+
+    // Setup request processor
+    imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
+//        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_MATCH);
+//        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_HIST);
+        std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload, Analyse::PROCESSOR_COMPARE_MODE_CONTOUR);
+
+        // This output can be replaced with sending result to any other source
+        LOG_DEBUG("It's [ %s ]; match percent: [ %f ]", foundObject.first.c_str(), foundObject.second);
+
+        // Response with deduced type
+        msg->payload = foundObject.first;
+        std::swap(msg->senderUid, msg->senderUid);
+        return msg;
+    };
+
+    return ModuleClass::createModule(imageProcessorConfig);
+}
+
+
+
 Module createEmulatorModule()
 {
     ModuleConfiguration emulatorConfig;
@@ -165,10 +167,12 @@ Module createEmulatorModule()
 //        const std::string basepath = "test/";
         const std::string basepath = "temp/";
 
-        const std::string path = basepath +"black_knight_rotates";
+//        const std::string path = basepath +"black_knight_rotates";
 //        const std::string path = basepath + "black_knight_distort";
-//        const std::string path = basepath + "distorts";
+        const std::string path = basepath + "distorts";
 //        const std::string path = basepath + "figures"; // Object templates
+
+//        const std::string path = basepath + "moon"; // Random objects 1
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -191,6 +195,7 @@ Module createEmulatorModule()
                 auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(timeElapsed - timeNow);
 
                 LOG_DEBUG("Analyse time: %.3f s", dur.count() / 1000.0f );
+                LOG_EMPTY("");
             }
         }
 

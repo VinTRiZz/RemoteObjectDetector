@@ -7,6 +7,8 @@
 namespace Analyse
 {
 
+constexpr size_t MINIMAL_OBJECT_SIZE = 30 * 30;
+
 ObjectDetector::ObjectDetector()
 {
 
@@ -32,12 +34,13 @@ void ObjectDetector::setWeightsFile(const std::string &filepath)
     m_weightsPath = filepath;
 }
 
-std::vector<cv::Mat> ObjectDetector::getObjects(cv::Mat &mainImage)
+std::vector<cv::Mat> ObjectDetector::getObjects(const std::string& imageFullPath)
 {
     std::vector<cv::Mat> result;
-
     try
     {
+        cv::Mat mainImage = Common::loadImage(imageFullPath);
+
         if (mainImage.empty())
         {
             LOG_ERROR("Image load error");
@@ -47,23 +50,26 @@ std::vector<cv::Mat> ObjectDetector::getObjects(cv::Mat &mainImage)
         cv::Mat mainThreshed;
         cv::threshold(mainImage, mainThreshed, 128, 255, cv::THRESH_BINARY);
 
-        std::vector<std::vector<cv::Point>> contours;
-        cv::findContours(mainThreshed, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-//        cv::drawContours(mainThreshed, contours, -1, cv::Scalar(0, 255, 0), 2);
+        Common::ContoursType contours;
+        Common::addContours(mainThreshed, contours);
 
-        LOG_OPRES_SUCCESS("Found %i contours", contours.size());
+        std::string basepath = "temp/";
+        basepath += std::filesystem::path(imageFullPath).filename();
+        basepath.erase(basepath.size() - 4, basepath.size());
 
-//        int no = 1;
+        Common::ContoursType contours2;
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
-            result.push_back(mainImage(boundingRect));
 
-//            cv::Mat contouredObject = mainImage(boundingRect);
-//            cv::drawContours(contouredObject, contours, no - 1, cv::Scalar(255, 0, 0), 2);
-//            cv::Mat contouredObject = cv::Mat::zeros(boundingRect.height, boundingRect.width, mainImage.type());
-//            cv::imwrite(std::string("temp/Object-") + std::to_string(no++) + ".png", contouredObject);
+            if (boundingRect.area() < MINIMAL_OBJECT_SIZE)
+                continue;
+
+            contours2.push_back(contour);
+            result.push_back(mainImage(boundingRect));
         }
+
+        Common::drawFound(mainImage, contours2, basepath);
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());

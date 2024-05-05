@@ -28,7 +28,8 @@ public:
 
     double match(const std::string& filepath);
     double matchLoaded(cv::Mat& img);
-    double matchContours(cv::Mat& img);
+    double matchHist(cv::Mat& img);
+    double matchContour(cv::Mat& img);
 
 private:
     std::string m_templateName {"Unknown"}; // Name for template, registered in system
@@ -36,12 +37,11 @@ private:
 
     cv::Mat m_loadedTemplateImage; // Main image
     std::vector<cv::Mat> m_templateRotations; // Optimisation for next time compare
-    std::vector<ContoursType> m_contours; // Contours based on rotations
+    ContoursType m_contours; // Contours based on rotations
 
     void setupRotations();
     double match(cv::Mat& img, cv::Mat& templateImage);
     void createRotations(size_t& currentIndex);
-    void addContours(cv::Mat& img);
 };
 
 }

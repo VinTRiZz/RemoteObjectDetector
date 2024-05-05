@@ -124,7 +124,7 @@ double ImageTemplate::matchLoaded(cv::Mat &img)
     return maxMatch;
 }
 
-double ImageTemplate::matchContours(cv::Mat &img)
+double ImageTemplate::matchHist(cv::Mat &img)
 {
     if (m_loadedTemplateImage.empty())
     {
@@ -141,27 +141,71 @@ double ImageTemplate::matchContours(cv::Mat &img)
 
     double maxMatch {0};
 
-    // Get contour of an object
-    ContoursType imageContours;
-    cv::findContours(img, imageContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::Mat templateHist, imgHist;
+    int histSize = 256; // Number of bins
+    float range[] = {0, 255}; // Range of pixel values
+    const float* histRange = {range};
 
-    // Compare using image copyies contours
-    int no = 0;
-    for (auto& templateContour : m_contours)
+    cv::calcHist(&img, 1, 0, cv::Mat(), imgHist, 1, &histSize, &histRange);
+
+    for (auto& templateRotation : m_templateRotations)
     {
-        for (auto& imageContour : imageContours)
-        {
-            try {
-                double compRes = cv::matchShapes(templateContour, imageContour, cv::CONTOURS_MATCH_I1, 0);
-                if (compRes > maxMatch)
-                    maxMatch = compRes;
-            } catch (cv::Exception& ex) {
-                LOG_ERROR("Got OpenCV exception: %s", ex.what());
-            }
-        }
+        cv::calcHist(&templateRotation, 1, 0, cv::Mat(), templateHist, 1, &histSize, &histRange);
+        double compRes = cv::compareHist(templateHist, imgHist, cv::HISTCMP_CORREL);
+
+        if (compRes > maxMatch)
+            maxMatch = compRes;
     }
 
     return maxMatch;
+}
+
+double ImageTemplate::matchContour(cv::Mat &img)
+{
+    if (m_loadedTemplateImage.empty())
+    {
+        LOG_ERROR("Template load error. Path: %s", m_templateFilePath.c_str());
+        return 0;
+    }
+
+    // Setup image
+    if (img.empty())
+    {
+        LOG_OPRES_ERROR("Null image inserted to match searcher");
+        return 0;
+    }
+
+    // Get contour of an object
+    ContoursType imageContours;
+    Common::addContours(img, imageContours);
+
+    double imageContourArea = cv::contourArea(imageContours[0]);
+
+    try {
+        double resultMatch {0};
+        for (auto& contour : m_contours)
+        {
+            double templateContourArea = cv::contourArea(contour);
+            double diff = std::abs(imageContourArea - templateContourArea);
+            if (diff <= 100)
+            {
+                double tempMatchRes = cv::matchShapes(m_contours, imageContours, cv::CONTOURS_MATCH_I2, 0);
+                if (tempMatchRes > resultMatch)
+                {
+                    resultMatch = tempMatchRes;
+                    LOG_OPRES_SUCCESS("Compared 2 vectors!");
+                    continue;
+                }
+                LOG_OPRES_ERROR("Not compared");
+                continue;
+            }
+            LOG_OPRES_ERROR("Diff more than 100: %f", diff);
+        }
+    } catch (cv::Exception& ex) {
+        LOG_ERROR("Got OpenCV exception: %s", ex.what());
+    }
+
+    return 0;
 }
 
 
@@ -177,7 +221,7 @@ void ImageTemplate::setupRotations()
     // Mirror vertically
     m_templateRotations.push_back({});
     cv::flip(m_templateRotations[0], m_templateRotations[currentIndex], 0);
-    addContours(m_templateRotations[currentIndex]);
+    Common::addContours(m_templateRotations[currentIndex], m_contours);
 
     // Mirrored vertical
     createRotations(currentIndex);
@@ -185,7 +229,7 @@ void ImageTemplate::setupRotations()
     // Mirror horizontally
     m_templateRotations.push_back({});
     cv::flip(m_templateRotations[0], m_templateRotations[currentIndex], 1);
-    addContours(m_templateRotations[currentIndex]);
+    Common::addContours(m_templateRotations[currentIndex], m_contours);
 
     // Mirrored horizontal
     createRotations(currentIndex);
@@ -231,10 +275,21 @@ double ImageTemplate::match(cv::Mat &img, cv::Mat &templateImage)
 
     // Compare
     try {
-        //            cv::matchTemplate(img, templateImage, result, cv::TM_CCOEFF_NORMED);
-        cv::matchTemplate(img, templateImage, result, cv::TM_CCORR_NORMED);
-        //            cv::matchTemplate(img, templateImage, result, cv::TM_SQDIFF_NORMED);
+        double resultVal {0};
+
+        cv::matchTemplate(img, templateImage, result, cv::TM_CCOEFF_NORMED);
         cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+        resultVal += maxVal / 3.0f;
+
+        cv::matchTemplate(img, templateImage, result, cv::TM_CCORR_NORMED);
+        cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+        resultVal += maxVal / 3.0f;
+
+        cv::matchTemplate(img, templateImage, result, cv::TM_SQDIFF_NORMED);
+        cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+        resultVal += (1.0 - maxVal) / 3.0f;
+
+        maxVal = resultVal;
 
     } catch (cv::Exception& ex) {
 //        LOG_OPRES_ERROR("Got OpenCV exception: %s", ex.what());
@@ -253,29 +308,22 @@ void ImageTemplate::createRotations(size_t &currentIndex)
     m_templateRotations.push_back({});
     cv::transpose(m_templateRotations[currentIndex - 1], m_templateRotations[currentIndex]);
     cv::flip(m_templateRotations[currentIndex], m_templateRotations[currentIndex], 1);
-    addContours(m_templateRotations[currentIndex]);
+    Common::addContours(m_templateRotations[currentIndex], m_contours);
 
     // Rotate -90
     currentIndex++;
     m_templateRotations.push_back({});
     cv::transpose(m_templateRotations[currentIndex - 2], m_templateRotations[currentIndex]);
     cv::flip(m_templateRotations[currentIndex], m_templateRotations[currentIndex], 0);
-    addContours(m_templateRotations[currentIndex]);
+    Common::addContours(m_templateRotations[currentIndex], m_contours);
 
     // Rotate 180
     currentIndex++;
     m_templateRotations.push_back({});
     cv::flip(m_templateRotations[currentIndex - 3], m_templateRotations[currentIndex], -1);
-    addContours(m_templateRotations[currentIndex]);
+    Common::addContours(m_templateRotations[currentIndex], m_contours);
 
     currentIndex++;
-}
-
-void ImageTemplate::addContours(cv::Mat &img)
-{
-    ContoursType imageContours;
-    cv::findContours(img, imageContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-    m_contours.push_back(imageContours);
 }
 
 }

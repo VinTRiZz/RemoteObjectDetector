@@ -66,7 +66,7 @@ void Analyse::Processor::addTemplatesFromDir(const std::string &path)
     }
 }
 
-std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &imageFilePath, float minimalMatch, bool easyMode)
+std::pair<std::string, float> Analyse::Processor::getObject(const std::string &imageFilePath, ProcessorCompareMode compareMode)
 {
     // Process speed increasing
     std::vector<std::shared_ptr<std::thread>> processThreads;
@@ -76,8 +76,7 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
     std::mutex matchAddMutex; // Mutex for adding match results
 
     // Get objects on an image
-    auto imgMatrix = Common::loadImage(imageFilePath);
-    auto objectsFound = d->m_objectDetector.getObjects(imgMatrix);
+    auto objectsFound = d->m_objectDetector.getObjects(imageFilePath);
 
     // Deleter for pointer to a thread, used in std::shared_ptr
     auto threadDeleteFunction =
@@ -93,12 +92,25 @@ std::pair<std::string, float> Analyse::Processor::getObjects(const std::string &
     auto processFunction =
         [&](Analyse::ImageTemplate& templateType, cv::Mat& foundObject)
         {
-        float tempMatchPercent {0};
-//        tempMatchPercent = templateType.matchLoaded(foundObject);
-        tempMatchPercent = templateType.matchContours(foundObject);
-        matchAddMutex.lock();
-        matches[templateType.getName()] = tempMatchPercent;
-        matchAddMutex.unlock();
+            float tempMatchPercent {0};
+            switch (compareMode)
+            {
+            case PROCESSOR_COMPARE_MODE_MATCH:
+            tempMatchPercent = templateType.matchLoaded(foundObject);
+                break;
+
+            case PROCESSOR_COMPARE_MODE_HIST:
+            tempMatchPercent = templateType.matchHist(foundObject);
+                break;
+
+            case PROCESSOR_COMPARE_MODE_CONTOUR:
+            tempMatchPercent = templateType.matchContour(foundObject);
+                break;
+            }
+
+            matchAddMutex.lock();
+            matches[templateType.getName()] = tempMatchPercent;
+            matchAddMutex.unlock();
         }
     ;
 

@@ -13,6 +13,13 @@
 
 namespace Analyse
 {
+
+enum ProcessorCompareMode
+{
+    PROCESSOR_COMPARE_MODE_MATCH,   // Work good when no distortion
+    PROCESSOR_COMPARE_MODE_HIST,    // Work good with distortion and rotation
+    PROCESSOR_COMPARE_MODE_CONTOUR  // Do not work yet
+};
     
 class Processor
 {
@@ -25,8 +32,8 @@ public:
     void addTemplatesFromDir(const std::string& path);
 
     // Analyse photo saved by path, matchPercent is lowest percent to say that image found
-    // Returns pairs < object - match percent >
-    std::pair<std::string, float> getObjects(const std::string &imageFilePath, float minimalMatch = 0.8, bool easyMode = false);
+    // Returns pair < object - match percent >
+    std::pair<std::string, float> getObject(const std::string &imageFilePath, ProcessorCompareMode compareMode = ProcessorCompareMode::PROCESSOR_COMPARE_MODE_MATCH);
     
     // Object type list manipulations
     void addType(const std::string& type);
@@ -36,7 +43,7 @@ public:
     std::vector<std::string> availableTypes() const;
     
     // Setup another type using config file (used to add types)
-    // Template file is // TODO: Write correct info about it
+    // Template file is path to a file with image what to use as a template
     void setupType(const std::string& type, const std::string& templateFile);
     
 private:
