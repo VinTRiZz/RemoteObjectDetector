@@ -20,7 +20,6 @@
 #include "message.hpp"
 #include "moduleconfiguration.hpp"
 
-
 namespace Components
 {
 
@@ -32,7 +31,40 @@ typedef std::shared_ptr<Module> PModule;
 // Class to process messages between system modules
 class Module
 {
+public:
+    // Used to create a module (created just to add self pointer)
+    static PModule createModule(const ModuleConfiguration &config);
+
+    // Constructors
+    Module(const Module& m);
+    Module(Module&& m);
+    ~Module();
+
+    // Module type, used in intermodule communication
+    ModuleType type() const;
+
+    // Get module name
+    std::string name() const;
+
+    // Module status
+    ModuleStatus status() const;
+    void setStatus(ModuleStatus s);
+
+    // Send to module message
+    PMessage sendMessage(const PMessage &msg);
+
+    // Used in multithread processing
+    void lock();
+    void unlock();
+
+    // Utils, can be rewrited to use in other way
+    void sleep_us(uint64_t time);
+    void sleep_ms(uint64_t time);
+    void sleep_s(uint64_t time);
+
 private:
+    friend class MainApp; // To work with methods down here
+
     std::weak_ptr<Module> m_pSelf; // To work with handlers
 
     ModuleConfiguration m_config; // Configuration
@@ -45,52 +77,20 @@ private:
     std::shared_ptr<std::thread> m_workingThread;
     std::mutex m_workingThreadMx;
 
+    // For main cycle
+    std::future<ModuleStatus> m_asyncWorker;
+    std::shared_ptr<std::thread> m_threadWorker;
+
     // Constructor
     Module(const ModuleConfiguration& config);
-
-public:
-    // Used to create a module (created just to add self pointer)
-    static PModule createModule(const ModuleConfiguration &config);
-
-    // Constructors
-    Module(const Module& m);
-    Module(Module&& m);
-    ~Module();
-
-    // Intermodule connection work
-    ModuleType type() const;
-
-    // Get module name
-    std::string name() const;
-
-    // Module status work
-    ModuleStatus status() const;
-    void setStatus(ModuleStatus s);
-
-    // Send to module message
-    PMessage sendMessage(const PMessage &msg);
-
-    // Used in threaded, otherwise useless
-    // (locks internal data mutex)
-    void lock();
-    void unlock();
-
-    // Utils, can be rewrited to use in other way
-    void sleep_us(uint64_t time);
-    void sleep_ms(uint64_t time);
-    void sleep_s(uint64_t time);
-
-private:
-    friend class MainApp; // To work with methods down here
 
     // Process message from other module
     PMessage process(PMessage msg);
 
     // Module setup and start/stop working
-    void init();
-    std::future<ModuleStatus> initAsync();
-    std::future<ModuleStatus> startAsync();
-    std::shared_ptr<std::thread> startThread();
+    std::future<void> init();
+    void start();
+    void poll();
     void stop();
 };
 

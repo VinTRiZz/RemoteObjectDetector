@@ -1,6 +1,8 @@
 #include "System/mainapp.hpp"
 #include "logging.hpp"
 
+#include "module.hpp"
+
 Components::MainApp::MainApp(int argc, char *argv[])
 {
     if (argc > 0)
@@ -16,9 +18,9 @@ Components::MainApp::~MainApp()
     this->exit();
 }
 
-void Components::MainApp::addModule(Components::PModule m)
+void Components::MainApp::addModule(const ModuleConfiguration &m)
 {
-    m_moduleVect.push_back(m);
+    m_moduleVect.push_back(Module::createModule(m));
 }
 
 std::size_t Components::MainApp::argCount() const
@@ -49,41 +51,32 @@ bool Components::MainApp::init()
     size_t currentModuleNo {1};
 
     // Init modules
-    std::vector<std::pair<PModule, std::future<ModuleStatus>>> asyncInitResults;
+    std::vector<std::future<void>> asyncInitResults;
     for (auto module : m_moduleVect)
     {
         // If module must be inited async, then start it
-        if (module->m_config.initAsync)
-        {
-            asyncInitResults.push_back( std::make_pair(module, module->initAsync()) );
-            continue;
-        }
+        asyncInitResults.push_back(module->init());
+    }
 
-        // Init module in same thread if it can't be inited async
-        module->init();
-        if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
+    for (auto& initProcess : asyncInitResults)
+    {
+        if (initProcess.valid())
         {
-            initedModuleCount++;
-            LOG_OPRES_SUCCESS("Module inited: " + module->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
-            continue;
+            initProcess.get();
+            LOG_DEBUG("Init awaiting");
         }
-        LOG_OPRES_ERROR("Module: " + module->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
     }
 
     // Check init results
-    for (auto& moduleInitPair : asyncInitResults)
+    for (auto module : m_moduleVect)
     {
-        if (moduleInitPair.second.valid())
+        if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
         {
-            moduleInitPair.first->setStatus(moduleInitPair.second.get());
-            if (moduleInitPair.first->status() == ModuleStatus::MODULE_STATUS_INITED)
-            {
-                LOG_OPRES_SUCCESS("Module inited: " + moduleInitPair.first->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
-            }
-            else
-            {
-                LOG_OPRES_ERROR("Module: " + moduleInitPair.first->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
-            }
+            LOG_OPRES_SUCCESS("Module inited: " + module->name() + " (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
+        }
+        else
+        {
+            LOG_OPRES_ERROR("Module: " + module->name() + " init error (" + std::to_string(currentModuleNo++) + " / " + std::to_string(m_moduleVect.size()) + ")");
         }
     }
 
@@ -112,19 +105,12 @@ int Components::MainApp::exec()
 {
     LOG_MAINAPP_MESSAGE("Starting modules");
 
-    // Futures for async and threads for not async modules
-    std::vector<std::future<ModuleStatus>> moduleFutures;
-    std::vector<std::shared_ptr<std::thread>> moduleThreads;
-
     // Start modules
     for (auto module : m_moduleVect)
     {
         if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
         {
-            if (module->m_config.workAsync)
-                moduleFutures.push_back(module->startAsync());
-            else
-                moduleThreads.push_back(module->startThread());
+            module->start();
             LOG_OPRES_SUCCESS(std::string("Module ") + module->name() + " started");
         }
         else
@@ -133,18 +119,9 @@ int Components::MainApp::exec()
         }
     }
 
-    // Wait for async modules to complete
-    for (auto& fut : moduleFutures)
+    for (auto module : m_moduleVect)
     {
-        if (fut.valid())
-            fut.get();
-    }
-
-    // Wait for threads to complete
-    for (auto pThread : moduleThreads)
-    {
-        if (pThread->joinable())
-            pThread->join();
+        module->poll();
     }
     return 0;
 }

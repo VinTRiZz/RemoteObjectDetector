@@ -5,7 +5,7 @@
 #include <vector>
 
 // Modules
-#include "module.hpp"
+#include "moduleconfiguration.hpp"
 
 namespace Components
 {
@@ -18,7 +18,7 @@ public:
     ~MainApp();
 
     // Add module to system
-    void addModule(PModule m);
+    void addModule(const ModuleConfiguration& m);
 
     // Work with arguments passed to app
     std::string argument(std::size_t argNo);

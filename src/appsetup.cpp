@@ -17,7 +17,7 @@ MainApp * pApp {nullptr};
 // ------------- MODULES CREATING --------------- //
 // ---------------------------------------------- //
 // ---------------------------------------------- //
-PModule createCameraModule(const std::string& cameraFile)
+ModuleConfiguration createCameraModule(const std::string& cameraFile)
 {
     // Create camera adaptor
     auto pCamera = std::shared_ptr<Adaptors::CameraAdaptor>(new Adaptors::CameraAdaptor(cameraFile), std::default_delete<Adaptors::CameraAdaptor>());
@@ -83,12 +83,12 @@ PModule createCameraModule(const std::string& cameraFile)
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    return Module::createModule(cameraConfig);
+    return cameraConfig;
 }
 
 
 
-PModule createImageProcessor(const std::vector<std::string>& templateDirs)
+ModuleConfiguration createImageProcessor(const std::vector<std::string>& templateDirs)
 {
     // Create image processor
     auto pImageProc = std::shared_ptr<Analyse::Processor>(new Analyse::Processor(), std::default_delete<Analyse::Processor>());
@@ -138,12 +138,12 @@ PModule createImageProcessor(const std::vector<std::string>& templateDirs)
         return msg;
     };
 
-    return Module::createModule(imageProcessorConfig);
+    return imageProcessorConfig;
 }
 
 
 
-PModule createEmulatorModule()
+ModuleConfiguration createEmulatorModule()
 {
     // Setup configuration for emulator
     ModuleConfiguration emulatorConfig;
@@ -201,7 +201,7 @@ PModule createEmulatorModule()
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    return Module::createModule(emulatorConfig);
+    return emulatorConfig;
 }
 
 
@@ -220,6 +220,7 @@ void AppSetup::setupApp(MainApp &app)
     {
         LOG_MAINAPP_MESSAGE("No camera provided (try --help)");
         kill(0, SIGINT);
+        return;
     }
 
     // Camera argument from command line
@@ -230,6 +231,7 @@ void AppSetup::setupApp(MainApp &app)
     {
         LOG_MAINAPP_MESSAGE("Usage: %s [ --help | %s/dev/exampleCamera1 ] [ templateFilesDirectory(ies) ]", app.argument(0).c_str(), cameraArgumentName.c_str());
         kill(0, SIGINT);
+        return;
     }
 
     // Setup camera
@@ -241,6 +243,7 @@ void AppSetup::setupApp(MainApp &app)
     {
         LOG_MAINAPP_MESSAGE("No even 1 template directory provided (try --help)");
         kill(0, SIGINT);
+        return;
     }
 
     // Setup array of template data (remove camera and zero args)

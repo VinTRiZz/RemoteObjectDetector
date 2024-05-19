@@ -81,29 +81,36 @@ Components::PMessage Components::Module::sendMessage(const PMessage &msg)
 
 Components::PMessage Components::Module::process(Components::PMessage msg)
 {
-    if (m_config.messageProcessingFunction)
-        return m_config.messageProcessingFunction(msg);
+    if (!m_config.messageProcessingFunction)
+        return {};
+
+    return m_config.messageProcessingFunction(msg);
+}
+
+std::future<void> Components::Module::init()
+{
+    if (!m_config.initFunction)
+        return {};
+
+    if (m_config.initAsync)
+        return std::async([this](){setStatus(m_config.initFunction(m_pSelf.lock()));});
+
+    setStatus(m_config.initFunction(m_pSelf.lock()));
     return {};
 }
 
-void Components::Module::init()
+void Components::Module::start()
 {
-    if (m_config.initFunction)
-        setStatus(m_config.initFunction(m_pSelf.lock()));
-}
+    if (!m_config.mainCycleFunction)
+        return;
 
-std::future<Components::ModuleStatus> Components::Module::initAsync()
-{
-    if (m_config.initFunction)
-        return std::async(m_config.initFunction, m_pSelf.lock());
-    return {};
-}
-
-std::shared_ptr<std::thread> Components::Module::startThread()
-{
-    if (m_config.mainCycleFunction)
+    if (m_config.workAsync)
     {
-        return std::shared_ptr<std::thread>(
+        m_asyncWorker = std::async(m_config.mainCycleFunction, m_pSelf.lock());
+    }
+    else
+    {
+        m_threadWorker = std::shared_ptr<std::thread>(
             new std::thread(m_config.mainCycleFunction, m_pSelf.lock()),
             [](std::thread * pThread)
             {
@@ -113,23 +120,23 @@ std::shared_ptr<std::thread> Components::Module::startThread()
             }
         );
     }
-
-    return {};
 }
 
-std::future<Components::ModuleStatus> Components::Module::startAsync()
+void Components::Module::poll()
 {
-    if (m_config.mainCycleFunction)
-        return std::async(m_config.mainCycleFunction, m_pSelf.lock());
-    return {};
+    if (!m_config.mainCycleFunction)
+        return;
+
+    if (m_config.workAsync)
+        m_asyncWorker.get();
+    else
+        m_threadWorker.reset();
 }
 
 void Components::Module::stop()
 {
     setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
 }
-
-
 
 void Components::Module::lock()
 {
@@ -140,7 +147,6 @@ void Components::Module::unlock()
 {
     m_workingThreadMx.unlock();
 }
-
 
 
 void Components::Module::sleep_us(uint64_t time)
