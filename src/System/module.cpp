@@ -2,211 +2,158 @@
 
 #include <thread>
 
-Components::ModuleClass::ModuleClass(const Components::ModuleConfiguration &config) :
+Components::Module::Module(const Components::ModuleConfiguration &config) :
     m_config {config}
 {
 
 }
 
-Components::Module Components::ModuleClass::createModule(const Components::ModuleConfiguration &config)
+Components::PModule Components::Module::createModule(const Components::ModuleConfiguration &config)
 {
-    Module result;
-    result = Module(
-        new ModuleClass(config),
-        std::default_delete<ModuleClass>()
-    );
-
+    PModule result;
+    result = PModule(new Module(config));
     result->m_pSelf = result;
     return result;
 }
 
-Components::ModuleClass::ModuleClass(const Components::ModuleClass &m) :
+Components::Module::Module(const Components::Module &m) :
     m_config{m.m_config},
     m_pSelf{m.m_pSelf}
 {
 
 }
 
-Components::ModuleClass::ModuleClass(Components::ModuleClass &&m) :
-    m_config{static_cast<decltype(m_config)&&>(m.m_config)},
+Components::Module::Module(Components::Module &&m) :
+    m_config{static_cast<Components::ModuleConfiguration&&>(m.m_config)},
     m_pSelf{m.m_pSelf}
 {
 
 }
 
-Components::ModuleClass::~ModuleClass()
+Components::Module::~Module()
 {
 
 }
 
-Components::ModuleTypes Components::ModuleClass::type() const
+Components::ModuleType Components::Module::type() const
 {
     return m_config.type;
 }
 
-Components::ModuleUid Components::ModuleClass::uid() const
-{
-    return reinterpret_cast<ModuleUid>(m_pSelf.lock().get());
-}
-
-std::string Components::ModuleClass::name() const
+std::string Components::Module::name() const
 {
     return m_config.name;
 }
 
-Components::ModuleStatus Components::ModuleClass::status() const
+Components::ModuleStatus Components::Module::status() const
 {
-    return m_status;
+    return m_status.load();
 }
 
-void Components::ModuleClass::setStatus(Components::ModuleStatus s)
+void Components::Module::setStatus(Components::ModuleStatus s)
 {
-    m_status = s;
+    m_status.store(s);
 }
 
-void Components::ModuleConfiguration::addRequiredConnectionUid(ModuleUid _uid)
+void Components::ModuleConfiguration::addRequiredConnection(ModuleType _type)
 {
-    for (auto uid : requiredConnections)
-    {
-        if (uid == _uid)
-            return;
-    }
-    requiredConnections.push_back(_uid);
-}
-
-void Components::ModuleConfiguration::addRequiredConnectionType(ModuleTypes _type)
-{
-    for (auto t : requiredConnectionTypes)
+    for (auto t : requiredConnections)
     {
         if (t == _type)
             return;
     }
 
-    for (auto uid : requiredConnections)
-    {
-        if (reinterpret_cast<Components::ModuleClass*>(uid)->type() == _type)
-            return;
-    }
-
-    requiredConnectionTypes.push_back(_type);
+    requiredConnections.push_back(_type);
 }
 
-Components::Message Components::ModuleClass::sendToModuleUid(Components::ModuleUid _uid, const std::string& msg)
+Components::PMessage Components::Module::sendMessage(const PMessage &msg)
 {
-    Message messageToSend = MessageStruct::create(this->uid(), _uid, msg);
+    auto receiverType = msg->receiver;
     for (auto con : m_connections)
     {
-        if (con->uid() == _uid)
-            return con->process(messageToSend);
-    }
-    return Message();
-}
-
-Components::Message Components::ModuleClass::sendToModuleType(Components::ModuleTypes _type, const std::string& msg)
-{
-    Message messageToSend = MessageStruct::create(this->uid(), 0, msg);
-    for (auto con : m_connections)
-    {
-        if (con->type() == _type)
+        if (con->type() == receiverType)
         {
-            messageToSend->receiverUid = con->uid();
-            return con->process(messageToSend);
+            return con->process(msg);
         }
     }
-    return Message();
+    return PMessage();
 }
 
-std::vector<Components::Module> Components::ModuleClass::connections() const
+Components::PMessage Components::Module::process(Components::PMessage msg)
 {
-    return m_connections;
-}
-
-Components::Message Components::ModuleClass::process(Components::Message msg)
-{
-    if (m_config.inputProcessor)
-        return m_config.inputProcessor(msg);
+    if (m_config.messageProcessingFunction)
+        return m_config.messageProcessingFunction(msg);
     return {};
 }
 
-void Components::ModuleClass::init()
+void Components::Module::init()
 {
     if (m_config.initFunction)
         setStatus(m_config.initFunction(m_pSelf.lock()));
 }
 
-std::future<Components::ModuleStatus> Components::ModuleClass::initAsync()
+std::future<Components::ModuleStatus> Components::Module::initAsync()
 {
     if (m_config.initFunction)
         return std::async(m_config.initFunction, m_pSelf.lock());
     return {};
 }
 
-std::shared_ptr<std::thread> Components::ModuleClass::startThread()
+std::shared_ptr<std::thread> Components::Module::startThread()
 {
-    if (m_config.workFunction)
+    if (m_config.mainCycleFunction)
+    {
         return std::shared_ptr<std::thread>(
-                    new std::thread(m_config.workFunction, m_pSelf.lock()),
-                    [](std::thread * pThread)
-                    {
-                        if (pThread->joinable())
-                            pThread->join();
-                        delete pThread;
-                    }
-                );
+            new std::thread(m_config.mainCycleFunction, m_pSelf.lock()),
+            [](std::thread * pThread)
+            {
+                if (pThread->joinable())
+                    pThread->join();
+                delete pThread;
+            }
+        );
+    }
+
     return {};
 }
 
-std::future<Components::ModuleExitCode> Components::ModuleClass::startAsync()
+std::future<Components::ModuleStatus> Components::Module::startAsync()
 {
-    if (m_config.workFunction)
-        return std::async(m_config.workFunction, m_pSelf.lock());
+    if (m_config.mainCycleFunction)
+        return std::async(m_config.mainCycleFunction, m_pSelf.lock());
     return {};
 }
 
-void Components::ModuleClass::stop()
+void Components::Module::stop()
 {
-    if (m_config.stopFunction)
-        m_config.stopFunction(m_pSelf.lock());
+    setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
 }
 
 
 
-void Components::ModuleClass::lock()
+void Components::Module::lock()
 {
     m_workingThreadMx.lock();
 }
 
-void Components::ModuleClass::unlock()
+void Components::Module::unlock()
 {
     m_workingThreadMx.unlock();
 }
 
 
 
-void Components::ModuleClass::sleep_us(uint64_t time)
+void Components::Module::sleep_us(uint64_t time)
 {
     std::this_thread::sleep_for(std::chrono::microseconds(time));
 }
 
-void Components::ModuleClass::sleep_ms(uint64_t time)
+void Components::Module::sleep_ms(uint64_t time)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(time));
 }
 
-void Components::ModuleClass::sleep_s(uint64_t time)
+void Components::Module::sleep_s(uint64_t time)
 {
     std::this_thread::sleep_for(std::chrono::seconds(time));
-}
-
-std::shared_ptr<Components::MessageStruct> Components::MessageStruct::create(ModuleUid sender, ModuleUid receiver, const std::string &payload)
-{
-    std::shared_ptr<MessageStruct> result = std::make_shared<MessageStruct>(
-                MessageStruct()
-                );
-
-    result->senderUid = sender;
-    result->receiverUid = receiver;
-    result->payload = payload;
-
-    return result;
 }

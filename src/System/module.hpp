@@ -11,148 +11,64 @@
 // Shared ptr
 #include <memory>
 
-// Processor, initer, stopper and worker
-#include <functional>
-
 // Async starting
 #include <future>
+
+// Status work
+#include <atomic>
+
+#include "message.hpp"
+#include "moduleconfiguration.hpp"
 
 
 namespace Components
 {
 
-// Defines what is this module
-enum ModuleTypes : uint16_t
-{
-    MODULE_TYPE_UNKNOWN,            // Can be used to detect dead modules, etc
-    MODULE_TYPE_TEST_MODULE,        // To test work of modules
-    MODULE_TYPE_IMAGE_PROCESSOR,    // Image processor
-    MODULE_TYPE_CAMERA,             // Camera module
-};
-
-
-// Enum to describe current status of a module
-enum ModuleStatus : int8_t
-{
-    MODULE_STATUS_ERROR     = -1,   // Not inited, for example
-    MODULE_STATUS_INITED    = 0,    // Init function must return this on success
-    MODULE_STATUS_RUNNING   = 1,    // Working (see workFunction in configuration)
-    MODULE_STATUS_STOPPING  = 2     // Stop is in process
-};
-
-
-// Exit codes of module start() execution
-enum ModuleExitCode : int8_t
-{
-    MODULE_EXIT_CODE_ERROR,
-    MODULE_EXIT_CODE_STOPPED,
-    MODULE_EXIT_CODE_INTERRUPT,
-    MODULE_EXIT_CODE_SUCCESS
-};
-
-
-// Typedefs
-typedef uint64_t ModuleUid;
-
-struct MessageStruct;
-typedef std::shared_ptr<MessageStruct> Message;
-
-class ModuleClass;
-typedef std::shared_ptr<ModuleClass> Module;
-typedef std::weak_ptr<ModuleClass> ModuleWeak;
-
-
-// Structure to send messages between modules, see Message typedef
-struct MessageStruct
-{
-    // Creates Message object
-    static Message create(ModuleUid sender, ModuleUid receiver, const std::string& payload);
-
-    // Module-to-module communication
-    ModuleUid senderUid;
-    ModuleUid receiverUid;
-    std::string payload;
-};
-
-
-// Setup struct
-struct ModuleConfiguration
-{
-
-    bool initAsync {false}; // !!! WARNING !!! DEPENDS ON INIT ORDER !!!
-                            // Switch to true if module can init async with modules,
-                            // added in queue after it
-
-    bool workAsync {true};  // Switch to false if need a thread
-
-    // Module identification parameters
-    ModuleTypes type;
-    std::string name {"Unknown module"}; // Optional
-
-    // Module interface
-    std::function<ModuleStatus(Module)>     initFunction;
-    std::function<ModuleExitCode(Module)>   workFunction;
-    std::function<Message(Message)>         inputProcessor;
-    std::function<void(Module)>             stopFunction;
-
-    // Add requires for MainApp class to configure module
-    void addRequiredConnectionUid(ModuleUid _uid);
-    void addRequiredConnectionType(ModuleTypes _type);
-
-private:
-    std::vector<ModuleUid> requiredConnections;
-    std::vector<ModuleTypes> requiredConnectionTypes;
-    friend class MainApp; // To work with methods down here
-};
+// Typedef for easier work
+class Module;
+typedef std::shared_ptr<Module> PModule;
 
 
 // Class to process messages between system modules
-class ModuleClass
+class Module
 {
 private:
-    friend struct ModuleConfiguration;
-
-    ModuleWeak m_pSelf; // To work with handlers
+    std::weak_ptr<Module> m_pSelf; // To work with handlers
 
     ModuleConfiguration m_config; // Configuration
-    ModuleStatus m_status {ModuleStatus::MODULE_STATUS_ERROR}; // Status to detect errors
+    std::atomic<ModuleStatus> m_status {ModuleStatus::MODULE_STATUS_ERROR}; // Status to detect errors
 
     // Connections
-    std::vector<Module> m_connections;
+    std::vector<PModule> m_connections;
 
     // For non-async using
     std::shared_ptr<std::thread> m_workingThread;
     std::mutex m_workingThreadMx;
 
     // Constructor
-    ModuleClass(const ModuleConfiguration& config);
+    Module(const ModuleConfiguration& config);
 
 public:
     // Used to create a module (created just to add self pointer)
-    static Module createModule(const ModuleConfiguration &config);
+    static PModule createModule(const ModuleConfiguration &config);
 
     // Constructors
-    ModuleClass(const ModuleClass& m);
-    ModuleClass(ModuleClass&& m);
-    ~ModuleClass();
+    Module(const Module& m);
+    Module(Module&& m);
+    ~Module();
 
     // Intermodule connection work
-    ModuleTypes type() const;
-    ModuleUid uid() const; // Actually just a pointer to an object
+    ModuleType type() const;
 
     // Get module name
     std::string name() const;
 
-    // ModuleClass status work
+    // Module status work
     ModuleStatus status() const;
     void setStatus(ModuleStatus s);
 
-    // Connections work
-    Message sendToModuleUid(ModuleUid _uid, const std::string &msg);
-    Message sendToModuleType(ModuleTypes _type, const std::string &msg);
-    std::vector<Module> connections() const;
-    Message process(Message msg);
-
+    // Send to module message
+    PMessage sendMessage(const PMessage &msg);
 
     // Used in threaded, otherwise useless
     // (locks internal data mutex)
@@ -167,10 +83,13 @@ public:
 private:
     friend class MainApp; // To work with methods down here
 
-    // ModuleClass setup and start/stop working
+    // Process message from other module
+    PMessage process(PMessage msg);
+
+    // Module setup and start/stop working
     void init();
     std::future<ModuleStatus> initAsync();
-    std::future<ModuleExitCode> startAsync();
+    std::future<ModuleStatus> startAsync();
     std::shared_ptr<std::thread> startThread();
     void stop();
 };

@@ -17,21 +17,21 @@ MainApp * pApp {nullptr};
 // ------------- MODULES CREATING --------------- //
 // ---------------------------------------------- //
 // ---------------------------------------------- //
-Module createCameraModule(const std::string& cameraFile)
+PModule createCameraModule(const std::string& cameraFile)
 {
     // Create camera adaptor
     auto pCamera = std::shared_ptr<Adaptors::CameraAdaptor>(new Adaptors::CameraAdaptor(cameraFile), std::default_delete<Adaptors::CameraAdaptor>());
 
     // Setup configuration of module
     ModuleConfiguration cameraConfig;
-    cameraConfig.type = ModuleTypes::MODULE_TYPE_CAMERA;
+    cameraConfig.type = ModuleType::MODULE_TYPE_CAMERA;
     cameraConfig.name = "Camera";
     cameraConfig.initAsync = true;
     cameraConfig.workAsync = true;
-    cameraConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
+    cameraConfig.addRequiredConnection(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR);
 
     // Setup camera for use
-    cameraConfig.initFunction = [pCamera](Module selfModule){
+    cameraConfig.initFunction = [pCamera](PModule selfModule){
 
         pCamera->init();
 
@@ -49,7 +49,7 @@ Module createCameraModule(const std::string& cameraFile)
     };
 
     // Start camera shoting photos
-    cameraConfig.workFunction = [pCamera](Module selfModule){
+    cameraConfig.mainCycleFunction = [pCamera](PModule selfModule){
         selfModule->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
         // Path for temporary photo saving
@@ -74,39 +74,34 @@ Module createCameraModule(const std::string& cameraFile)
             if (pCamera->shot(tempPhotoPath))
             {
                 // Process result photo
-                selfModule->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, tempPhotoPath);
+                selfModule->sendMessage(Message::create(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR, MessageType::MESSAGE_TYPE_REQUEST_ADD, tempPhotoPath));
             }
 
             // Wait shot interval
             selfModule->sleep_s(1);
         }
-        return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+        return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    // Setup stop function for camera module
-    cameraConfig.stopFunction = [](Module selfModule) {
-        selfModule->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
-    };
-
-    return ModuleClass::createModule(cameraConfig);
+    return Module::createModule(cameraConfig);
 }
 
 
 
-Module createImageProcessor(const std::vector<std::string>& templateDirs)
+PModule createImageProcessor(const std::vector<std::string>& templateDirs)
 {
     // Create image processor
     auto pImageProc = std::shared_ptr<Analyse::Processor>(new Analyse::Processor(), std::default_delete<Analyse::Processor>());
 
     // Setup configuration of module
     ModuleConfiguration imageProcessorConfig;
-    imageProcessorConfig.type = ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR;
+    imageProcessorConfig.type = ModuleType::MODULE_TYPE_IMAGE_PROCESSOR;
     imageProcessorConfig.name = "Image processor";
     imageProcessorConfig.initAsync = true;
     imageProcessorConfig.workAsync = true;
 
     // Setup init function for image processor
-    imageProcessorConfig.initFunction = [pImageProc, templateDirs](Module selfModule){
+    imageProcessorConfig.initFunction = [pImageProc, templateDirs](PModule selfModule){
 
         // Setup all directories as source with templates
         for (auto& templateDir : templateDirs)
@@ -132,7 +127,7 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
     };
 
     // Setup request processor
-    imageProcessorConfig.inputProcessor = [pImageProc](Message msg){
+    imageProcessorConfig.messageProcessingFunction = [pImageProc](PMessage msg){
 
         // Process image
         std::pair<std::string, float> foundObject = pImageProc->getObject(msg->payload);
@@ -140,35 +135,33 @@ Module createImageProcessor(const std::vector<std::string>& templateDirs)
         // Response with deduced type
         msg->payload = foundObject.first;
 
-        // Swap sender-receiver
-        std::swap(msg->senderUid, msg->receiverUid);
         return msg;
     };
 
-    return ModuleClass::createModule(imageProcessorConfig);
+    return Module::createModule(imageProcessorConfig);
 }
 
 
 
-Module createEmulatorModule()
+PModule createEmulatorModule()
 {
     // Setup configuration for emulator
     ModuleConfiguration emulatorConfig;
-    emulatorConfig.type = ModuleTypes::MODULE_TYPE_TEST_MODULE;
+    emulatorConfig.type = ModuleType::MODULE_TYPE_EMULATOR_1;
     emulatorConfig.name = "Emulator";
     emulatorConfig.initAsync = true;
     emulatorConfig.workAsync = true;
-    emulatorConfig.addRequiredConnectionType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR);
+    emulatorConfig.addRequiredConnection(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR);
 
     // Setup init function
-    emulatorConfig.initFunction = [](Module selfModule){
+    emulatorConfig.initFunction = [](PModule selfModule){
         return ModuleStatus::MODULE_STATUS_INITED;
     };
 
     // Setup work (emulation for camera) function
-    emulatorConfig.workFunction = [](Module selfModule){
+    emulatorConfig.mainCycleFunction = [](PModule selfModule){
         selfModule->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
-        Message response;
+        PMessage response;
 
         LOG_DEBUG("Camera emulator started");
 
@@ -182,7 +175,7 @@ Module createEmulatorModule()
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
             LOG_ERROR("Invalid analyse directory: %s", path.c_str());
-            return ModuleExitCode::MODULE_EXIT_CODE_ERROR;
+            return ModuleStatus::MODULE_STATUS_ERROR;
         }
 
         for (const auto& dirent : stdfs::directory_iterator(path))
@@ -195,7 +188,7 @@ Module createEmulatorModule()
                 LOG_INFO("Analysing picture: %s", dirent.path().filename().c_str());
 
                 auto timeNow = std::chrono::high_resolution_clock::now();
-                response = selfModule->sendToModuleType(ModuleTypes::MODULE_TYPE_IMAGE_PROCESSOR, dirent.path());
+                response = selfModule->sendMessage(Message::create(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR, MessageType::MESSAGE_TYPE_REQUEST_ADD, dirent.path()));
                 auto timeElapsed = std::chrono::high_resolution_clock::now();
                 auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(timeElapsed - timeNow);
 
@@ -205,14 +198,10 @@ Module createEmulatorModule()
         }
 
         LOG_DEBUG("Camera emulator exited");
-        return ModuleExitCode::MODULE_EXIT_CODE_SUCCESS;
+        return ModuleStatus::MODULE_STATUS_INITED;
     };
 
-    emulatorConfig.stopFunction = [](Module selfModule){
-        selfModule->setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
-    };
-
-    return ModuleClass::createModule(emulatorConfig);
+    return Module::createModule(emulatorConfig);
 }
 
 
@@ -261,7 +250,7 @@ void AppSetup::setupApp(MainApp &app)
     system("mkdir temp &> /dev/null"); // Create temporary dir for camera output
 
     // Create app modules
-    app.addModule(createCameraModule(cameraFile));
+//    app.addModule(createCameraModule(cameraFile));
     app.addModule(createImageProcessor(args));
     app.addModule(createEmulatorModule());
 }

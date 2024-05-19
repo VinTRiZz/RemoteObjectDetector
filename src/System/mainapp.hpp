@@ -18,7 +18,7 @@ public:
     ~MainApp();
 
     // Add module to system
-    void addModule(Module m);
+    void addModule(PModule m);
 
     // Work with arguments passed to app
     std::string argument(std::size_t argNo);
@@ -35,7 +35,7 @@ public:
     void exit();
 
 private:
-    std::vector<Module> m_moduleVect;
+    std::vector<PModule> m_moduleVect;
     std::vector<std::string> m_argsVect;
 };
 

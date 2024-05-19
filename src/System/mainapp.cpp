@@ -16,7 +16,7 @@ Components::MainApp::~MainApp()
     this->exit();
 }
 
-void Components::MainApp::addModule(Components::Module m)
+void Components::MainApp::addModule(Components::PModule m)
 {
     m_moduleVect.push_back(m);
 }
@@ -49,7 +49,7 @@ bool Components::MainApp::init()
     size_t currentModuleNo {1};
 
     // Init modules
-    std::vector<std::pair<Module, std::future<ModuleStatus>>> asyncInitResults;
+    std::vector<std::pair<PModule, std::future<ModuleStatus>>> asyncInitResults;
     for (auto module : m_moduleVect)
     {
         // If module must be inited async, then start it
@@ -92,22 +92,8 @@ bool Components::MainApp::init()
     {
         for (auto pCon : m_moduleVect)
         {
-            // Skip self
-            if (pCon->uid() == module->uid())
-                continue;
-
-            // Connect to needed modules by ids
-            for (auto con : module->m_config.requiredConnections)
-            {
-                if (pCon->uid() == con)
-                {
-                    module->m_connections.push_back(pCon);
-                    break;
-                }
-            }
-
             // Connect to needed modules by types
-            for (auto con : module->m_config.requiredConnectionTypes)
+            for (auto con : module->m_config.requiredConnections)
             {
                 if (pCon->type() == con)
                 {
@@ -127,7 +113,7 @@ int Components::MainApp::exec()
     LOG_MAINAPP_MESSAGE("Starting modules");
 
     // Futures for async and threads for not async modules
-    std::vector<std::future<ModuleExitCode>> moduleFutures;
+    std::vector<std::future<ModuleStatus>> moduleFutures;
     std::vector<std::shared_ptr<std::thread>> moduleThreads;
 
     // Start modules
@@ -160,8 +146,6 @@ int Components::MainApp::exec()
         if (pThread->joinable())
             pThread->join();
     }
-
-    this->exit();
     return 0;
 }
 
