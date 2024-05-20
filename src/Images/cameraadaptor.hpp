@@ -34,13 +34,7 @@ public:
     
     // Get status of driver
     AdaptorStatus status();
-    
-    // Init class using camera choosen
-    void init();
 
-    // Deinit class, releasing camera choosen
-    void deinit();
-    
     // Ask camera to create a picture
     bool shot(const std::string& outputFile);
     

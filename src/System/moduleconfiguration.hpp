@@ -42,6 +42,7 @@ struct ModuleConfiguration
     std::function<ModuleStatus(PModule)>      initFunction;
     std::function<ModuleStatus(PModule)>      mainCycleFunction;
     std::function<PMessage(PMessage)>         messageProcessingFunction;
+    std::function<void(PModule)>              stopCallbackFunction;
 
     // Add requires for MainApp class to configure module
     void addRequiredConnection(ModuleType _type);

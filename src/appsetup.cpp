@@ -33,8 +33,6 @@ ModuleConfiguration createCameraModule(const std::string& cameraFile)
     // Setup camera for use
     cameraConfig.initFunction = [pCamera](PModule selfModule){
 
-        pCamera->init();
-
         // Check if camera has been inited
         if (pCamera->status() != Adaptors::AdaptorStatus::READY)
         {
@@ -53,23 +51,11 @@ ModuleConfiguration createCameraModule(const std::string& cameraFile)
         selfModule->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
 
         // Path for temporary photo saving
-        const std::string tempPhotoPath {"temp/photoshot.png"};
+        const std::string tempPhotoPath {"temp/photoshot.jpg"};
 
         // Try to shot photos every second
         while (selfModule->status() == ModuleStatus::MODULE_STATUS_RUNNING)
         {
-            // Check if camera module yet can work
-            if (pCamera->status() == Adaptors::AdaptorStatus::ERROR)
-            {
-                LOG_ERROR("Camera adaptor error (is camera conencted?)");
-                LOG_WARNING("Camera reinit...");
-                pCamera->deinit();
-                selfModule->sleep_s(5);
-                pCamera->init();
-                selfModule->sleep_s(5);
-                continue;
-            }
-
             // Get photo from camera ans save by temporary photo path
             if (pCamera->shot(tempPhotoPath))
             {

@@ -128,7 +128,12 @@ void Components::Module::poll()
         return;
 
     if (m_config.workAsync)
+    {
+        if (!m_asyncWorker.valid())
+            return;
+
         m_asyncWorker.get();
+    }
     else
         m_threadWorker.reset();
 }
@@ -136,6 +141,8 @@ void Components::Module::poll()
 void Components::Module::stop()
 {
     setStatus(ModuleStatus::MODULE_STATUS_STOPPING);
+
+    if (m_config.stopCallbackFunction) m_config.stopCallbackFunction(m_pSelf.lock());
 }
 
 void Components::Module::lock()

@@ -82,7 +82,7 @@ std::vector<cv::Mat> getObjects(const std::string &imageFullPath)
 
         // Image binarization (set bytes with lower 128 values to 0, upper to 1)
         cv::Mat mainThreshed;
-        cv::threshold(mainImage, mainThreshed, 128, 255, cv::THRESH_BINARY);
+        cv::threshold(mainImage, mainThreshed, 127, 255, cv::THRESH_BINARY);
 
         // Search for objects
         Common::ContoursType contours;

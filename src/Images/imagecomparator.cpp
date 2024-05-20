@@ -224,17 +224,17 @@ double ImageComparator::matchContour(cv::Mat &img)
             if (tempMatchRes1 > resultMatch)
                 resultMatch = tempMatchRes1;
 
-            // Count equal metrics for contours
-            double tempMatchRes2 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I2, 0);
-            tempMatchRes2 = 1.0 - tempMatchRes2;
-            if (tempMatchRes2 > resultMatch)
-                resultMatch = tempMatchRes2;
+//            // Count equal metrics for contours
+//            double tempMatchRes2 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I2, 0);
+//            tempMatchRes2 = 1.0 - tempMatchRes2;
+//            if (tempMatchRes2 > resultMatch)
+//                resultMatch = tempMatchRes2;
 
-            // Shape Context Matching algorithm (using histograms of contours)
-            double tempMatchRes3 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I3, 0);
-            tempMatchRes3 = 1.0 - tempMatchRes3;
-            if (tempMatchRes3 > resultMatch)
-                resultMatch = tempMatchRes3;
+//            // Shape Context Matching algorithm (using histograms of contours)
+//            double tempMatchRes3 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I3, 0);
+//            tempMatchRes3 = 1.0 - tempMatchRes3;
+//            if (tempMatchRes3 > resultMatch)
+//                resultMatch = tempMatchRes3;
         }
     }
 

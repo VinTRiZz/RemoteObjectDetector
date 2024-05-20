@@ -20,7 +20,12 @@ struct Adaptors::CameraAdaptor::CameraDriverPrivate
 Adaptors::CameraAdaptor::CameraAdaptor(const std::string &deviceFile) :
     d {new CameraDriverPrivate(deviceFile)}
 {
-
+    d->m_capture.open(d->m_deviceFilePath);
+    if (d->m_capture.isOpened())
+    {
+        d->m_status = AdaptorStatus::READY;
+        d->m_capture.release();
+    }
 }
 
 Adaptors::CameraAdaptor::CameraAdaptor(const Adaptors::CameraAdaptor &_oa) :
@@ -55,35 +60,12 @@ Adaptors::CameraAdaptor &Adaptors::CameraAdaptor::operator=(Adaptors::CameraAdap
 
 Adaptors::CameraAdaptor::~CameraAdaptor()
 {
-    deinit();
+
 }
 
 Adaptors::AdaptorStatus Adaptors::CameraAdaptor::status()
 {
     return d->m_status;
-}
-
-void Adaptors::CameraAdaptor::init()
-{
-    d->m_status = Adaptors::AdaptorStatus::BUSY;
-
-    // Try to open file provided into class
-    d->m_capture.open(d->m_deviceFilePath);
-    if (!d->m_capture.isOpened())
-    {
-        LOG_OPRES_ERROR("(Camera) Can't open file: [ %s ] Error text: [ %s ]", d->m_deviceFilePath.c_str(), strerror(errno));
-        d->m_status = Adaptors::AdaptorStatus::ERROR;
-        return;
-    }
-
-    LOG_OPRES_SUCCESS("(Camera) Init succeed");
-    d->m_status = Adaptors::AdaptorStatus::READY;
-}
-
-void Adaptors::CameraAdaptor::deinit()
-{
-    if (d->m_capture.isOpened())
-        d->m_capture.release();
 }
 
 bool Adaptors::CameraAdaptor::shot(const std::string &outputFile)
@@ -94,8 +76,12 @@ bool Adaptors::CameraAdaptor::shot(const std::string &outputFile)
     d->m_status = Adaptors::AdaptorStatus::BUSY;
     cv::Mat frame;
 
+    d->m_capture.open(d->m_deviceFilePath);
+
     // Get picture
     d->m_capture >> frame;
+
+    d->m_capture.release();
 
     // Check if image get succeed
     if (frame.empty())

@@ -104,7 +104,8 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
             float tempMatchPercent {0};
 
             // Check what method to use for compare
-            Analyse::ImageCompareMethod compareMethod = imageIsLarge ? Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST : Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
+//            Analyse::ImageCompareMethod compareMethod = imageIsLarge ? Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST : Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
+            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_CONTOUR;
 
             // Compare
             tempMatchPercent = templateType.bestMatch(foundObject, compareMethod);
