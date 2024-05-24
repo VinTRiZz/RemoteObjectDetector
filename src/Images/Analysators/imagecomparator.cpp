@@ -1,7 +1,5 @@
 #include "imagecomparator.hpp"
-
 #include "logging.hpp"
-
 #include "common.hpp"
 
 namespace Analyse
@@ -198,7 +196,8 @@ double ImageComparator::matchContour(cv::Mat &img)
             Common::addContours(templateImage, m_contours);
 
         // Remove dublicates
-        m_contours.erase(std::unique(m_contours.begin(), m_contours.end(), [](auto& cont1, auto& cont2){ return (cv::matchShapes(cont1, cont2, cv::CONTOURS_MATCH_I2, 0) < 1.0); }), m_contours.end());
+        // TODO: Return this back
+//        m_contours.erase(std::unique(m_contours.begin(), m_contours.end(), [](auto& cont1, auto& cont2){ return (cv::matchShapes(cont1, cont2, cv::CONTOURS_MATCH_I2, 0) < 1.0); }), m_contours.end());
     }
 
     // Setup image
@@ -209,60 +208,58 @@ double ImageComparator::matchContour(cv::Mat &img)
     }
 
     // Get contour of an object
-    ContoursType imageContours;
-    Common::addContours(img, imageContours);
+//    ContoursType imageContours;
+//    Common::addContours(img, imageContours);
 
-    // Compare contours using three methods
-    double resultMatch {1}; // To not use infinity value
-    for (auto& contour : m_contours)
+    // Get Hu moments of contours
+    cv::Moments imageMoments = cv::moments(img);
+    std::vector<double> momentsVect;
+    cv::HuMoments(imageMoments, momentsVect);
+
+    double resultMatch = 0;
+    for (auto& templateMomentsVect : m_templateMoments)
     {
-        for (auto& imageContour : imageContours)
-        {
-            // Integral invariant count for contours
-            double tempMatchRes1 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I1, 0);
-            tempMatchRes1 = 1.0 - tempMatchRes1;
-            if (tempMatchRes1 > resultMatch)
-                resultMatch = tempMatchRes1;
-
-//            // Count equal metrics for contours
-//            double tempMatchRes2 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I2, 0);
-//            tempMatchRes2 = 1.0 - tempMatchRes2;
-//            if (tempMatchRes2 > resultMatch)
-//                resultMatch = tempMatchRes2;
-
-//            // Shape Context Matching algorithm (using histograms of contours)
-//            double tempMatchRes3 = cv::matchShapes(contour, imageContour, cv::CONTOURS_MATCH_I3, 0);
-//            tempMatchRes3 = 1.0 - tempMatchRes3;
-//            if (tempMatchRes3 > resultMatch)
-//                resultMatch = tempMatchRes3;
-        }
+        double tempMatch = cv::matchShapes(momentsVect, templateMomentsVect, 1, 0);
+        if (tempMatch > resultMatch) resultMatch = tempMatch;
     }
 
+//    LOG_DEBUG("Match: %s, %f", m_typeName.c_str(), resultMatch);
     return resultMatch;
 }
 
 
 void ImageComparator::setupRotations()
 {
-    // Setup first index (image by itself)
+    // Setup first index and reserve memory for other
     m_templateRotations.push_back(m_loadedTemplateImage);
+    m_templateRotations.resize(3 * 4);
 
-    // Index to setup other images
+    // Temp values
     size_t currentIndex = 0;
+    cv::Moments templateMoments;
+    std::vector<double> templateMomentsVect;
+
+    templateMoments = cv::moments(m_templateRotations[currentIndex]);
+    cv::HuMoments(templateMoments, templateMomentsVect);
+    m_templateMoments.push_back(templateMomentsVect);
 
     // Rotations for normal image
     createRotations(currentIndex);
 
     // Mirror image vertical
-    m_templateRotations.push_back({});
     cv::flip(m_templateRotations[0], m_templateRotations[currentIndex], 0);
+    templateMoments = cv::moments(m_templateRotations[currentIndex]);
+    cv::HuMoments(templateMoments, templateMomentsVect);
+    m_templateMoments.push_back(templateMomentsVect);
 
     // Rotations for mirrored vertical
     createRotations(currentIndex);
 
     // Mirror image horizontal
-    m_templateRotations.push_back({});
     cv::flip(m_templateRotations[0], m_templateRotations[currentIndex], 1);
+    templateMoments = cv::moments(m_templateRotations[currentIndex]);
+    cv::HuMoments(templateMoments, templateMomentsVect);
+    m_templateMoments.push_back(templateMomentsVect);
 
     // Rotations for mirrored horizontal
     createRotations(currentIndex);
@@ -277,22 +274,31 @@ void ImageComparator::createRotations(size_t &currentIndex)
 {
     // Rotate 90
     currentIndex++;
-    m_templateRotations.push_back({});
     cv::transpose(m_templateRotations[currentIndex - 1], m_templateRotations[currentIndex]);
     cv::flip(m_templateRotations[currentIndex], m_templateRotations[currentIndex], 1);
+    createRotation(currentIndex);
 
     // Rotate -90
     currentIndex++;
-    m_templateRotations.push_back({});
     cv::transpose(m_templateRotations[currentIndex - 2], m_templateRotations[currentIndex]);
     cv::flip(m_templateRotations[currentIndex], m_templateRotations[currentIndex], 0);
+    createRotation(currentIndex);
 
     // Rotate 180
     currentIndex++;
-    m_templateRotations.push_back({});
     cv::flip(m_templateRotations[currentIndex - 3], m_templateRotations[currentIndex], -1);
+    createRotation(currentIndex);
 
     currentIndex++;
+}
+
+inline void ImageComparator::createRotation(size_t &currentIndex)
+{
+    cv::Moments templateMoments;
+    std::vector<double> templateMomentsVect;
+    templateMoments = cv::moments(m_templateRotations[currentIndex]);
+    cv::HuMoments(templateMoments, templateMomentsVect);
+    m_templateMoments.push_back(templateMomentsVect);
 }
 
 void ImageComparator::setupHistograms()
@@ -303,7 +309,10 @@ void ImageComparator::setupHistograms()
     float range[] = {0, 255};           // Range of pixel values
     const float* histRange = {range};   // Range of histogram
 
+    // TODO: Calc PGH instead of normal histograms
+
     // Calculate histograms
+    size_t currentIndex = 0;
     for (auto& templateRotation : m_templateRotations)
     {
         cv::calcHist(&templateRotation, 1, 0, cv::Mat(), templateHist, 1, &histSize, &histRange);

@@ -1,11 +1,7 @@
 #ifndef IMAGETEMPLATE_H
 #define IMAGETEMPLATE_H
 
-// OpenCV header
-#include <opencv2/opencv.hpp>
-
-// Data containers
-#include <string>
+#include "common.hpp"
 
 namespace Analyse
 {
@@ -46,7 +42,7 @@ public:
     std::string getName() const;
 
     // Compares images using method provided
-    double bestMatch(cv::Mat& img, ImageCompareMethod compMethod = ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST);
+    double bestMatch(cv::Mat& img, ImageCompareMethod compMethod);
 
 private:
     std::string m_typeName {"Unknown"}; // Name for template, registered in system
@@ -57,8 +53,9 @@ private:
     // Containers setted up after first calling of compare,
     // later they contains result of generation to compare faster
     std::vector<cv::Mat> m_templateRotations;   // Rotations of template image
-    std::vector<cv::Mat> m_histograms;          // Histograms calculated for template image
+    std::list<cv::Mat> m_histograms;          // Histograms calculated for template image
     ContoursType m_contours;                    // Contours based on rotations
+    std::list<std::vector<double>> m_templateMoments; // Hu moments
 
     double matchTemplate(cv::Mat& img);
     double matchHist(cv::Mat& img);
@@ -66,6 +63,7 @@ private:
 
     void setupRotations();
     void createRotations(size_t& currentIndex);
+    void createRotation(size_t& currentIndex);
     void setupHistograms();
 };
 

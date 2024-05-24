@@ -1,7 +1,34 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+// OpenCV header
 #include <opencv2/opencv.hpp>
+
+// For stable types, such as uint8_t
+#include <stdint.h>
+
+// For smart pointers
+#include <memory>
+
+// Data containers
+#include <string>
+#include <list>
+#include <map>
+#include <vector>
+
+// Logging
+#include "logging.hpp"
+
+// STD algorithms
+#include <algorithm>
+
+// Directory processing
+#include <dirent.h>
+
+// Compare speed increasing
+#include <thread>
+#include <mutex>
+
 
 namespace Common
 {

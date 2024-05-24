@@ -1,25 +1,10 @@
 #include "imageprocessor.hpp"
 
-// STD algorithms
-#include <algorithm>
-
-// Terminal data output
-#include <iostream>
-
-// Directory processing
-#include <dirent.h>
-
-// Log info
-#include "logging.hpp"
-
-// Fast comparing
-#include <thread>
-#include <mutex>
+// All includes for image working
+#include "Analysators/common.hpp"
 
 // OpenCV image comparator
-#include "imagecomparator.hpp"
-
-#include "common.hpp"
+#include "Analysators/imagecomparator.hpp"
 
 struct Analyse::Processor::AnalysatorPrivate
 {
@@ -82,9 +67,7 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     auto objectsFound = Common::getObjects(imageFilePath);
 
     // Check if image is large (can contain more than one object)
-    const uint64_t LARGE_IMAGE_BORDER {500 * 500};
     cv::Mat img = Common::loadImage(imageFilePath);
-    bool imageIsLarge = img.rows * img.cols >= LARGE_IMAGE_BORDER;
 
     // Deleter for pointer to a thread, used in std::shared_ptr
     auto threadDeleteFunction =
@@ -104,7 +87,8 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
             float tempMatchPercent {0};
 
             // Check what method to use for compare
-//            Analyse::ImageCompareMethod compareMethod = imageIsLarge ? Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST : Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
+//            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
+//            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST;
             Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_CONTOUR;
 
             // Compare

@@ -154,9 +154,9 @@ ModuleConfiguration createEmulatorModule()
         const std::string basepath = "temp/";
 
 //        const std::string path = basepath +"black_knight_rotates";
-        const std::string path = basepath + "black_knight_distort";
+//        const std::string path = basepath + "black_knight_distort";
 //        const std::string path = basepath + "distorts";
-//        const std::string path = basepath + "figures"; // Object templates
+        const std::string path = basepath + "figures"; // Object templates
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {

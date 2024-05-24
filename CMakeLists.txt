@@ -5,9 +5,12 @@ project(ObjectSearcher)
 # Setup output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BIN)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Build variables
-file(GLOB HEADERS "src/*.hpp" "src/*/*.hpp")
-file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")
+file(GLOB HEADERS "src/*.hpp" "src/*/*.hpp" "src/*/*/*.hpp")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp")
 
 # Setup build target
 add_executable(
@@ -46,4 +49,5 @@ target_link_libraries(
     -lopencv_imgproc
     -lopencv_flann
     -lopencv_core
+    -lopencv_highgui
 )

@@ -1,5 +1,6 @@
 #include "System/mainapp.hpp"
 #include "logging.hpp"
+#include <string>
 
 #include "module.hpp"
 
@@ -111,7 +112,7 @@ int Components::MainApp::exec()
         if (module->status() == ModuleStatus::MODULE_STATUS_INITED)
         {
             module->start();
-            LOG_OPRES_SUCCESS(std::string("Module ") + module->name() + " started");
+            LOG_OPRES_SUCCESS("Module " + module->name() + " started");
         }
         else
         {

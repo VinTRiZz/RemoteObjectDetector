@@ -11,17 +11,33 @@ constexpr size_t MINIMAL_OBJECT_SIZE = 30 * 30;
 cv::Mat loadImage(const std::string &filepath)
 {
     // Read image
-    cv::Mat result = cv::imread(filepath);
-    if (result.empty())
+    cv::Mat imageRead = cv::imread(filepath, cv::IMREAD_GRAYSCALE);
+    if (imageRead.empty())
     {
         LOG_OPRES_ERROR("Can't read template by path: %s", filepath.c_str());
         return {};
     }
+//    cv::imwrite("image.png", imageRead);
 
-    // Convert image to gray to better search
-    cv::Mat greyResult;
-    cv::cvtColor(result, greyResult, cv::COLOR_BGR2GRAY);
-    return greyResult;
+    // Able morpho filter
+    cv::Mat resultImage;
+//    cv::adaptiveThreshold(imageRead, resultImage, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 3, 0);
+//    cv::imwrite("result_aThreshold.png", resultImage);
+
+//    cv::Mat tempImage;
+//    cv::morphologyEx(imageRead, resultImage, cv::MORPH_GRADIENT, tempImage);
+//    cv::imwrite("result_morpho.png", resultImage);
+
+//    cv::Laplacian(imageRead, resultImage, 5);
+//    cv::imwrite("result_lapla.png", resultImage);
+
+//    cv::Canny(imageRead, resultImage, 200, 100, 3);
+//    cv::imwrite("result_canny.png", resultImage);
+
+//    cv::Mat markersImage = cv::imread("shapedM.png");
+//    cv::watershed(imageRead, markersImage);
+//    cv::imwrite("result_markers.png", imageRead);
+    return imageRead;
 }
 
 void addContours(cv::Mat &img, ContoursType &imageContours)
@@ -80,23 +96,30 @@ std::vector<cv::Mat> getObjects(const std::string &imageFullPath)
             return {};
         }
 
-        // Image binarization (set bytes with lower 128 values to 0, upper to 1)
-        cv::Mat mainThreshed;
-        cv::threshold(mainImage, mainThreshed, 127, 255, cv::THRESH_BINARY);
+        // Image binarization
+//        cv::threshold(mainImage, mainImage, 155, 255, cv::THRESH_BINARY);
+//        cv::adaptiveThreshold(mainImage, mainImage, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 3, 0);
+        cv::adaptiveThreshold(mainImage, mainImage, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 3, 0);
 
         // Search for objects
         Common::ContoursType contours;
-        Common::addContours(mainThreshed, contours);
+        Common::addContours(mainImage, contours);
+
+        result.resize(contours.size());
 
         // Get objects array from contours
+        size_t currentIndex = 0;
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
-
-            if (boundingRect.area() < MINIMAL_OBJECT_SIZE)
-                continue;
-            result.push_back(mainImage(boundingRect));
+            if (boundingRect.area() < MINIMAL_OBJECT_SIZE) continue;
+            result[currentIndex] = mainImage(boundingRect);
         }
+
+        // Remove unused positions
+        auto resultEndR = std::find_if(result.rbegin(), result.rend(), [](auto& img){ return !img.empty(); });
+        auto resultEnd = resultEndR.base();
+        if (resultEnd != result.end()) result.erase(resultEnd + 1, result.end()); // +1 because iterator points to non-zero object
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());

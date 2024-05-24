@@ -40,7 +40,7 @@ public:
     
 private:
     struct CameraDriverPrivate;
-    std::unique_ptr<CameraDriverPrivate> d {nullptr};
+    std::unique_ptr<CameraDriverPrivate> d;
 };
     
 }
