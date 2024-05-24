@@ -1,60 +1,83 @@
 #include "imageprocessor.hpp"
 
 // All includes for image working
-#include "Analysators/common.hpp"
+#include "common.hpp"
+#include "analysemethodmanager.hpp"
 
-// OpenCV image comparator
-#include "Analysators/imagecomparator.hpp"
-
-struct Analyse::Processor::AnalysatorPrivate
+namespace Analyse
 {
-    std::vector<Analyse::ImageComparator> m_types; // Contain all types available
+
+// Deleter for pointer to a thread, used in std::shared_ptr
+auto threadDeleteFunction =
+    [](std::thread * pThread)
+    {
+        if (pThread->joinable())
+            pThread->join();
+        delete pThread;
+    }
+;
+
+struct Processor::AnalysatorPrivate
+{
+    std::list<Common::TypeInfoHolder> m_types;    // Contain all types available
+    AnalyseMethodManager m_analyseManager;          // Used to compare images
+
+    double processType(const Common::TypeInfoHolder& templateType, const cv::Mat& foundObject, Common::CompareMethod compareMethod)
+    {
+        // Temporary variable to save result of compare without blocking thread
+        float tempMatchPercent {0};
+
+        // Compare
+        double compareResult = 0;
+        switch (compareMethod)
+        {
+        case Common::CompareMethod::COMPARE_METHOD_TEMPLATE:
+            compareResult = m_analyseManager.compareTemplate(templateType, foundObject);
+            break;
+
+        case Common::CompareMethod::COMPARE_METHOD_HISTOGRAM:
+            compareResult = m_analyseManager.compareHistogram(templateType, foundObject);
+            break;
+
+        case Common::CompareMethod::COMPARE_METHOD_CONTOUR:
+            compareResult = m_analyseManager.compareContour(templateType, foundObject);
+            break;
+
+        case Common::CompareMethod::COMPARE_METHOD_MOMENTS:
+            compareResult = m_analyseManager.compareMoments(templateType, foundObject);
+            break;
+        }
+
+        return compareResult;
+    }
 };
 
-Analyse::Processor::Processor() :
+Processor::Processor() :
     d {new AnalysatorPrivate()}
 {
 
 }
 
-Analyse::Processor::~Processor()
+Processor::~Processor()
 {
 
 }
 
-void Analyse::Processor::setImageTemplateDir(const std::string& path)
+void Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_types.clear();
-    addTemplatesFromDir(path);
+    Common::loadObjects(path, d->m_types);
 }
 
-void Analyse::Processor::addTemplatesFromDir(const std::string &path)
+
+std::pair<std::string, float> Processor::getObject(const std::string &imageFilePath)
 {
-    // Check if directory exist and it's directory
-    if (!stdfs::exists(path) || !stdfs::is_directory(path))
+    if (!d->m_types.size())
     {
-        LOG_ERROR("Invalid directory: %s", path.c_str());
-        return;
+        LOG_ERROR("No templates provided, analyse not started");
+        return {};
     }
 
-    // Iterate in directory
-    for (const auto& dirent : stdfs::directory_iterator(path))
-    {
-        // If a file, try to get image from it
-        if (stdfs::is_regular_file(dirent.path()))
-        {
-            std::string newTypeName = dirent.path().filename();
-            newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
-
-            // Setup type as a name of file
-            addType(newTypeName);
-            setupType(newTypeName, dirent.path());
-        }
-    }
-}
-
-std::pair<std::string, float> Analyse::Processor::getObject(const std::string &imageFilePath)
-{
     // Process speed increasing
     std::vector<std::shared_ptr<std::thread>> processThreads;
     const uint16_t coreCount = std::thread::hardware_concurrency();
@@ -64,52 +87,33 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     std::mutex matchAddMutex; // Mutex for adding match results
 
     // Get objects on an image
-    auto objectsFound = Common::getObjects(imageFilePath);
+    auto targetImage = Common::loadImage(imageFilePath);
+    if (targetImage.empty())
+    {
+        LOG_ERROR("Error loading image");
+        return {};
+    }
+    auto objectsFound = Common::getObjects(targetImage);
 
-    // Check if image is large (can contain more than one object)
-    cv::Mat img = Common::loadImage(imageFilePath);
-
-    // Deleter for pointer to a thread, used in std::shared_ptr
-    auto threadDeleteFunction =
-        [](std::thread * pThread)
-        {
-            if (pThread->joinable())
-                pThread->join();
-            delete pThread;
-        }
-    ;
-
-    // Used to process current image
-    auto processFunction =
-        [&](Analyse::ImageComparator& templateType, cv::Mat& foundObject)
-        {
-            // Temporary variable to save result of compare without blocking thread
-            float tempMatchPercent {0};
-
-            // Check what method to use for compare
-//            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_TEMPLATE;
-//            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_HIST;
-            Analyse::ImageCompareMethod compareMethod = Analyse::ImageCompareMethod::IMAGE_COMPARE_METHOD_CONTOUR;
-
-            // Compare
-            tempMatchPercent = templateType.bestMatch(foundObject, compareMethod);
-
-            // Add match to result map
-            matchAddMutex.lock();
-            matches[templateType.getName()] = tempMatchPercent;
-            matchAddMutex.unlock();
-        }
-    ;
+    // Function to get results from threads after image processing
+    auto addResult = [&](const std::string& typeName, double res){
+        matchAddMutex.lock();
+        matches[typeName] = res;
+        matchAddMutex.unlock();
+    };
 
     // Setup thread vector
-    for (uint16_t i = 0; i < coreCount; i++)
-        processThreads.push_back(std::shared_ptr<std::thread>());
+    processThreads.resize(coreCount);
+    std::fill(processThreads.begin(), processThreads.end(), std::shared_ptr<std::thread>());
 
     // Process types
-    for (auto& templateType : d->m_types)
+    for (auto& objectOnImage : objectsFound)
     {
-        // Process objects found on an image
-        for (auto& objectOnImage : objectsFound)
+        // Check what method to use for compare
+        auto compareMethod = Common::detectBestCompareMethod(objectOnImage);
+
+        // Check for type
+        for (auto& templateType : d->m_types)
         {
             // Insert processing into threads
             for (uint16_t i = 0; i < coreCount; i++)
@@ -117,14 +121,16 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
                 // Add thread if any free exist
                 if (!processThreads[i].use_count())
                 {
-                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
+                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread([&](){ addResult(templateType.typeName, d->processType(templateType, objectOnImage, compareMethod)); }), threadDeleteFunction);
                     break;
                 }
 
                 // Wait for first thread and set it after join
                 if (i == coreCount - 1)
                 {
-                    processThreads[0] = std::shared_ptr<std::thread>(new std::thread(processFunction, std::ref(templateType), std::ref(objectOnImage)), threadDeleteFunction);
+                    i = std::rand() % coreCount;
+                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread([&](){ addResult(templateType.typeName, d->processType(templateType, objectOnImage, compareMethod)); }), threadDeleteFunction);
+                    break;
                 }
             }
         }
@@ -148,26 +154,10 @@ std::pair<std::string, float> Analyse::Processor::getObject(const std::string &i
     return foundObject;
 }
 
-void Analyse::Processor::addType(const std::string& type)
-{
-    Analyse::ImageComparator typ;
-    typ.setName(type);
-
-    // Check if type already exist
-    auto exist = std::binary_search(d->m_types.begin(), d->m_types.end(), typ, [](auto& t_a, auto& t_b){ return t_a.getName() < t_b.getName();});
-    if (exist) return;
-
-    // Add if not exist
-    d->m_types.push_back(typ);
-
-    // Sort types using lexicographical comparison
-    std::sort(d->m_types.begin(), d->m_types.end(), [](auto& t_a, auto& t_b){ return t_a.getName() < t_b.getName();});
-}
-
-bool Analyse::Processor::removeType(const std::string& type)
+bool Processor::removeType(const std::string& type)
 {
     // Check if type not exist
-    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.getName() == type); });
+    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.typeName == type); });
     if (pos == d->m_types.end())
         return false;
 
@@ -176,20 +166,14 @@ bool Analyse::Processor::removeType(const std::string& type)
     return true;
 }
 
-std::vector<std::string> Analyse::Processor::availableTypes() const
+std::vector<std::string> Processor::availableTypes() const
 {
     // Copy type names from internal vector
     std::vector<std::string> output;
     output.resize(d->m_types.size());
     size_t pos {0};
-    std::generate(output.begin(), output.end(), [this, &pos](){ return d->m_types[pos++].getName(); });
+    std::transform(d->m_types.begin(), d->m_types.end(), output.begin(), [](auto& typeIHolder){ return typeIHolder.typeName; });
     return output;
 }
 
-void Analyse::Processor::setupType(const std::string& type, const std::string& templateFile)
-{
-    // Find type and setup it, if found
-    auto pos = std::find_if(d->m_types.begin(), d->m_types.end(), [&](auto& t){ return (t.getName() == type); });
-    if (pos != d->m_types.end())
-        pos->setImage(templateFile);
 }

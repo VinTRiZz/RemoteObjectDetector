@@ -96,12 +96,12 @@ ModuleConfiguration createImageProcessor(const std::vector<std::string>& templat
         // Check if templates set up
         if (!pImageProc->availableTypes().size())
         {
-            LOG_ERROR("No templates detected in directories");
+            LOG_ERROR("No images detected in directories ppovided");
             return ModuleStatus::MODULE_STATUS_ERROR;
         }
 
         // Show what types found in a directory
-        LOG_INFO("Detected templates:");
+        LOG_EMPTY("Detected objects:");
         int templateNo = 1;
         LOG_EMPTY("------------------------------------");
         for (auto & t : pImageProc->availableTypes())
@@ -153,10 +153,10 @@ ModuleConfiguration createEmulatorModule()
 
         const std::string basepath = "temp/";
 
-//        const std::string path = basepath +"black_knight_rotates";
+        const std::string path = basepath +"black_knight_rotates";
 //        const std::string path = basepath + "black_knight_distort";
 //        const std::string path = basepath + "distorts";
-        const std::string path = basepath + "figures"; // Object templates
+//        const std::string path = basepath + "figures"; // Object templates
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -173,12 +173,12 @@ ModuleConfiguration createEmulatorModule()
             {
                 LOG_INFO("Analysing picture: %s", dirent.path().filename().c_str());
 
-                auto timeNow = std::chrono::high_resolution_clock::now();
+                auto analyseTimeStart = std::chrono::high_resolution_clock::now();
                 response = selfModule->sendMessage(Message::create(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR, MessageType::MESSAGE_TYPE_REQUEST_ADD, dirent.path()));
-                auto timeElapsed = std::chrono::high_resolution_clock::now();
-                auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(timeElapsed - timeNow);
+                auto analyseTimeEnd = std::chrono::high_resolution_clock::now();
+                auto analyseDuration = std::chrono::duration_cast<std::chrono::milliseconds>(analyseTimeEnd - analyseTimeStart);
 
-                LOG_DEBUG("Result: [ %s ] Time: [ %.3f s ]", response->payload.c_str(), dur.count() / 1000.0f );
+                LOG_DEBUG("Result: [ %s ] Analyse time: [ %.3f s ]", response->payload.c_str(), analyseDuration.count() / 1000.0f );
                 LOG_EMPTY("");
             }
         }

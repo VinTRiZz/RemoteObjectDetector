@@ -23,9 +23,6 @@ public:
     // Sets directory where processor will try to find configuration
     void setImageTemplateDir(const std::string& path);
 
-    // Add templates from directory if they exist
-    void addTemplatesFromDir(const std::string& path);
-
     // Analyse image saved by path
     // Returns pair < object - match percent >
     std::pair<std::string, float> getObject(const std::string &imageFilePath);

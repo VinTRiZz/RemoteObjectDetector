@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Build variables
-file(GLOB HEADERS "src/*.hpp" "src/*/*.hpp" "src/*/*/*.hpp")
-file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp")
+file(GLOB HEADERS "src/*.hpp" "src/*/*.hpp")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")
 
 # Setup build target
 add_executable(

@@ -46,6 +46,7 @@ std::string Components::MainApp::argument(std::size_t argNo)
 bool Components::MainApp::init()
 {
     LOG_MAINAPP_MESSAGE("Initialisation started");
+    auto initTimeStart = std::chrono::high_resolution_clock::now();
 
     // For output only
     size_t initedModuleCount {0};
@@ -98,7 +99,9 @@ bool Components::MainApp::init()
         }
     }
 
-    LOG_MAINAPP_MESSAGE("Initialisation complete");
+    auto initTimeEnd = std::chrono::high_resolution_clock::now();
+    auto initTimeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(initTimeEnd - initTimeStart);
+    LOG_MAINAPP_MESSAGE("Initialisation complete in %.3f seconds", initTimeElapsed.count() / 1000.0f);
     return (initedModuleCount == m_moduleVect.size());
 }
 

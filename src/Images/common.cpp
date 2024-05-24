@@ -1,12 +1,12 @@
 #include "common.hpp"
-
 #include "logging.hpp"
+
+// Functions not used directly in common,
+// but used in function implementations
+#include "commonsubfunctions.cpp"
 
 namespace Common
 {
-
-// Describes how small object can be to process it
-constexpr size_t MINIMAL_OBJECT_SIZE = 30 * 30;
 
 cv::Mat loadImage(const std::string &filepath)
 {
@@ -40,80 +40,32 @@ cv::Mat loadImage(const std::string &filepath)
     return imageRead;
 }
 
-void addContours(cv::Mat &img, ContoursType &imageContours)
-{
-    // Search into temporary array
-    ContoursType tempRes;
-    cv::findContours(img, tempRes, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-    // If nothing found, return
-    if (!tempRes.size())
-        return;
-
-    // Search for largest contour
-    std::vector<cv::Point>* largestContour;
-    double currentArea {0};
-
-    // If nothing found or just one countour in array, will be set to first
-    largestContour = &tempRes[0];
-    for (auto& contour : tempRes)
-    {
-        // Count area of contour
-        double tempArea = cv::contourArea(contour);
-        if (currentArea < tempArea)
-        {
-            currentArea = tempArea;
-            largestContour = &contour;
-        }
-    }
-
-    // Add only largest contour into array
-    imageContours.push_back(*largestContour);
-}
-
-void drawFound(cv::Mat &img, ContoursType &foundObjectContours, const std::string &baseName)
-{
-    // Save image objects
-    int no = 1;
-    for (auto& contour : foundObjectContours)
-    {
-        cv::Rect boundingRect = cv::boundingRect(contour);
-        cv::Mat contouredObject = img(boundingRect);
-        cv::imwrite(baseName + "_Object-" + std::to_string(no++) + ".png", contouredObject);
-    }
-}
-
-std::vector<cv::Mat> getObjects(const std::string &imageFullPath)
+std::vector<cv::Mat> getObjects(const cv::Mat &image)
 {
     std::vector<cv::Mat> result;
     try
     {
-        // Get image
-        cv::Mat mainImage = Common::loadImage(imageFullPath);
-        if (mainImage.empty())
-        {
-            LOG_ERROR("Image load error");
-            return {};
-        }
-
         // Image binarization
 //        cv::threshold(mainImage, mainImage, 155, 255, cv::THRESH_BINARY);
 //        cv::adaptiveThreshold(mainImage, mainImage, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 3, 0);
-        cv::adaptiveThreshold(mainImage, mainImage, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 3, 0);
+        cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 3, 0);
 
         // Search for objects
-        Common::ContoursType contours;
-        Common::addContours(mainImage, contours);
+        std::vector<Common::ContourType> contours;
+        Common::addContours(image, contours);
 
         result.resize(contours.size());
+        size_t currentIndex = 0;
+
+        // Describes how small object can be to process it
+        constexpr size_t MINIMAL_OBJECT_SIZE = 30 * 30;
 
         // Get objects array from contours
-        size_t currentIndex = 0;
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
             if (boundingRect.area() < MINIMAL_OBJECT_SIZE) continue;
-            result[currentIndex] = mainImage(boundingRect);
+            result[currentIndex] = image(boundingRect);
         }
 
         // Remove unused positions
@@ -126,6 +78,38 @@ std::vector<cv::Mat> getObjects(const std::string &imageFullPath)
     }
 
     return result;
+}
+
+CompareMethod detectBestCompareMethod(const cv::Mat &image)
+{
+    return CompareMethod::COMPARE_METHOD_TEMPLATE;
+}
+
+void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList)
+{
+    // Check if directory exist and it's directory
+    if (!stdfs::exists(path) || !stdfs::is_directory(path))
+    {
+        LOG_ERROR("Invalid directory: %s", path.c_str());
+        return;
+    }
+
+    // Iterate in directory
+    for (const auto& dirent : stdfs::directory_iterator(path))
+    {
+        // If a file, try to get image from it
+        if (stdfs::is_regular_file(dirent.path()))
+        {
+            std::string newTypeName = dirent.path().filename();
+            newTypeName.erase(newTypeName.find_last_of('.'), newTypeName.size() -1);
+
+            // Setup type as a name of file
+            addType(typeList, newTypeName);
+            auto typeIt = typeList.begin();
+            typeIt->imagePath = dirent.path();
+            setupInfoHolder(*typeIt);
+        }
+    }
 }
 
 }
