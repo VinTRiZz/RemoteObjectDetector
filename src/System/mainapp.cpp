@@ -124,9 +124,7 @@ int Components::MainApp::exec()
     }
 
     for (auto module : m_moduleVect)
-    {
         module->poll();
-    }
     return 0;
 }
 

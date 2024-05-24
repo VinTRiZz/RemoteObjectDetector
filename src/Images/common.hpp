@@ -45,14 +45,14 @@ cv::Mat loadImage(const std::string& filepath);
 // Describes what method to use for image processing
 enum class CompareMethod :uint8_t
 {
+    COMPARE_METHOD_NONE, // Used for invalid objects found on image
     COMPARE_METHOD_TEMPLATE,
     COMPARE_METHOD_HISTOGRAM,
-    COMPARE_METHOD_CONTOUR,
     COMPARE_METHOD_MOMENTS,
 };
 
 // Used to detect how to process image
-CompareMethod detectBestCompareMethod(const cv::Mat& image);
+CompareMethod detectBestCompareMethod(const cv::Mat& targetImage, const cv::Mat &sceneImage);
 
 
 // Search for objects on an image and return vector if them

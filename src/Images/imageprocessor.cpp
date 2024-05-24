@@ -39,10 +39,6 @@ struct Processor::AnalysatorPrivate
             compareResult = m_analyseManager.compareHistogram(templateType, foundObject);
             break;
 
-        case Common::CompareMethod::COMPARE_METHOD_CONTOUR:
-            compareResult = m_analyseManager.compareContour(templateType, foundObject);
-            break;
-
         case Common::CompareMethod::COMPARE_METHOD_MOMENTS:
             compareResult = m_analyseManager.compareMoments(templateType, foundObject);
             break;
@@ -109,9 +105,6 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
     // Process types
     for (auto& objectOnImage : objectsFound)
     {
-        // Check what method to use for compare
-        auto compareMethod = Common::detectBestCompareMethod(objectOnImage);
-
         // Check for type
         for (auto& templateType : d->m_types)
         {
@@ -121,7 +114,32 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                 // Add thread if any free exist
                 if (!processThreads[i].use_count())
                 {
-                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread([&](){ addResult(templateType.typeName, d->processType(templateType, objectOnImage, compareMethod)); }), threadDeleteFunction);
+                    processThreads[i] = std::shared_ptr<std::thread>(
+                        new std::thread(
+                            [&]()
+                            {
+                                double tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_MOMENTS);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+                            }
+                    ), threadDeleteFunction);
                     break;
                 }
 
@@ -129,7 +147,32 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                 if (i == coreCount - 1)
                 {
                     i = std::rand() % coreCount;
-                    processThreads[i] = std::shared_ptr<std::thread>(new std::thread([&](){ addResult(templateType.typeName, d->processType(templateType, objectOnImage, compareMethod)); }), threadDeleteFunction);
+                    processThreads[i] = std::shared_ptr<std::thread>(
+                        new std::thread(
+                            [&]()
+                            {
+                                double tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_MOMENTS);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
+                            }
+                    ), threadDeleteFunction);
                     break;
                 }
             }

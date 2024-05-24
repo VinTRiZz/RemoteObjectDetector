@@ -80,9 +80,29 @@ std::vector<cv::Mat> getObjects(const cv::Mat &image)
     return result;
 }
 
-CompareMethod detectBestCompareMethod(const cv::Mat &image)
+CompareMethod detectBestCompareMethod(const cv::Mat &targetImage, const cv::Mat &sceneImage)
 {
-    return CompareMethod::COMPARE_METHOD_TEMPLATE;
+    auto sceneImage_area = sceneImage.cols * sceneImage.rows;
+    auto targetImage_area = targetImage.cols * targetImage.rows;
+
+    if (sceneImage_area >= targetImage_area * 4)
+    {
+        LOG_DEBUG("Moments compare");
+        return CompareMethod::COMPARE_METHOD_MOMENTS; // Too large image
+    }
+    else if ((sceneImage_area > targetImage_area * 2) && (sceneImage_area < targetImage_area * 4))
+    {
+        LOG_DEBUG("Histogram compare");
+        return CompareMethod::COMPARE_METHOD_HISTOGRAM; // Big images, use histograms
+    }
+    else if (sceneImage_area > targetImage_area)
+    {
+        LOG_DEBUG("Template compare");
+        return CompareMethod::COMPARE_METHOD_TEMPLATE; // A bit different by size images, can slide template
+    }
+
+    LOG_DEBUG("Skipped");
+    return CompareMethod::COMPARE_METHOD_NONE;
 }
 
 void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList)

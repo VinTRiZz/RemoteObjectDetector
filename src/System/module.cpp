@@ -1,6 +1,7 @@
 #include "System/module.hpp"
 
 #include <thread>
+#include "logging.hpp"
 
 Components::Module::Module(const Components::ModuleConfiguration &config) :
     m_config {config}
@@ -133,6 +134,7 @@ void Components::Module::poll()
             return;
 
         m_asyncWorker.get();
+        return;
     }
     else
         m_threadWorker.reset();

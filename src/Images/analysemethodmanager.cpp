@@ -8,11 +8,6 @@ AnalyseMethodManager::AnalyseMethodManager()
 
 }
 
-double AnalyseMethodManager::compareContour(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
-{
-    return 0; // TODO: Write-up
-}
-
 double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     // Get Hu moments of contours
