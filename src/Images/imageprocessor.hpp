@@ -20,8 +20,11 @@ public:
     Processor();
     ~Processor();
 
+    // Setup camera adaptor
+    void startCamera(const std::string& cameraDevicePath);
+
     // Study background to erase it later before image analyse
-    void studyBackground(uint64_t timeS);
+    void studyBackground(uint64_t timeMs);
 
     // Sets directory where processor will try to find configuration
     void setImageTemplateDir(const std::string& path);

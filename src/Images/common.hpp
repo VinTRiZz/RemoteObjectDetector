@@ -33,6 +33,12 @@
 namespace Common
 {
 
+// Size constants of object setup rect
+const uint64_t CAMERA_CENTER_RECT_X         = 640 / 3;
+const uint64_t CAMERA_CENTER_RECT_Y         = 480 / 3;
+const uint64_t CAMERA_CENTER_RECT_HEIGHT    = 640 * 2 / 3;
+const uint64_t CAMERA_CENTER_RECT_WIDTH     = 480 * 2 / 3;
+
 // Types to work easier
 typedef std::vector<cv::Point>  ContourType;
 typedef std::vector<double>     MomentsType;
@@ -40,6 +46,8 @@ typedef std::vector<double>     MomentsType;
 // Load image using file path, return null image if error occurs
 cv::Mat loadImage(const std::string& filepath);
 
+// Get moments of image
+std::vector<double> createMoments(const cv::Mat& image);
 
 
 // Describes what method to use for image processing
@@ -56,7 +64,8 @@ CompareMethod detectBestCompareMethod(const cv::Mat& targetImage, const cv::Mat 
 
 
 // Search for objects on an image and return vector if them
-std::vector<cv::Mat> getObjects(const cv::Mat& image);
+std::vector<cv::Mat> getObjects(const cv::Mat& targetImage, cv::Ptr<cv::BackgroundSubtractor> &pBacgroundSub);
+
 
 
 struct TypeInfoHolder
@@ -76,7 +85,7 @@ struct TypeInfoHolder
 };
 
 // Load objects from directory into typeList
-void loadObjects(const std::string& path, std::list<Common::TypeInfoHolder>& typeList);
+void loadObjects(const std::string& path, std::list<Common::TypeInfoHolder>& typeList, cv::Ptr<cv::BackgroundSubtractor>& pBackgroundSub);
 
 }
 

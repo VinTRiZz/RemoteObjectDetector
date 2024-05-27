@@ -1,6 +1,5 @@
 #include "cameraadaptor.hpp"
 
-#include <opencv2/opencv.hpp>
 #include "logging.hpp"
 
 struct Adaptors::CameraAdaptor::CameraDriverPrivate
@@ -20,12 +19,7 @@ struct Adaptors::CameraAdaptor::CameraDriverPrivate
 Adaptors::CameraAdaptor::CameraAdaptor(const std::string &deviceFile) :
     d {new CameraDriverPrivate(deviceFile)}
 {
-    d->m_capture.open(d->m_deviceFilePath);
-    if (d->m_capture.isOpened())
-    {
-        d->m_status = AdaptorStatus::READY;
-        d->m_capture.release();
-    }
+    setCamera(deviceFile);
 }
 
 Adaptors::CameraAdaptor::CameraAdaptor(const Adaptors::CameraAdaptor &_oa) :
@@ -95,4 +89,37 @@ bool Adaptors::CameraAdaptor::shot(const std::string &outputFile)
 
     d->m_status = Adaptors::AdaptorStatus::READY;
     return true;
+}
+
+bool Adaptors::CameraAdaptor::shotToBuffer(cv::Mat &imageBuffer)
+{
+    if (d->m_status != Adaptors::AdaptorStatus::READY)
+        return false;
+
+    d->m_status = Adaptors::AdaptorStatus::BUSY;
+
+    // Get picture
+    d->m_capture.open(d->m_deviceFilePath);
+    d->m_capture >> imageBuffer;
+    d->m_capture.release();
+
+    // Check if image get succeed
+    if (imageBuffer.empty())
+    {
+        d->m_status = Adaptors::AdaptorStatus::READY;
+        return false;
+    }
+
+    d->m_status = Adaptors::AdaptorStatus::READY;
+    return true;
+}
+
+void Adaptors::CameraAdaptor::setCamera(const std::string &cameraDevicePath)
+{
+    d->m_capture.open(d->m_deviceFilePath);
+    if (d->m_capture.isOpened())
+    {
+        d->m_status = AdaptorStatus::READY;
+        d->m_capture.release();
+    }
 }

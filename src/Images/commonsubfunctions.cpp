@@ -3,11 +3,17 @@
 namespace Common
 {
 
-inline void addContours(const cv::Mat &img, std::vector<ContourType> &imageIHolder)
+inline void addContours(const cv::Mat &img, std::vector<ContourType> &imageContours)
 {
+    cv::Mat grayImage;
+    if ((img.channels() > 2) && (img.type() != CV_8UC1))
+        cv::cvtColor(img, grayImage, cv::COLOR_BGR2GRAY);
+    else
+        grayImage = img;
+
     // Search into temporary array
     std::vector<ContourType> tempRes;
-    cv::findContours(img, tempRes, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(grayImage, tempRes, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     // If nothing found, return
     if (!tempRes.size()) return;
@@ -29,16 +35,10 @@ inline void addContours(const cv::Mat &img, std::vector<ContourType> &imageIHold
         }
     }
 
-    // Add only largest contour into array
-    imageIHolder.push_back(*largestContour);
+    // Add only largest contour into array, skip small objects
+    imageContours.push_back(*largestContour);
 }
 
-inline std::vector<double> createMoments(const cv::Mat& image)
-{
-    std::vector<double> momentsVect;
-    cv::HuMoments(cv::moments(image), momentsVect);
-    return momentsVect;
-}
 
 inline void createRotations(std::vector<cv::Mat>& result, size_t &currentIndex)
 {
@@ -110,6 +110,7 @@ inline std::vector<std::vector<double> > getMoments(const cv::Mat &image)
     return result;
 }
 
+
 inline std::list<cv::Mat> getHistograms(const std::vector<cv::Mat> &imageRotations)
 {
     std::list<cv::Mat> histograms;
@@ -132,14 +133,22 @@ inline std::list<cv::Mat> getHistograms(const std::vector<cv::Mat> &imageRotatio
     return histograms;
 }
 
-inline void setupInfoHolder(TypeInfoHolder &imageIHolder)
+
+inline void setupInfoHolder(TypeInfoHolder &imageIHolder, cv::Ptr<cv::BackgroundSubtractor>& pBackgroundSub)
 {
-    imageIHolder.image      = loadImage(imageIHolder.imagePath);
+    // Setup object things
+    imageIHolder.image          = loadImage(imageIHolder.imagePath);
+
+    auto objects                = getObjects(imageIHolder.image, pBackgroundSub);
+    if (!objects.size()) return;
+    imageIHolder.image = objects[0];
     imageIHolder.imageRotations = getRotations(imageIHolder.image);
 
+    // Setup contour things
+    imageIHolder.moments        = getMoments(imageIHolder.image);
     addContours(imageIHolder.image, imageIHolder.contours);
-    imageIHolder.moments    = getMoments(imageIHolder.image);
 }
+
 
 inline void addType(std::list<TypeInfoHolder> &typeList, const std::string& typeName)
 {

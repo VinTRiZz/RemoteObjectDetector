@@ -11,19 +11,24 @@ AnalyseMethodManager::AnalyseMethodManager()
 double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     // Get Hu moments of contours
-    cv::Moments imageMoments = cv::moments(image);
-    std::vector<double> imageMomentsVect;
-    cv::HuMoments(imageMoments, imageMomentsVect);
+    std::vector<double> imageMomentsVect = Common::createMoments(image);
 
     // Compare moments of image with type moments
-    double resultMatch = 0;
-    for (auto& momentsVect : typeIHolder.moments)
-    {
-        double tempMatch = cv::matchShapes(imageMomentsVect, momentsVect, 1, 0);
-        if (tempMatch > resultMatch) resultMatch = tempMatch;
-    }
+    std::vector<double> compareResults(typeIHolder.moments.size());
 
-    return resultMatch;
+    std::transform(typeIHolder.moments.begin(), typeIHolder.moments.end(), compareResults.begin(), [&](auto& momentsVect){ return cv::matchShapes(imageMomentsVect, momentsVect, 1, 0); });
+    std::sort(compareResults.begin(), compareResults.end());
+    const size_t countOfItems = compareResults.size();
+    const double maxVal = *compareResults.begin();
+    const double minVal = *(compareResults.end() - 1);
+    const double diff = maxVal - minVal;
+    std::transform(compareResults.begin(), compareResults.end(), compareResults.begin(), [&](auto val){ return (val - minVal) / diff; });
+
+    if (!compareResults.size()) return 0;
+
+    LOG_DEBUG("Comp res: %f", *(compareResults.end() - 1));
+
+    return *(compareResults.end() - 1);
 }
 
 double AnalyseMethodManager::compareHistogram(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
@@ -34,8 +39,11 @@ double AnalyseMethodManager::compareHistogram(const Common::TypeInfoHolder &type
     float range[] = {0, 255};           // Range of pixel values
     const float* histRange = {range};   // Range of histogram
 
+    if (image.channels() > 0)
+        return 0;
+
     // Calculate histogram for input image
-    cv::calcHist(&image, 1, 0, cv::Mat(), imgHist, 1, &histSize, &histRange);
+    cv::calcHist(&image, 1, 0, cv::Mat(), imgHist, image.dims, &histSize, &histRange);
 
     // Compare histograms
     double maxMatch {0};

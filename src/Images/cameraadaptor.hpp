@@ -10,6 +10,9 @@
 // Data containers
 #include <string>
 
+// OpenCV header
+#include <opencv2/opencv.hpp>
+
 namespace Adaptors
 {
 enum class AdaptorStatus
@@ -37,6 +40,10 @@ public:
 
     // Ask camera to create a picture
     bool shot(const std::string& outputFile);
+    bool shotToBuffer(cv::Mat& imageBuffer);
+
+    // Setup camera to use device
+    void setCamera(const std::string& cameraDevicePath);
     
 private:
     struct CameraDriverPrivate;

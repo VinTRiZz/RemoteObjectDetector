@@ -6,7 +6,6 @@
 #include <signal.h>
 
 #include "Images/imageprocessor.hpp"
-#include "Images/cameraadaptor.hpp"
 
 using namespace Components;
 MainApp * pApp {nullptr};
@@ -17,63 +16,6 @@ MainApp * pApp {nullptr};
 // ------------- MODULES CREATING --------------- //
 // ---------------------------------------------- //
 // ---------------------------------------------- //
-ModuleConfiguration createCameraModule(const std::string& cameraFile)
-{
-    // Create camera adaptor
-    auto pCamera = std::shared_ptr<Adaptors::CameraAdaptor>(new Adaptors::CameraAdaptor(cameraFile), std::default_delete<Adaptors::CameraAdaptor>());
-
-    // Setup configuration of module
-    ModuleConfiguration cameraConfig;
-    cameraConfig.type = ModuleType::MODULE_TYPE_CAMERA;
-    cameraConfig.name = "Camera";
-    cameraConfig.initAsync = true;
-    cameraConfig.workAsync = true;
-    cameraConfig.addRequiredConnection(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR);
-
-    // Setup camera for use
-    cameraConfig.initFunction = [pCamera](PModule selfModule){
-
-        // Check if camera has been inited
-        if (pCamera->status() != Adaptors::AdaptorStatus::READY)
-        {
-            LOG_EMPTY("========================================");
-            LOG_ERROR("Camera adaptor not inited. Try to install drivers for your camera. Connected USB devices:");
-            system("lsusb | sed -n 's/Bus [0-9]\\{3\\} [a-zA-Z]\\{1,\\} [0-9]\\{3\\}: ID [a-z0-9:]\\{9\\}/Device:/; /Linux Foundation/d; p'");
-            LOG_EMPTY("========================================");
-            return ModuleStatus::MODULE_STATUS_ERROR;
-        }
-
-        return ModuleStatus::MODULE_STATUS_INITED;
-    };
-
-    // Start camera shoting photos
-    cameraConfig.mainCycleFunction = [pCamera](PModule selfModule){
-        selfModule->setStatus(ModuleStatus::MODULE_STATUS_RUNNING);
-
-        // Path for temporary photo saving
-        const std::string tempPhotoPath {"temp/photoshot.jpg"};
-
-        // Try to shot photos every second
-        while (selfModule->status() == ModuleStatus::MODULE_STATUS_RUNNING)
-        {
-            // Get photo from camera ans save by temporary photo path
-            if (pCamera->shot(tempPhotoPath))
-            {
-                // Process result photo
-                selfModule->sendMessage(Message::create(ModuleType::MODULE_TYPE_IMAGE_PROCESSOR, MessageType::MESSAGE_TYPE_REQUEST_ADD, tempPhotoPath));
-            }
-
-            // Wait shot interval
-            selfModule->sleep_s(1);
-        }
-        return ModuleStatus::MODULE_STATUS_INITED;
-    };
-
-    return cameraConfig;
-}
-
-
-
 ModuleConfiguration createImageProcessor(const std::vector<std::string>& templateDirs)
 {
     // Create image processor
@@ -88,6 +30,10 @@ ModuleConfiguration createImageProcessor(const std::vector<std::string>& templat
 
     // Setup init function for image processor
     imageProcessorConfig.initFunction = [pImageProc, templateDirs](PModule selfModule){
+
+        LOG_INFO("Studying background...");
+        pImageProc->studyBackground(1000);
+        LOG_OPRES_SUCCESS("Studying background complete");
 
         // Setup all directories as source with templates
         for (auto& templateDir : templateDirs)
@@ -154,9 +100,12 @@ ModuleConfiguration createEmulatorModule()
         const std::string basepath = "temp/";
 
 //        const std::string path = basepath +"black_knight_rotates";
-        const std::string path = basepath + "black_knight_distort";
+//        const std::string path = basepath + "black_knight_distort";
 //        const std::string path = basepath + "distorts";
 //        const std::string path = basepath + "figures"; // Object templates
+
+        const std::string path = basepath + "TestPhotos/object_1"; // Photos of object 1
+//        const std::string path = basepath + "TestPhotos/object_2"; // Photos of object 2
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -166,8 +115,8 @@ ModuleConfiguration createEmulatorModule()
 
         for (const auto& dirent : stdfs::directory_iterator(path))
         {
-            if (selfModule->status() != ModuleStatus::MODULE_STATUS_RUNNING)
-                break;
+//            if (selfModule->status() != ModuleStatus::MODULE_STATUS_RUNNING)
+//                break;
 
             if (stdfs::is_regular_file(dirent.path()))
             {

@@ -33,7 +33,7 @@ Components::Module::Module(Components::Module &&m) :
 
 Components::Module::~Module()
 {
-
+    this->poll();
 }
 
 Components::ModuleType Components::Module::type() const

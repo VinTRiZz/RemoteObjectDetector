@@ -11,7 +11,7 @@ namespace Common
 cv::Mat loadImage(const std::string &filepath)
 {
     // Read image
-    cv::Mat imageRead = cv::imread(filepath, cv::IMREAD_GRAYSCALE);
+    cv::Mat imageRead = cv::imread(filepath);
     if (imageRead.empty())
     {
         LOG_OPRES_ERROR("Can't read template by path: %s", filepath.c_str());
@@ -40,19 +40,34 @@ cv::Mat loadImage(const std::string &filepath)
     return imageRead;
 }
 
-std::vector<cv::Mat> getObjects(const cv::Mat &image)
+
+std::vector<double> createMoments(const cv::Mat& image)
+{
+    cv::Mat grayImage;
+    if ((image.channels() > 2) && (image.type() != CV_8UC1))
+        cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
+    else
+        grayImage = image;
+
+    // Get Hu moments
+    std::vector<double> momentsVect;
+    cv::HuMoments(cv::moments(grayImage), momentsVect);
+    return momentsVect;
+}
+
+
+std::vector<cv::Mat> getObjects(const cv::Mat &targetImage, cv::Ptr<cv::BackgroundSubtractor>& pBacgroundSub)
 {
     std::vector<cv::Mat> result;
     try
     {
-        // Image binarization
-//        cv::threshold(mainImage, mainImage, 155, 255, cv::THRESH_BINARY);
-//        cv::adaptiveThreshold(mainImage, mainImage, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 3, 0);
-        cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 3, 0);
+        // Apply background erase
+        cv::Mat objectsOnImage;
+        pBacgroundSub->apply(targetImage, objectsOnImage);
 
         // Search for objects
         std::vector<Common::ContourType> contours;
-        Common::addContours(image, contours);
+        Common::addContours(objectsOnImage, contours);
 
         result.resize(contours.size());
         size_t currentIndex = 0;
@@ -65,13 +80,19 @@ std::vector<cv::Mat> getObjects(const cv::Mat &image)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
             if (boundingRect.area() < MINIMAL_OBJECT_SIZE) continue;
-            result[currentIndex] = image(boundingRect);
+            result[currentIndex] = targetImage(boundingRect); // Crop from original image objects using detected by algo coordinates
         }
 
         // Remove unused positions
         auto resultEndR = std::find_if(result.rbegin(), result.rend(), [](auto& img){ return !img.empty(); });
         auto resultEnd = resultEndR.base();
         if (resultEnd != result.end()) result.erase(resultEnd + 1, result.end()); // +1 because iterator points to non-zero object
+
+        int foundNo = 1;
+        for (auto& img : result)
+        {
+            cv::imwrite(std::string("result_") + std::to_string(foundNo++) + ".jpg", img);
+        }
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());
@@ -105,7 +126,7 @@ CompareMethod detectBestCompareMethod(const cv::Mat &targetImage, const cv::Mat 
     return CompareMethod::COMPARE_METHOD_NONE;
 }
 
-void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList)
+void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList, cv::Ptr<cv::BackgroundSubtractor>& pBackgroundSub)
 {
     // Check if directory exist and it's directory
     if (!stdfs::exists(path) || !stdfs::is_directory(path))
@@ -127,7 +148,7 @@ void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList)
             addType(typeList, newTypeName);
             auto typeIt = typeList.begin();
             typeIt->imagePath = dirent.path();
-            setupInfoHolder(*typeIt);
+            setupInfoHolder(*typeIt, pBackgroundSub);
         }
     }
 }

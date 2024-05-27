@@ -20,7 +20,6 @@ enum class ModuleType : uint8_t
     MODULE_TYPE_EMULATOR_1,         // Emulator 1
     MODULE_TYPE_EMULATOR_2,         // Emulator 2 (test messaging)
     MODULE_TYPE_IMAGE_PROCESSOR,    // Image processor
-    MODULE_TYPE_CAMERA,             // Camera module
 };
 
 
