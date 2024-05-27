@@ -59,6 +59,11 @@ Processor::~Processor()
 
 }
 
+void Processor::studyBackground(uint64_t timeS)
+{
+
+}
+
 void Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_types.clear();

@@ -20,6 +20,9 @@ public:
     Processor();
     ~Processor();
 
+    // Study background to erase it later before image analyse
+    void studyBackground(uint64_t timeS);
+
     // Sets directory where processor will try to find configuration
     void setImageTemplateDir(const std::string& path);
 
