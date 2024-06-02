@@ -1,5 +1,5 @@
-#include "System/mainapp.hpp"
-#include "logging.hpp"
+#include "mainapp.hpp"
+#include "../logging.hpp"
 #include <string>
 
 #include "module.hpp"

@@ -10,25 +10,24 @@ AnalyseMethodManager::AnalyseMethodManager()
 
 double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
-    // Get Hu moments of contours
-    std::vector<double> imageMomentsVect = Common::createMoments(image);
+    // Get Hu moments of objects in image
+    Common::MomentsType imageMomentsVect = Common::createMoments(image);
 
     // Compare moments of image with type moments
     std::vector<double> compareResults(typeIHolder.moments.size());
 
     std::transform(typeIHolder.moments.begin(), typeIHolder.moments.end(), compareResults.begin(), [&](auto& momentsVect){ return cv::matchShapes(imageMomentsVect, momentsVect, 1, 0); });
-    std::sort(compareResults.begin(), compareResults.end());
-    const size_t countOfItems = compareResults.size();
-    const double maxVal = *compareResults.begin();
-    const double minVal = *(compareResults.end() - 1);
+    if (!compareResults.size()) return 0;
+    std::sort(compareResults.begin(), compareResults.end(), [](auto val1, auto val2){ return val1 < val2; });
+    const double maxVal = compareResults[0];
+    const double minVal = compareResults[compareResults.size() - 1];
     const double diff = maxVal - minVal;
     std::transform(compareResults.begin(), compareResults.end(), compareResults.begin(), [&](auto val){ return (val - minVal) / diff; });
 
-    if (!compareResults.size()) return 0;
+    double result = 0;
+    for (auto& res : compareResults) if (res > result) result = res;
 
-    LOG_DEBUG("Comp res: %f", *(compareResults.end() - 1));
-
-    return *(compareResults.end() - 1);
+    return result;
 }
 
 double AnalyseMethodManager::compareHistogram(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)

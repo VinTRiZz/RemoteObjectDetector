@@ -1,7 +1,7 @@
-#include "System/module.hpp"
+#include "module.hpp"
 
 #include <thread>
-#include "logging.hpp"
+#include "../logging.hpp"
 
 Components::Module::Module(const Components::ModuleConfiguration &config) :
     m_config {config}

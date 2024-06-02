@@ -1,7 +1,7 @@
 #ifndef APPSETUP_HPP
 #define APPSETUP_HPP
 
-#include <System/mainapp.hpp>
+#include "System/mainapp.hpp"
 
 namespace AppSetup
 {

@@ -18,25 +18,8 @@ inline void addContours(const cv::Mat &img, std::vector<ContourType> &imageConto
     // If nothing found, return
     if (!tempRes.size()) return;
 
-    // Search for largest contour
-    std::vector<cv::Point>* largestContour;
-    double currentArea {0};
-
-    // If nothing found or just one countour in array, will be set to first
-    largestContour = &tempRes[0];
-    for (auto& contour : tempRes)
-    {
-        // Count area of contour
-        double tempArea = cv::contourArea(contour);
-        if (currentArea < tempArea)
-        {
-            currentArea = tempArea;
-            largestContour = &contour;
-        }
-    }
-
-    // Add only largest contour into array, skip small objects
-    imageContours.push_back(*largestContour);
+    imageContours.resize(imageContours.size() + tempRes.size());
+    std::copy(tempRes.begin(), tempRes.end(), imageContours.begin());
 }
 
 
@@ -140,11 +123,20 @@ inline void setupInfoHolder(TypeInfoHolder &imageIHolder, cv::Ptr<cv::Background
     imageIHolder.image          = loadImage(imageIHolder.imagePath);
 
     auto objects                = getObjects(imageIHolder.image, pBackgroundSub);
-    if (!objects.size()) return;
-    imageIHolder.image = objects[0];
-    imageIHolder.imageRotations = getRotations(imageIHolder.image);
+    if (objects.size())
+    {
+        imageIHolder.image = objects[0];
+        LOG_DEBUG("%s Inserted object found", imageIHolder.typeName.c_str());
 
-    // Setup contour things
+        int no = 1;
+        for (auto& img : objects)
+        {
+            cv::imwrite(std::string("F_") + imageIHolder.typeName + "_" + std::to_string(no++) + ".png", img);
+        }
+        cv::imwrite(imageIHolder.typeName + ".png", imageIHolder.image);
+    }
+
+    imageIHolder.imageRotations = getRotations(imageIHolder.image);
     imageIHolder.moments        = getMoments(imageIHolder.image);
     addContours(imageIHolder.image, imageIHolder.contours);
 }

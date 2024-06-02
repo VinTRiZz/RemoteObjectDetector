@@ -1,17 +1,7 @@
 #ifndef CAMERAADAPTOR_H
 #define CAMERAADAPTOR_H
 
-// For stable types, such as uint8_t
-#include <stdint.h>
-
-// For d-pointer
-#include <memory>
-
-// Data containers
-#include <string>
-
-// OpenCV header
-#include <opencv2/opencv.hpp>
+#include "common.hpp"
 
 namespace Adaptors
 {

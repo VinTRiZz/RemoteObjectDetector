@@ -1,7 +1,5 @@
 #include "cameraadaptor.hpp"
 
-#include "logging.hpp"
-
 struct Adaptors::CameraAdaptor::CameraDriverPrivate
 {
     std::string m_deviceFilePath;

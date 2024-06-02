@@ -58,8 +58,8 @@ struct Processor::AnalysatorPrivate
 Processor::Processor() :
     d {new AnalysatorPrivate()}
 {
-    d->m_pBackgroundSub = cv::createBackgroundSubtractorMOG2(0);   // TODO: Set count of history
-//    d->m_pBackgroundSub = cv::createBackgroundSubtractorKNN(0);  // TODO: Set count of history
+//    d->m_pBackgroundSub = cv::createBackgroundSubtractorMOG2(0);   // TODO: Set count of history
+    d->m_pBackgroundSub = cv::createBackgroundSubtractorKNN(0);  // TODO: Set count of history
 }
 
 Processor::~Processor()
@@ -86,7 +86,9 @@ void Processor::studyBackground(uint64_t timeMs)
 {
     // TODO: remove, debug needs
     std::list<cv::Mat> backgrounds;
-    const std::string path = "./temp/TestPhotos/background";
+//    const std::string path = "./temp/photos1/background";
+    const std::string path = "./temp/photos2/background";
+
     // Check if directory exist and it's directory
     if (!stdfs::exists(path) || !stdfs::is_directory(path))
     {
@@ -146,11 +148,7 @@ void Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_types.clear();
     Common::loadObjects(path, d->m_types, d->m_pBackgroundSub);
-
-    for (auto& typ : d->m_types)
-    {
-        cv::imwrite(typ.typeName + ".png", typ.image);
-    }
+    exit(1);
 }
 
 
@@ -171,7 +169,6 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
     std::mutex matchAddMutex; // Mutex for adding match results
 
     // Get objects on an image
-//    auto targetImage = Common::loadImage(imageFilePath);
     cv::Mat targetImage = Common::loadImage(imageFilePath);
     if (targetImage.empty())
     {

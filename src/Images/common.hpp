@@ -17,7 +17,7 @@
 #include <vector>
 
 // Logging
-#include "logging.hpp"
+#include "../logging.hpp"
 
 // STD algorithms
 #include <algorithm>
@@ -58,10 +58,6 @@ enum class CompareMethod :uint8_t
     COMPARE_METHOD_HISTOGRAM,
     COMPARE_METHOD_MOMENTS,
 };
-
-// Used to detect how to process image
-CompareMethod detectBestCompareMethod(const cv::Mat& targetImage, const cv::Mat &sceneImage);
-
 
 // Search for objects on an image and return vector if them
 std::vector<cv::Mat> getObjects(const cv::Mat& targetImage, cv::Ptr<cv::BackgroundSubtractor> &pBacgroundSub);

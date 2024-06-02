@@ -1,5 +1,4 @@
 #include "common.hpp"
-#include "logging.hpp"
 
 // Functions not used directly in common,
 // but used in function implementations
@@ -64,6 +63,11 @@ std::vector<cv::Mat> getObjects(const cv::Mat &targetImage, cv::Ptr<cv::Backgrou
         // Apply background erase
         cv::Mat objectsOnImage;
         pBacgroundSub->apply(targetImage, objectsOnImage);
+        cv::imwrite("of_bb.png", objectsOnImage);
+
+        cv::GaussianBlur(objectsOnImage, objectsOnImage, cv::Size(5, 5), 0);
+        cv::imwrite("of_ab.png", objectsOnImage);
+        cv::imwrite("of_input.png", targetImage);
 
         // Search for objects
         std::vector<Common::ContourType> contours;
@@ -72,58 +76,41 @@ std::vector<cv::Mat> getObjects(const cv::Mat &targetImage, cv::Ptr<cv::Backgrou
         result.resize(contours.size());
         size_t currentIndex = 0;
 
-        // Describes how small object can be to process it
-        constexpr size_t MINIMAL_OBJECT_SIZE = 30 * 30;
-
         // Get objects array from contours
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
-            if (boundingRect.area() < MINIMAL_OBJECT_SIZE) continue;
-            result[currentIndex] = targetImage(boundingRect); // Crop from original image objects using detected by algo coordinates
+
+            auto img = targetImage(boundingRect); // Crop image
+            if (img.empty()) continue; // Image must not be empty
+
+            result[currentIndex] = img;
         }
 
-        // Remove unused positions
-        auto resultEndR = std::find_if(result.rbegin(), result.rend(), [](auto& img){ return !img.empty(); });
-        auto resultEnd = resultEndR.base();
-        if (resultEnd != result.end()) result.erase(resultEnd + 1, result.end()); // +1 because iterator points to non-zero object
+        // Remove empty images
+        result.erase(std::remove_if(result.begin(), result.end(), [](auto& img){ return img.empty(); }));
 
-        int foundNo = 1;
-        for (auto& img : result)
+        if (result.size() > 10)
         {
-            cv::imwrite(std::string("result_") + std::to_string(foundNo++) + ".jpg", img);
+            LOG_DEBUG("Dohuya (%i)", result.size());
+            return result;
         }
+
+        LOG_DEBUG("Start");
+        for (auto& res : result)
+        {
+            if (res.empty())
+            {
+                LOG_DEBUG("SHIT!");
+            }
+        }
+        LOG_DEBUG("Complete");
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());
     }
 
     return result;
-}
-
-CompareMethod detectBestCompareMethod(const cv::Mat &targetImage, const cv::Mat &sceneImage)
-{
-    auto sceneImage_area = sceneImage.cols * sceneImage.rows;
-    auto targetImage_area = targetImage.cols * targetImage.rows;
-
-    if (sceneImage_area >= targetImage_area * 4)
-    {
-        LOG_DEBUG("Moments compare");
-        return CompareMethod::COMPARE_METHOD_MOMENTS; // Too large image
-    }
-    else if ((sceneImage_area > targetImage_area * 2) && (sceneImage_area < targetImage_area * 4))
-    {
-        LOG_DEBUG("Histogram compare");
-        return CompareMethod::COMPARE_METHOD_HISTOGRAM; // Big images, use histograms
-    }
-    else if (sceneImage_area > targetImage_area)
-    {
-        LOG_DEBUG("Template compare");
-        return CompareMethod::COMPARE_METHOD_TEMPLATE; // A bit different by size images, can slide template
-    }
-
-    LOG_DEBUG("Skipped");
-    return CompareMethod::COMPARE_METHOD_NONE;
 }
 
 void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList, cv::Ptr<cv::BackgroundSubtractor>& pBackgroundSub)

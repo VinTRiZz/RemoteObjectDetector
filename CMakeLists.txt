@@ -1,6 +1,8 @@
 # Build cmake setting
-cmake_minimum_required(VERSION 2.8)
-project(ObjectSearcher)
+cmake_minimum_required(VERSION 3.7)
+project(ObjectSearcher LANGUAGES CXX)
+
+set(CMAKE_AUTOMOC ON)
 
 # Setup output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BIN)
@@ -19,15 +21,13 @@ add_executable(
     ${HEADERS}
 )
 
+
 # Search for packages
 find_package(OpenCV REQUIRED)
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Network)
+find_package(Qt5 REQUIRED COMPONENTS Network)
 
-# For easier develop
-target_include_directories(
-    ${PROJECT_NAME}
-    PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Network)
 
 # Link libraries to target
 target_link_libraries(
@@ -42,6 +42,7 @@ target_link_libraries(
     -lstdc++fs
     
     # OpenCV
+    -L/usr/local/lib/
     -lopencv_videoio
     -lopencv_imgcodecs
     -lopencv_video
@@ -50,4 +51,11 @@ target_link_libraries(
     -lopencv_flann
     -lopencv_core
     -lopencv_highgui
+)
+
+# For easier develop
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
