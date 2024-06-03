@@ -57,60 +57,41 @@ std::vector<double> createMoments(const cv::Mat& image)
 
 std::vector<cv::Mat> getObjects(const cv::Mat &targetImage, cv::Ptr<cv::BackgroundSubtractor>& pBacgroundSub)
 {
-    std::vector<cv::Mat> result;
     try
     {
         // Apply background erase
         cv::Mat objectsOnImage;
-        pBacgroundSub->apply(targetImage, objectsOnImage);
-        cv::imwrite("of_bb.png", objectsOnImage);
-
-        cv::GaussianBlur(objectsOnImage, objectsOnImage, cv::Size(5, 5), 0);
-        cv::imwrite("of_ab.png", objectsOnImage);
-        cv::imwrite("of_input.png", targetImage);
+        pBacgroundSub->apply(targetImage, objectsOnImage, 0);
 
         // Search for objects
         std::vector<Common::ContourType> contours;
         Common::addContours(objectsOnImage, contours);
 
-        result.resize(contours.size());
+        std::vector<cv::Mat> result (contours.size());
         size_t currentIndex = 0;
+
+        auto targetCopy = targetImage;
 
         // Get objects array from contours
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
+            if (boundingRect.area() < (30 * 30)) continue;
+
+            cv::rectangle(targetCopy, boundingRect, cv::Scalar(0, 0, 255), 4);
 
             auto img = targetImage(boundingRect); // Crop image
-            if (img.empty()) continue; // Image must not be empty
-
             result[currentIndex] = img;
+//            cv::imwrite("found.jpg", img);
         }
-
-        // Remove empty images
-        result.erase(std::remove_if(result.begin(), result.end(), [](auto& img){ return img.empty(); }));
-
-        if (result.size() > 10)
-        {
-            LOG_DEBUG("Dohuya (%i)", result.size());
-            return result;
-        }
-
-        LOG_DEBUG("Start");
-        for (auto& res : result)
-        {
-            if (res.empty())
-            {
-                LOG_DEBUG("SHIT!");
-            }
-        }
-        LOG_DEBUG("Complete");
+//        cv::imwrite("contours.jpg", targetCopy);
+//        exit(3);
+        return result;
 
     } catch (std::exception& ex) {
         LOG_ERROR("Got OpenCV exception: %s", ex.what());
     }
-
-    return result;
+    return {};
 }
 
 void loadObjects(const std::string &path, std::list<TypeInfoHolder> &typeList, cv::Ptr<cv::BackgroundSubtractor>& pBackgroundSub)

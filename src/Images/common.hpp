@@ -57,6 +57,8 @@ enum class CompareMethod :uint8_t
     COMPARE_METHOD_TEMPLATE,
     COMPARE_METHOD_HISTOGRAM,
     COMPARE_METHOD_MOMENTS,
+    COMPARE_METHOD_TEST,
+#warning "Test"
 };
 
 // Search for objects on an image and return vector if them

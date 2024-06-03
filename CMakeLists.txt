@@ -42,15 +42,15 @@ target_link_libraries(
     -lstdc++fs
     
     # OpenCV
-    -L/usr/local/lib/
-    -lopencv_videoio
-    -lopencv_imgcodecs
-    -lopencv_video
-    -lopencv_photo
-    -lopencv_imgproc
-    -lopencv_flann
-    -lopencv_core
-    -lopencv_highgui
+#    -lopencv_videoio
+#    -lopencv_imgcodecs
+#    -lopencv_video
+#    -lopencv_photo
+#    -lopencv_imgproc
+#    -lopencv_flann
+#    -lopencv_core
+#    -lopencv_highgui
+-lopencv_dnn -lopencv_highgui -lopencv_ml -lopencv_objdetect -lopencv_shape -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_calib3d -lopencv_videoio -lopencv_imgcodecs -lopencv_features2d -lopencv_video -lopencv_photo -lopencv_imgproc -lopencv_flann -lopencv_core
 )
 
 # For easier develop

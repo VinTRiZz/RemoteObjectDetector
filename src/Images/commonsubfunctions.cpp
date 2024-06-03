@@ -18,8 +18,8 @@ inline void addContours(const cv::Mat &img, std::vector<ContourType> &imageConto
     // If nothing found, return
     if (!tempRes.size()) return;
 
-    imageContours.resize(imageContours.size() + tempRes.size());
-    std::copy(tempRes.begin(), tempRes.end(), imageContours.begin());
+    std::sort(tempRes.begin(), tempRes.end(), [](auto& cont1, auto& cont2){ return (cv::boundingRect(cont1).area() > cv::boundingRect(cont2).area()); });
+    imageContours.push_back(*tempRes.begin());
 }
 
 
@@ -104,13 +104,18 @@ inline std::list<cv::Mat> getHistograms(const std::vector<cv::Mat> &imageRotatio
     float range[] = {0, 255};           // Range of pixel values
     const float* histRange = {range};   // Range of histogram
 
-    // TODO: Calc PGH instead of usual histograms
 
     // Calculate histograms
     size_t currentIndex = 0;
     for (auto& templateRotation : imageRotations)
     {
         cv::calcHist(&templateRotation, 1, 0, cv::Mat(), templateHist, 1, &histSize, &histRange);
+
+        // Get edges
+//        cv::Canny(templateRotation, templateHist, 100, 200);
+
+        // Calc PGH
+//        cv::calcPGH(templateHist, templateHist, 1, 0, cv::Size(4,4));
         histograms.push_back(templateHist);
     }
     return histograms;
@@ -127,16 +132,11 @@ inline void setupInfoHolder(TypeInfoHolder &imageIHolder, cv::Ptr<cv::Background
     {
         imageIHolder.image = objects[0];
         LOG_DEBUG("%s Inserted object found", imageIHolder.typeName.c_str());
-
-        int no = 1;
-        for (auto& img : objects)
-        {
-            cv::imwrite(std::string("F_") + imageIHolder.typeName + "_" + std::to_string(no++) + ".png", img);
-        }
         cv::imwrite(imageIHolder.typeName + ".png", imageIHolder.image);
     }
 
-    imageIHolder.imageRotations = getRotations(imageIHolder.image);
+//    imageIHolder.imageRotations = getRotations(imageIHolder.image);
+    imageIHolder.histograms = getHistograms(imageIHolder.imageRotations);
     imageIHolder.moments        = getMoments(imageIHolder.image);
     addContours(imageIHolder.image, imageIHolder.contours);
 }

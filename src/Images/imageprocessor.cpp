@@ -35,6 +35,10 @@ struct Processor::AnalysatorPrivate
         double compareResult = 0;
         switch (compareMethod)
         {
+        case Common::CompareMethod::COMPARE_METHOD_TEST:
+            compareResult = m_analyseManager.compareTest(templateType, foundObject);
+            break;
+
         case Common::CompareMethod::COMPARE_METHOD_TEMPLATE:
             compareResult = m_analyseManager.compareTemplate(templateType, foundObject);
             break;
@@ -58,8 +62,8 @@ struct Processor::AnalysatorPrivate
 Processor::Processor() :
     d {new AnalysatorPrivate()}
 {
-//    d->m_pBackgroundSub = cv::createBackgroundSubtractorMOG2(0);   // TODO: Set count of history
-    d->m_pBackgroundSub = cv::createBackgroundSubtractorKNN(0);  // TODO: Set count of history
+    d->m_pBackgroundSub = cv::createBackgroundSubtractorMOG2(0);   // TODO: Set count of history
+//    d->m_pBackgroundSub = cv::createBackgroundSubtractorKNN(0);  // TODO: Set count of history
 }
 
 Processor::~Processor()
@@ -88,6 +92,7 @@ void Processor::studyBackground(uint64_t timeMs)
     std::list<cv::Mat> backgrounds;
 //    const std::string path = "./temp/photos1/background";
     const std::string path = "./temp/photos2/background";
+//    const std::string path = "./temp/chess/background";
 
     // Check if directory exist and it's directory
     if (!stdfs::exists(path) || !stdfs::is_directory(path))
@@ -148,7 +153,11 @@ void Processor::setImageTemplateDir(const std::string& path)
 {
     d->m_types.clear();
     Common::loadObjects(path, d->m_types, d->m_pBackgroundSub);
-    exit(1);
+
+    for (auto& typ : d->m_types)
+    {
+        cv::imwrite(typ.typeName + ".jpg", typ.image);
+    }
 }
 
 
@@ -205,6 +214,10 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                             [&]()
                             {
                                 double tempResult;
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEST);
+                                return;
+#warning "Bad choise"
+
                                 tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_MOMENTS);
                                 if (tempResult >= 0.9)
                                 {
@@ -212,19 +225,19 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                                     return;
                                 }
 
-//                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
-//                                if (tempResult >= 0.9)
-//                                {
-//                                    addResult(templateType.typeName, tempResult);
-//                                    return;
-//                                }
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
 
-//                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
-//                                if (tempResult >= 0.9)
-//                                {
-//                                    addResult(templateType.typeName, tempResult);
-//                                    return;
-//                                }
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
                             }
                     ), threadDeleteFunction);
                     break;
@@ -239,6 +252,10 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                             [&]()
                             {
                                 double tempResult;
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEST);
+                                return;
+#warning "Bad choise"
+
                                 tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_MOMENTS);
                                 if (tempResult >= 0.9)
                                 {
@@ -246,19 +263,19 @@ std::pair<std::string, float> Processor::getObject(const std::string &imageFileP
                                     return;
                                 }
 
-//                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
-//                                if (tempResult >= 0.9)
-//                                {
-//                                    addResult(templateType.typeName, tempResult);
-//                                    return;
-//                                }
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_HISTOGRAM);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
 
-//                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
-//                                if (tempResult >= 0.9)
-//                                {
-//                                    addResult(templateType.typeName, tempResult);
-//                                    return;
-//                                }
+                                tempResult = d->processType(templateType, objectOnImage, Common::CompareMethod::COMPARE_METHOD_TEMPLATE);
+                                if (tempResult >= 0.9)
+                                {
+                                    addResult(templateType.typeName, tempResult);
+                                    return;
+                                }
                             }
                     ), threadDeleteFunction);
                     break;

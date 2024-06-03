@@ -8,6 +8,34 @@ AnalyseMethodManager::AnalyseMethodManager()
 
 }
 
+double AnalyseMethodManager::compareTest(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
+{
+    double result = 0;
+
+//    cv::Ptr<cv::FeatureDetector> pdeter = cv::SiftFeatureDetector::create();
+    cv::Ptr<cv::FeatureDetector> pdeter = cv::AgastFeatureDetector::create();
+//    cv::Ptr<cv::FeatureDetector> pdeter = cv::AffineFeatureDetector::create();
+//    cv::Ptr<cv::FeatureDetector> pdeter = cv::FastFeatureDetector::create();
+
+    cv::Mat tih_descrs;
+    std::vector<cv::KeyPoint> tih_kpts;
+    pdeter->detect(typeIHolder.image, tih_kpts, tih_descrs);
+//    pdeter->compute(typeIHolder.image, tih_kpts, tih_descrs)
+
+    cv::Mat descrs;
+    std::vector<cv::KeyPoint> im_kpts;
+    pdeter->detect(image, im_kpts, descrs);
+
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("FlannBased");
+
+    std::vector<cv::DMatch> resMatchs;
+    matcher->match(descrs, tih_descrs, resMatchs);
+    result = resMatchs.size() / (double)tih_kpts.size();
+
+    LOG_DEBUG("Match: %f", result, resMatchs.size());
+    return result;
+}
+
 double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     // Get Hu moments of objects in image

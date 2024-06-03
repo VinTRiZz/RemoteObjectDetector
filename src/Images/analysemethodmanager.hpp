@@ -11,6 +11,8 @@ class AnalyseMethodManager
 public:
     AnalyseMethodManager();
 
+    double compareTest(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
+
     double compareMoments(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
     double compareHistogram(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
     double compareTemplate(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);

@@ -99,11 +99,18 @@ ModuleConfiguration createEmulatorModule()
 
         const std::string basepath = "temp/";
 
+        // Chess
+//        const std::string path = basepath + "chess/figures";
+//        const std::string path = basepath + "chess/black_knight_distort";
+//        const std::string path = basepath + "chess/black_knight_rotates";
+//        const std::string path = basepath + "chess/distorts";
+
+        // Actually objects
 //        const std::string path = basepath + "photos1/object_1"; // Photos of object 1 (GUM)
 //        const std::string path = basepath + "photos1/object_2"; // Photos of object 2 (PEN)
 
-//        const std::string path = basepath + "photos2/object_1"; // Photos of object 1 (ear)
-        const std::string path = basepath + "photos2/object_2"; // Photos of object 2 (flash)
+        const std::string path = basepath + "photos2/object_1"; // Photos of object 1 (ear)
+//        const std::string path = basepath + "photos2/object_2"; // Photos of object 2 (flash)
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
