@@ -1,21 +1,68 @@
-#include <iostream>
-#include <signal.h>
+#include <opencv2/opencv.hpp>
 
-#include "appsetup.hpp"
+int main() {
+//    cv::Mat image = cv::imread("flash.jpg", cv::IMREAD_GRAYSCALE);
+    cv::Mat image = cv::imread("white-knight.png", cv::IMREAD_GRAYSCALE);
 
-using namespace std;
-int main(int argc, char* argv[])
-{
-    AppSetup::independentSetup();
+//    cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
 
-    Components::MainApp app(argc, argv);
+//    std::vector<cv::KeyPoint> keypoints;
+//    cv::Mat descriptors;
 
-    AppSetup::setupApp(app);
+//    sift->detectAndCompute(image, cv::noArray(), keypoints, descriptors);
 
-    app.init();
+//    cv::Mat result;
+//    cv::drawKeypoints(image, keypoints, result);
 
-    return app.exec();
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(image, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    std::vector<std::vector<cv::Point>> resVect;
+    std::sort(contours.begin(), contours.end(), [](auto& cont1, auto& cont2){ return (cv::boundingRect(cont1).area() > cv::boundingRect(cont2).area()); });
+    resVect.push_back(*contours.begin());
+
+    auto cpMat = image.clone();
+    cv::drawContours(cpMat, resVect, -1, 255, 2);
+    cv::imwrite("founds.jpg", cpMat);
+
+    cv::Mat mask = cv::Mat::zeros(image.size(), image.type());
+    cv::drawContours(mask, resVect, -1, 255, 0);
+    cv::bitwise_not(mask, mask);
+
+    cv::Mat result;
+    image.copyTo(result, mask);
+    cv::imwrite("result.jpg", result);
+
+    return 0;
 }
+
+
+
+
+
+
+
+
+
+
+//#include <iostream>
+//#include <signal.h>
+
+//#include "appsetup.hpp"
+
+//using namespace std;
+//int main(int argc, char* argv[])
+//{
+//    AppSetup::independentSetup();
+
+//    Components::MainApp app(argc, argv);
+
+//    AppSetup::setupApp(app);
+
+//    app.init();
+
+//    return app.exec();
+//}
 
 
 //#include <opencv2/opencv.hpp>

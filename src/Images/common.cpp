@@ -80,12 +80,19 @@ std::vector<cv::Mat> getObjects(const cv::Mat &targetImage, cv::Ptr<cv::Backgrou
 
             cv::rectangle(targetCopy, boundingRect, cv::Scalar(0, 0, 255), 4);
 
+            auto& image = result[0];
+            cv::Mat mask = cv::Mat::zeros(image.size(), image.type());
+            cv::drawContours(mask, contour, -1, 255, 0);
+            cv::bitwise_not(mask, mask);
+
+            cv::Mat result;
+            image.copyTo(result, mask);
+            cv::imwrite("result.jpg", result);
+
             auto img = targetImage(boundingRect); // Crop image
             result[currentIndex] = img;
-//            cv::imwrite("found.jpg", img);
         }
-//        cv::imwrite("contours.jpg", targetCopy);
-//        exit(3);
+
         return result;
 
     } catch (std::exception& ex) {
