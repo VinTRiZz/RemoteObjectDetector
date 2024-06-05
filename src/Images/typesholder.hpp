@@ -23,6 +23,11 @@ struct TypeInfoHolder
     bool operator ==(const TypeInfoHolder& typeIHolder) { return (typeIHolder.typeName == this->typeName); }
 };
 
+struct FoundObjects
+{
+    std::vector<std::pair<std::string, double> > percents;
+};
+
 class TypesHolder
 {
 public:

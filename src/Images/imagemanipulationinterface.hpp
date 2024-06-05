@@ -11,6 +11,11 @@ struct DetectedObject
     float percent {0};
 };
 
+struct DetectedObjects
+{
+    std::list<DetectedObject> objects;
+};
+
 struct ObjectType
 {
     std::string name;

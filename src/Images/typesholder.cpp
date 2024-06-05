@@ -78,8 +78,8 @@ std::vector<cv::Mat> TypesHolder::getObjects(const cv::Mat &targetImage)
             result[currentIndex] = img;
             DEBUG_TRY(cv::imwrite("result.jpg", result[currentIndex]))
         }
-        result.erase(std::remove_if(result.begin(), result.end(), [](auto& img){ return img.empty(); }));
         std::cout << "Size of vector: " << result.size() << std::endl;
+//        result.erase(std::remove_if(result.begin(), result.end(), [](auto& img){ return img.empty(); }));
         if (!result.size())
         {
             cv::imwrite("original.jpg", targetImage);
@@ -222,8 +222,7 @@ void TypesHolder::setupInfoHolder(TypeInfoHolder &imageIHolder)
     if (objects.size())
     {
         imageIHolder.image = objects[0];
-        std::cout << "Inserted object found: " << imageIHolder.typeName << std::endl;
-        cv::imwrite(imageIHolder.typeName + ".png", imageIHolder.image);
+//        DEBUG_TRY(cv::imwrite(imageIHolder.typeName + ".png", imageIHolder.image))
     }
 
     imageIHolder.imageRotations     = createRotations(imageIHolder.image);

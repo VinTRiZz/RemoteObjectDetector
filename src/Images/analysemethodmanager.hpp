@@ -6,11 +6,6 @@
 namespace Analyse
 {
 
-struct FoundObjects
-{
-    std::vector<std::pair<std::string, double> > percents;
-};
-
 class AnalyseMethodManager
 {
 public:
