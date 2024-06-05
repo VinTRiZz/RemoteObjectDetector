@@ -9,9 +9,29 @@ AnalyseMethodManager::AnalyseMethodManager(TypesHolder& typesHolder) :
 
 }
 
-double AnalyseMethodManager::compareImages(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
+std::vector<std::pair<std::string, double>> AnalyseMethodManager::detectObject(const cv::Mat &image)
 {
-    return compareTest(typeIHolder, image);
+    std::vector<std::pair<std::string, double>> result(m_typesHolder.typeList.size());
+
+    // TODO: Get objects from image
+
+    size_t currentIndex = 0;
+    for (auto& tih : m_typesHolder.typeList)
+    {
+        auto matchResult = compareTest(tih, image);
+        result[currentIndex++] = { tih.typeName, matchResult };
+    }
+    std::sort(result.begin(), result.end(), [](auto& com1, auto& com2){ return (com1.second > com2.second); });
+
+
+    std::cout << "--------------------------------" << std::endl;
+    for (auto& comres : result)
+    {
+        std::cout << "Compare result for " << comres.first << " : " << comres.second << std::endl;
+    }
+    std::cout << "--------------------------------" << std::endl;
+
+    return result;
 }
 
 double AnalyseMethodManager::compareTest(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
@@ -37,8 +57,6 @@ double AnalyseMethodManager::compareTest(const TypeInfoHolder &typeIHolder, cons
     std::vector<cv::DMatch> resMatchs;
     matcher->match(descrs, tih_descrs, resMatchs);
     result = resMatchs.size() / (double)tih_kpts.size();
-
-    std::cout << "Match: " << result << " / " << resMatchs.size() << std::endl;
     return result;
 }
 
@@ -122,7 +140,7 @@ double AnalyseMethodManager::compareTemplate(const TypeInfoHolder &typeIHolder, 
                 maxMatch = resultVal;
 
         } catch (cv::Exception& ex) {
-            continue; // Skip error image
+            std::cout << "[compareTemplate()] Got OpenCV exception: " << ex.what() << std::endl;
         }
     }
 

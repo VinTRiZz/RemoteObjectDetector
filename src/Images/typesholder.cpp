@@ -56,8 +56,7 @@ MomentsType TypesHolder::createHuMoments(const cv::Mat& image)
 
 std::vector<cv::Mat> TypesHolder::getObjects(const cv::Mat &targetImage)
 {
-    try
-    {
+    try {
         // Apply background erase
         cv::Mat objectsOnImage;
         m_pBackSub->apply(targetImage, objectsOnImage, 0);
@@ -97,7 +96,7 @@ std::vector<cv::Mat> TypesHolder::getObjects(const cv::Mat &targetImage)
         return result;
 
     } catch (std::exception& ex) {
-        std::cout << "Got OpenCV exception: %s" << ex.what() << std::endl;
+        std::cout << "[getObjects()] Got OpenCV exception: %s" << ex.what() << std::endl;
     }
     return {};
 }
@@ -200,7 +199,6 @@ std::list<cv::Mat> TypesHolder::createHistograms(const std::vector<cv::Mat> &ima
     const float* histRange = {range};   // Range of histogram
 
     // Calculate histograms
-    size_t currentIndex = 0;
     for (auto& templateRotation : imageRotations)
     {
         if (templateRotation.channels() != 0)

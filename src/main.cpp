@@ -30,6 +30,14 @@ int main(int argc, char* argv[])
     std::cout << "Setting templates" << std::endl;
     for (auto& dirEntry : args) imgInterface.processTemplatesDirectory(dirEntry);
 
+    std::cout << "Detected types:" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    for (auto& templateType : imgInterface.availableTypes())
+    {
+        std::cout << templateType.name << " --- " << templateType.imagePath << std::endl;
+    }
+    std::cout << "-----------------------" << std::endl;
+
     std::cout << "Start detect" << std::endl;
     imgInterface.startDetectObjects();
 
@@ -38,11 +46,12 @@ int main(int argc, char* argv[])
 
     std::cout << "Detected:" << std::endl;
     uint64_t no = 0;
+    std::cout << "-----------------------" << std::endl;
     for (auto& res : imgInterface.detectedObjects())
     {
         std::cout << no++ << " " << res.name << " " << res.percent << std::endl;
     }
-    std::cout << "-----------" << std::endl;
+    std::cout << "-----------------------" << std::endl;
 
     return 0;
 }

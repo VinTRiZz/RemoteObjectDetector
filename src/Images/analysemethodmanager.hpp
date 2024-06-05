@@ -11,7 +11,7 @@ class AnalyseMethodManager
 public:
     AnalyseMethodManager(TypesHolder& typesHolder);
 
-    double compareImages(const TypeInfoHolder &typeIHolder, const cv::Mat& image);
+    std::vector<std::pair<std::string, double> > detectObject(const cv::Mat& image);
 
 private:
     TypesHolder& m_typesHolder;

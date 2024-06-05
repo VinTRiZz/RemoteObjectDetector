@@ -90,6 +90,9 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
 
                 auto analyseTimeStart = std::chrono::high_resolution_clock::now();
 
+                auto img = m_typeHolder.loadImage(dirent.path());
+                auto result = m_analysator.detectObject(img);
+
                 auto analyseTimeEnd = std::chrono::high_resolution_clock::now();
                 auto analyseDuration = std::chrono::duration_cast<std::chrono::milliseconds>(analyseTimeEnd - analyseTimeStart);
             }
@@ -156,6 +159,8 @@ std::string AnalyseSubsystem::getCameraFile() const
 bool AnalyseSubsystem::addTemplate(const std::string &path)
 {
     TypeInfoHolder tih;
+    tih.typeName = stdfs::path(path).filename();
+    tih.typeName.erase(tih.typeName.find_last_of('.'), tih.typeName.size());
     tih.imagePath = path;
     return d->m_typeHolder.addType(tih);
 }
