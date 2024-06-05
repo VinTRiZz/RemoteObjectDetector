@@ -121,3 +121,8 @@ void Adaptors::CameraAdaptor::setCamera(const std::string &cameraDevicePath)
         d->m_capture.release();
     }
 }
+
+std::string Adaptors::CameraAdaptor::getCamera() const
+{
+    return d->m_deviceFilePath;
+}

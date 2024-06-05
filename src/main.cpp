@@ -1,37 +1,48 @@
-#include <opencv2/opencv.hpp>
+#include "Images/imagemanipulationinterface.hpp"
 
-int main() {
-//    cv::Mat image = cv::imread("flash.jpg", cv::IMREAD_GRAYSCALE);
-    cv::Mat image = cv::imread("white-knight.png", cv::IMREAD_GRAYSCALE);
+#include <iostream>
 
-//    cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
+int main(int argc, char* argv[])
+{
+    if (argc < 3) // Zero arg is path to program, first is camera, second is directory with templates
+    {
+        std::cout << "Error: no camera or templates directory provided" << std::endl
+                  << "Usage example: ObjectSearcher /dev/camera0 ./templates" << std::endl;
+        return 1;
+    }
 
-//    std::vector<cv::KeyPoint> keypoints;
-//    cv::Mat descriptors;
+    std::list<std::string> args;
+    for (int i = 0; i < argc; i++)
+        args.push_back(argv[i]);
+    args.pop_front(); // Erase zero argument
 
-//    sift->detectAndCompute(image, cv::noArray(), keypoints, descriptors);
+    ImageManipulationInterface imgInterface;
 
-//    cv::Mat result;
-//    cv::drawKeypoints(image, keypoints, result);
+    auto cameraFile = args.front();
+    args.pop_front();
 
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(image, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::cout << "Setting camera" << std::endl;
+    imgInterface.setCamera(cameraFile);
 
-    std::vector<std::vector<cv::Point>> resVect;
-    std::sort(contours.begin(), contours.end(), [](auto& cont1, auto& cont2){ return (cv::boundingRect(cont1).area() > cv::boundingRect(cont2).area()); });
-    resVect.push_back(*contours.begin());
+    std::cout << "Init step" << std::endl;
+    imgInterface.init();
 
-    auto cpMat = image.clone();
-    cv::drawContours(cpMat, resVect, -1, 255, 2);
-    cv::imwrite("founds.jpg", cpMat);
+    std::cout << "Setting templates" << std::endl;
+    for (auto& dirEntry : args) imgInterface.processTemplatesDirectory(dirEntry);
 
-    cv::Mat mask = cv::Mat::zeros(image.size(), image.type());
-    cv::drawContours(mask, resVect, -1, 255, 0);
-    cv::bitwise_not(mask, mask);
+    std::cout << "Start detect" << std::endl;
+    imgInterface.startDetectObjects();
 
-    cv::Mat result;
-    image.copyTo(result, mask);
-    cv::imwrite("result.jpg", result);
+    std::cout << "Poll detect" << std::endl;
+    imgInterface.pollDetecting();
+
+    std::cout << "Detected:" << std::endl;
+    uint64_t no = 0;
+    for (auto& res : imgInterface.detectedObjects())
+    {
+        std::cout << no++ << " " << res.name << " " << res.percent << std::endl;
+    }
+    std::cout << "-----------" << std::endl;
 
     return 0;
 }
@@ -40,29 +51,44 @@ int main() {
 
 
 
+//#include <opencv2/opencv.hpp>
 
+//int main() {
+////    cv::Mat image = cv::imread("flash.jpg", cv::IMREAD_GRAYSCALE);
+//    cv::Mat image = cv::imread("white-knight.png", cv::IMREAD_GRAYSCALE);
 
+////    cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
 
+////    std::vector<cv::KeyPoint> keypoints;
+////    cv::Mat descriptors;
 
+////    sift->detectAndCompute(image, cv::noArray(), keypoints, descriptors);
 
-//#include <iostream>
-//#include <signal.h>
+////    cv::Mat result;
+////    cv::drawKeypoints(image, keypoints, result);
 
-//#include "appsetup.hpp"
+//    std::vector<std::vector<cv::Point>> contours;
+//    cv::findContours(image, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-//using namespace std;
-//int main(int argc, char* argv[])
-//{
-//    AppSetup::independentSetup();
+//    std::vector<std::vector<cv::Point>> resVect;
+//    std::sort(contours.begin(), contours.end(), [](auto& cont1, auto& cont2){ return (cv::boundingRect(cont1).area() > cv::boundingRect(cont2).area()); });
+//    resVect.push_back(*contours.begin());
 
-//    Components::MainApp app(argc, argv);
+//    auto cpMat = image.clone();
+//    cv::drawContours(cpMat, resVect, -1, 255, 2);
+//    cv::imwrite("founds.jpg", cpMat);
 
-//    AppSetup::setupApp(app);
+//    cv::Mat mask = cv::Mat::zeros(image.size(), image.type());
+//    cv::drawContours(mask, resVect, -1, 255, 0);
+//    cv::bitwise_not(mask, mask);
 
-//    app.init();
+//    cv::Mat result;
+//    image.copyTo(result, mask);
+//    cv::imwrite("result.jpg", result);
 
-//    return app.exec();
+//    return 0;
 //}
+
 
 
 //#include <opencv2/opencv.hpp>

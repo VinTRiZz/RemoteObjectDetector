@@ -3,12 +3,18 @@
 namespace Analyse
 {
 
-AnalyseMethodManager::AnalyseMethodManager()
+AnalyseMethodManager::AnalyseMethodManager(TypesHolder& typesHolder) :
+    m_typesHolder{typesHolder}
 {
 
 }
 
-double AnalyseMethodManager::compareTest(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
+double AnalyseMethodManager::compareImages(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
+{
+    return compareTest(typeIHolder, image);
+}
+
+double AnalyseMethodManager::compareTest(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     double result = 0;
 
@@ -32,19 +38,19 @@ double AnalyseMethodManager::compareTest(const Common::TypeInfoHolder &typeIHold
     matcher->match(descrs, tih_descrs, resMatchs);
     result = resMatchs.size() / (double)tih_kpts.size();
 
-    LOG_DEBUG("Match: %f", result, resMatchs.size());
+    std::cout << "Match: " << result << " / " << resMatchs.size() << std::endl;
     return result;
 }
 
-double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
+double AnalyseMethodManager::compareMoments(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     // Get Hu moments of objects in image
-    Common::MomentsType imageMomentsVect = Common::createMoments(image);
+    MomentsType imageMomentsVect = m_typesHolder.createHuMoments(image);
 
     // Compare moments of image with type moments
-    std::vector<double> compareResults(typeIHolder.moments.size());
+    std::vector<double> compareResults(typeIHolder.huMoments.size());
 
-    std::transform(typeIHolder.moments.begin(), typeIHolder.moments.end(), compareResults.begin(), [&](auto& momentsVect){ return cv::matchShapes(imageMomentsVect, momentsVect, 1, 0); });
+    std::transform(typeIHolder.huMoments.begin(), typeIHolder.huMoments.end(), compareResults.begin(), [&](auto& momentsVect){ return cv::matchShapes(imageMomentsVect, momentsVect, 1, 0); });
     if (!compareResults.size()) return 0;
     std::sort(compareResults.begin(), compareResults.end(), [](auto val1, auto val2){ return val1 < val2; });
     const double maxVal = compareResults[0];
@@ -58,7 +64,7 @@ double AnalyseMethodManager::compareMoments(const Common::TypeInfoHolder &typeIH
     return result;
 }
 
-double AnalyseMethodManager::compareHistogram(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
+double AnalyseMethodManager::compareHistogram(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     // Setup histogram configuration
     cv::Mat imgHist;                     // Histograms
@@ -85,7 +91,7 @@ double AnalyseMethodManager::compareHistogram(const Common::TypeInfoHolder &type
     return maxMatch;
 }
 
-double AnalyseMethodManager::compareTemplate(const Common::TypeInfoHolder &typeIHolder, const cv::Mat &image)
+double AnalyseMethodManager::compareTemplate(const TypeInfoHolder &typeIHolder, const cv::Mat &image)
 {
     double maxMatch {0};
     double minVal {}, maxVal {};

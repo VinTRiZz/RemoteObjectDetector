@@ -34,6 +34,7 @@ public:
 
     // Setup camera to use device
     void setCamera(const std::string& cameraDevicePath);
+    std::string getCamera() const;
     
 private:
     struct CameraDriverPrivate;

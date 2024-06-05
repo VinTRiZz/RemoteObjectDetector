@@ -1,7 +1,7 @@
 #ifndef ANALYSEMETHODMANAGER_HPP
 #define ANALYSEMETHODMANAGER_HPP
 
-#include "common.hpp"
+#include "Images/typesholder.hpp"
 
 namespace Analyse
 {
@@ -9,13 +9,18 @@ namespace Analyse
 class AnalyseMethodManager
 {
 public:
-    AnalyseMethodManager();
+    AnalyseMethodManager(TypesHolder& typesHolder);
 
-    double compareTest(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
+    double compareImages(const TypeInfoHolder &typeIHolder, const cv::Mat& image);
 
-    double compareMoments(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
-    double compareHistogram(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
-    double compareTemplate(const Common::TypeInfoHolder& typeIHolder, const cv::Mat& image);
+private:
+    TypesHolder& m_typesHolder;
+
+    double compareTest(const TypeInfoHolder& typeIHolder, const cv::Mat& image);
+
+    double compareMoments(const TypeInfoHolder &typeIHolder, const cv::Mat& image);
+    double compareHistogram(const TypeInfoHolder& typeIHolder, const cv::Mat& image);
+    double compareTemplate(const TypeInfoHolder& typeIHolder, const cv::Mat& image);
 };
 
 }
