@@ -6,12 +6,17 @@
 namespace Analyse
 {
 
+struct FoundObjects
+{
+    std::vector<std::pair<std::string, double> > percents;
+};
+
 class AnalyseMethodManager
 {
 public:
     AnalyseMethodManager(TypesHolder& typesHolder);
 
-    std::vector<std::pair<std::string, double> > detectObject(const cv::Mat& image);
+    std::list<FoundObjects > detectObject(const cv::Mat& image);
 
 private:
     TypesHolder& m_typesHolder;

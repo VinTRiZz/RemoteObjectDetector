@@ -35,4 +35,29 @@ namespace stdfs = std::filesystem;
 namespace stdfs = std::experimental::filesystem;
 #endif // C++ 14 problems
 
+#define DEBUG_MODE
+
+#define DEBUG_EXIT          std::cout << "DEBUG EXIT FROM " << __FILE__ << " : " << __LINE__ << std::endl; exit(1)
+#define DEBUG_TRY(FUNC)     try { FUNC; } catch (std::exception& ex) { std::cout << __FUNCTION__ << "Exception got: " << ex.what() << std::endl; exit(2); };
+
+/*
+chess
+photo1
+photo2
+*/
+#define DEBUG_DIRECTORY "chess"
+
+/*
+***************** CHESS
+figures
+black_knight_distort
+black_knight_rotates
+distorts
+
+***************** Photos
+object_1 (GUM or EAR)
+object_2 (PEN or FLASH)
+*/
+#define DEBUG_TARGET_DIRECTORY "figures"
+
 #endif // COMMON_H

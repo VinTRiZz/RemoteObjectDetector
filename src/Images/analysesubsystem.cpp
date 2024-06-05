@@ -19,6 +19,8 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
     Adaptors::CameraAdaptor m_camera;
     Analyse::AnalyseMethodManager m_analysator{m_typeHolder};
 
+#ifdef DEBUG_MODE
+#warning "DEBUG MODE ON"
     void loadImagesForDebug(const std::string& path, std::list<cv::Mat>& targetList)
     {
         // Check if directory exist and it's directory
@@ -61,20 +63,7 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
 
     void testAnalyse(std::list<std::pair<std::string, double> > &analyseResultBuffer)
     {
-        const std::string basepath = "temp/";
-
-        // Chess
-    //        const std::string path = basepath + "chess/figures";
-    //        const std::string path = basepath + "chess/black_knight_distort";
-    //        const std::string path = basepath + "chess/black_knight_rotates";
-    //        const std::string path = basepath + "chess/distorts";
-
-        // Actually objects
-    //        const std::string path = basepath + "photos1/object_1"; // Photos of object 1 (GUM)
-    //        const std::string path = basepath + "photos1/object_2"; // Photos of object 2 (PEN)
-
-        const std::string path = basepath + "photos2/object_1"; // Photos of object 1 (ear)
-    //        const std::string path = basepath + "photos2/object_2"; // Photos of object 2 (flash)
+        const std::string path = "temp/" DEBUG_DIRECTORY "/" DEBUG_TARGET_DIRECTORY;
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
@@ -98,6 +87,7 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
             }
         }
     }
+#endif // DEBUG_MODE
 };
 
 AnalyseSubsystem::AnalyseSubsystem() :
@@ -200,8 +190,10 @@ void AnalyseSubsystem::enableHardAnalyse(bool isEnabled)
 
 void AnalyseSubsystem::init()
 {
-#warning "Removed comparison"
-//    if (!d->isReady) return;
+#ifndef DEBUG_MODE
+    if (!d->isReady) return;
+#endif // DEBUG_MODE
+
     studyBackground();
 }
 
@@ -212,8 +204,11 @@ bool AnalyseSubsystem::isReady() const
 
 bool AnalyseSubsystem::startAnalyse(std::list<std::pair<std::string, double> > &analyseResultBuffer)
 {
+#ifdef DEBUG_MODE
+#warning "DEBUG MODE ON"
     d->testAnalyse(analyseResultBuffer);
     return true;
+#endif // DEBUG_MODE
 
     // TODO: Write normally
 
@@ -238,16 +233,18 @@ void AnalyseSubsystem::studyBackground()
     cv::Mat tempImage;
     std::list<cv::Mat> backgrounds;
 
-#warning "DEBUG NEEDS"
-//    const std::string path = "./temp/photos1/background";
-    const std::string path = "./temp/photos2/background";
-//    const std::string path = "./temp/chess/background";
+#ifdef DEBUG_MODE
+#warning "DEBUG MODE ON"
+    const std::string path = "./temp/" DEBUG_DIRECTORY "/background";
     d->loadImagesForDebug(path, backgrounds);
+#endif // DEBUG_MODE
 
     for (uint64_t elapsedMs = 0; elapsedMs < d->initTimeMs; elapsedMs+= cameraShotPeriod)
     {
-//        if (!d->m_camera.shotToBuffer(tempImage)) continue;
-//        backgrounds.push_back(tempImage);
+#ifndef DEBUG_MODE
+        if (!d->m_camera.shotToBuffer(tempImage)) continue;
+        backgrounds.push_back(tempImage);
+#endif // DEBUG_MODE
     }
 
     cv::Mat result;

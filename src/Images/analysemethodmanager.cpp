@@ -9,27 +9,35 @@ AnalyseMethodManager::AnalyseMethodManager(TypesHolder& typesHolder) :
 
 }
 
-std::vector<std::pair<std::string, double>> AnalyseMethodManager::detectObject(const cv::Mat &image)
+std::list<FoundObjects> AnalyseMethodManager::detectObject(const cv::Mat &image)
 {
-    std::vector<std::pair<std::string, double>> result(m_typesHolder.typeList.size());
+    std::list<FoundObjects> result;
 
-    // TODO: Get objects from image
+    auto imageObjects = m_typesHolder.getObjects(image);
 
-    size_t currentIndex = 0;
-    for (auto& tih : m_typesHolder.typeList)
+    for (auto& obj : imageObjects)
     {
-        auto matchResult = compareTest(tih, image);
-        result[currentIndex++] = { tih.typeName, matchResult };
-    }
-    std::sort(result.begin(), result.end(), [](auto& com1, auto& com2){ return (com1.second > com2.second); });
+        FoundObjects founds;
+        founds.percents.resize(m_typesHolder.typeList.size());
 
+        size_t currentIndex = 0;
+        for (auto& tih : m_typesHolder.typeList)
+        {
+//            auto matchResult = compareTest(tih, image);
+            auto matchResult = compareTemplate(tih, image);
+            founds.percents[currentIndex++] = { tih.typeName, matchResult };
+        }
+        std::sort(founds.percents.begin(), founds.percents.end(), [](auto& com1, auto& com2){ return (com1.second > com2.second); });
 
-    std::cout << "--------------------------------" << std::endl;
-    for (auto& comres : result)
-    {
-        std::cout << "Compare result for " << comres.first << " : " << comres.second << std::endl;
+        std::cout << "--------------------------------" << std::endl;
+        for (auto& comres : founds.percents)
+        {
+            std::cout << "Compare result for " << comres.first << " : " << comres.second << std::endl;
+        }
+        std::cout << "--------------------------------" << std::endl;
+
+        result.push_back(founds);
     }
-    std::cout << "--------------------------------" << std::endl;
 
     return result;
 }

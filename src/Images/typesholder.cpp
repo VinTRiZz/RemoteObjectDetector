@@ -68,29 +68,26 @@ std::vector<cv::Mat> TypesHolder::getObjects(const cv::Mat &targetImage)
         std::vector<cv::Mat> result (contours.size());
         size_t currentIndex = 0;
 
-        auto targetCopy = targetImage;
-
         // Get objects array from contours
         for (auto& contour : contours)
         {
             cv::Rect boundingRect = cv::boundingRect(contour);
             if (boundingRect.area() < (30 * 30)) continue;
 
-            cv::rectangle(targetCopy, boundingRect, cv::Scalar(0, 0, 255), 4);
-
-            auto& image = result[0];
-            cv::Mat mask = cv::Mat::zeros(image.size(), image.type());
-            cv::drawContours(mask, contour, -1, 255, 0);
-            cv::bitwise_not(mask, mask);
-
-            cv::Mat resultMat;
-            image.copyTo(resultMat, mask);
-            cv::imwrite("result.jpg", resultMat);
-
-            std::cout << __FUNCTION__ << std::endl; exit(1);
-
             auto img = targetImage(boundingRect); // Crop image
             result[currentIndex] = img;
+            DEBUG_TRY(cv::imwrite("result.jpg", result[currentIndex]))
+        }
+        result.erase(std::remove_if(result.begin(), result.end(), [](auto& img){ return img.empty(); }));
+        std::cout << "Size of vector: " << result.size() << std::endl;
+        if (!result.size())
+        {
+            cv::imwrite("original.jpg", targetImage);
+            cv::imwrite("objects.jpg", objectsOnImage);
+            auto tempMat = targetImage.clone();
+            cv::drawContours(tempMat, contours, 0, cv::Scalar(0, 0, 255), 3);
+            cv::imwrite("contours.jpg", tempMat);
+            DEBUG_EXIT;
         }
 
         return result;
@@ -229,7 +226,7 @@ void TypesHolder::setupInfoHolder(TypeInfoHolder &imageIHolder)
         cv::imwrite(imageIHolder.typeName + ".png", imageIHolder.image);
     }
 
-    imageIHolder.imageRotations = createRotations(imageIHolder.image);
+    imageIHolder.imageRotations     = createRotations(imageIHolder.image);
     imageIHolder.histograms         = createHistograms(imageIHolder.imageRotations);
     imageIHolder.huMoments          = createHuMoments(imageIHolder.image);
     addContours(imageIHolder.image, imageIHolder.contours);
