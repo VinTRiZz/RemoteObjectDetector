@@ -5,3 +5,6 @@
 BUILD/
 BIN/
 CMakeLists.txt.*
+Makefile
+*.pro.user*
+.*

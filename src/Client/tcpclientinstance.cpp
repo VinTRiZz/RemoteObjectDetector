@@ -2,21 +2,27 @@
 
 #include <QTcpSocket>
 #include <QThread>
+#include <QCoreApplication>
+
+#include <sys/socket.h>
 
 namespace Utility {
 namespace Network
 {
 
+const uint64_t reconnectTryCount = 100;
+
 struct TcpCLientInstanceQ::Impl
 {
     uint16_t CONNECTION_TIMEOUT {1000}, SEND_TIMEOUT {100};
 
-    QTcpSocket m_client;
+    std::function<Exchange::Packet(const Exchange::Packet&)> m_requestProcessor;
 
-    bool m_done {false};
-    bool m_responseGot {false};
+    bool mustReconnect {false};
+    QTcpSocket* m_client;
 
     QByteArray readBuf;
+    Exchange::Packet m_request;
     Exchange::Packet m_response;
     long unsigned m_currentQueuePosition {0};
 
@@ -28,20 +34,15 @@ TcpCLientInstanceQ::TcpCLientInstanceQ(QObject *parent) :
     QObject(parent),
     d{new Impl}
 {
-    QObject::connect(this, &TcpCLientInstanceQ::sendMessage, this, &TcpCLientInstanceQ::sendMessageSlot);
     qRegisterMetaType<Exchange::Packet>("Exchange::Packet");
 
-    QObject::connect(&d->m_client, &QTcpSocket::readyRead, this, &TcpCLientInstanceQ::onMessage);
-    QObject::connect(&d->m_client, &QTcpSocket::disconnected, this, &TcpCLientInstanceQ::onFail);
+    d->m_client = new QTcpSocket(this);
 }
 
 TcpCLientInstanceQ::~TcpCLientInstanceQ()
 {
-    QObject::disconnect(&d->m_client, &QTcpSocket::readyRead, this, &TcpCLientInstanceQ::onMessage);
-    QObject::disconnect(&d->m_client, &QTcpSocket::disconnected, this, &TcpCLientInstanceQ::onFail);
-
     if (isConnected())
-        TcpCLientInstanceQ::disconnect();
+        this->disconnect();
 }
 
 void TcpCLientInstanceQ::setupServer(const QString& address, uint16_t port)
@@ -53,9 +54,19 @@ void TcpCLientInstanceQ::setupServer(const QString& address, uint16_t port)
     }
 }
 
+void TcpCLientInstanceQ::setPacketProcessor(std::function<Exchange::Packet (const Exchange::Packet &)> requestProcessor)
+{
+    d->m_requestProcessor = requestProcessor;
+}
+
+void TcpCLientInstanceQ::enableReconnectOnFail(bool reconnect)
+{
+    d->mustReconnect = reconnect;
+}
+
 bool TcpCLientInstanceQ::waitForSend(int TIMEOUT)
 {
-    return d->m_client.waitForBytesWritten(TIMEOUT);
+    return d->m_client->waitForBytesWritten(TIMEOUT);
 }
 
 void TcpCLientInstanceQ::setConnectionTimeout(uint16_t TIMEOUT)
@@ -68,93 +79,98 @@ void TcpCLientInstanceQ::setSendTimeout(uint16_t TIMEOUT)
     d->SEND_TIMEOUT = TIMEOUT;
 }
 
-void TcpCLientInstanceQ::connect()
+void TcpCLientInstanceQ::connectToServer()
 {
     if (isConnected()) return; // Connect only if disconnected
 
-    d->m_client.connectToHost(d->m_hostAddress, d->m_serverPort);
-
-    if (!d->m_client.waitForConnected(d->CONNECTION_TIMEOUT))
+    d->m_client->connectToHost(d->m_hostAddress, d->m_serverPort);
+    if (!d->m_client->waitForConnected(d->CONNECTION_TIMEOUT))
     {
         qDebug() << "[\033[31mE\033[0m]: CONNECTION TIMEOUT";
         return;
     }
 
-    d->m_done = !isConnected();
-
-    if (!d->m_done)
+    if (isConnected())
     {
-        if (!d->m_done) qDebug() << "[\033[32mS\033[0m] Connected";
-        emit connected();
+        qDebug() << "[\033[32mS\033[0m] Connected";
+        QObject::connect(d->m_client, &QTcpSocket::readyRead, this, &TcpCLientInstanceQ::onMessage);
+        QObject::connect(d->m_client, &QTcpSocket::disconnected, this, &TcpCLientInstanceQ::onFail);
     }
 }
 
-void TcpCLientInstanceQ::disconnect()
+void TcpCLientInstanceQ::disconnectFromServer()
 {
-    if (!isConnected()) return; // Disconnect only if connected
+    QObject::disconnect(d->m_client, &QTcpSocket::readyRead, this, &TcpCLientInstanceQ::onMessage);
+    QObject::disconnect(d->m_client, &QTcpSocket::disconnected, this, &TcpCLientInstanceQ::onFail);
 
-    d->m_done = true;
-    d->m_client.disconnectFromHost();
-
-    if (isConnected())
-        d->m_client.waitForDisconnected(d->CONNECTION_TIMEOUT);
+    if (isConnected()) // Disconnect only if connected
+    {
+        d->m_client->disconnectFromHost();
+        d->m_client->waitForDisconnected(d->CONNECTION_TIMEOUT);
+    }
 
     qDebug() << "[\033[32mS\033[0m] Disconnected manually";
-
-    if (!isConnected())
-        emit disconnected();
 }
 
 bool TcpCLientInstanceQ::isConnected()
 {
-    return (d->m_client.state() == QTcpSocket::SocketState::ConnectedState);
+    return (d->m_client->state() == QTcpSocket::SocketState::ConnectedState);
 }
 
-void TcpCLientInstanceQ::sendMessageSlot(const Exchange::Packet& sendPacket)
+void TcpCLientInstanceQ::sendMessage(const Exchange::Packet& sendPacket)
 {
     if (!isConnected()) return;
 
-    if (sendPacket.command.empty())
+    QByteArray sendData = Exchange::encode(sendPacket);
+
+    if (!d->m_client->isWritable())
     {
-        qDebug() << "[\033[31mE\033[0m]: EMPTY COMMAND";
+        qDebug() << "[\033[31mE\033[0m]: Is not writable";
         return;
     }
 
-    QByteArray sendData = Exchange::PacketConverter::convert(sendPacket);
-
-    d->m_responseGot = false;
-    if (d->m_client.write(sendData) == -1)
+    if (d->m_client->write(sendData) == -1)
     {
         qDebug() << "[\033[31mE\033[0m]: WRITE DATA ERROR";
         return;
     }
 
-    if (!d->m_client.waitForBytesWritten(d->SEND_TIMEOUT))
-        qDebug() << "[\033[31mE\033[0m]: SEND TIMEOUT";}
-
-Exchange::Packet TcpCLientInstanceQ::getMessage()
-{
-    return getMessage();
+    if (!d->m_client->waitForBytesWritten(d->SEND_TIMEOUT))
+        qDebug() << "[\033[31mE\033[0m]: SEND TIMEOUT";
 }
 
-bool TcpCLientInstanceQ::messagesAvailable() const
-{
-    return d->m_responseGot;
-}
-
-void TcpCLientInstanceQ::onFail() // QAbstractSocket::SocketError errCode
+void TcpCLientInstanceQ::onFail()
 {
     qDebug() << "[\033[33mW\033[0m] Disconnected";
-    emit disconnected();
+
+    if (d->mustReconnect)
+    {
+        for (int i = 0; (i < reconnectTryCount) && !isConnected(); i++)
+        {
+            this->disconnectFromServer();
+            this->connectToServer();
+            thread()->msleep(500);
+        }
+    }
+    else
+    {
+        exit(1);
+    }
 }
 
 void TcpCLientInstanceQ::onMessage()
 {
-    d->readBuf = d->m_client.readAll();
+    d->readBuf = d->m_client->readAll();
     if (d->readBuf.size() < 2) return;
-    d->m_response = Exchange::PacketConverter::convert(d->readBuf);
-    d->m_responseGot = true;
-    emit gotPacket(d->m_response);
+    d->m_request = Exchange::decode<Exchange::Packet>(d->readBuf);
+    if (!d->m_requestProcessor)
+    {
+        throw std::runtime_error("Request processor not inited. Work prohibited");
+    }
+    qDebug() << "Request metadata:" << d->m_request.packetMetadata;
+    d->m_response = d->m_requestProcessor(d->m_request);
+    if (d->m_response.packetMetadata != Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
+        this->sendMessage(d->m_response);
 }
 
 }

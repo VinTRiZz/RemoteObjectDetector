@@ -2,6 +2,7 @@
 #define UL_TCPCLIENTINSTANCE_H
 
 #include <memory>
+#include <functional>
 
 #include "exchangepacket.hpp"
 
@@ -19,39 +20,31 @@ public:
     ~TcpCLientInstanceQ();
 
     void setupServer(const QString& address, uint16_t port);
-    bool waitForSend(int TIMEOUT = 10000);
+    void setPacketProcessor(std::function<Exchange::Packet(const Exchange::Packet&)> requestProcessor);
+
+    void enableReconnectOnFail(bool reconnect = true);
 
     void setConnectionTimeout(uint16_t TIMEOUT = 1000);
     void setSendTimeout(uint16_t TIMEOUT = 1000);
 
-
-public slots:
-    void connect();
-    void disconnect();
-
-public:
     bool isConnected();
-    Exchange::Packet getMessage();
-    bool messagesAvailable() const;
     QString errorText() const;
 
-signals:
     void sendMessage(const Exchange::Packet& sendPacket);
 
-    // Used to process packets got from server
-    void gotPacket(const Exchange::Packet& p);
-
-    void connected();
-    void disconnected();
+public slots:
+    void connectToServer();
+    void disconnectFromServer();
 
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
+    bool waitForSend(int TIMEOUT = 10000);
+
 private slots:
     void onFail();
     void onMessage();
-    void sendMessageSlot(const Exchange::Packet& sendPacket);
 };
 
 }
