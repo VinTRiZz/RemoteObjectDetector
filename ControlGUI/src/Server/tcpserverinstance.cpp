@@ -65,6 +65,11 @@ bool TcpServerInstanceQ::sendData(const QString &connectionToken, const QByteArr
     return d->m_conManager.sendData(connectionToken, data);
 }
 
+bool TcpServerInstanceQ::hasConnection(const QString &token)
+{
+    return d->m_conManager.hasConnection(token);
+}
+
 void TcpServerInstanceQ::incomingConnection(qintptr handle)
 {
     d->m_conManager.createConnection(handle);

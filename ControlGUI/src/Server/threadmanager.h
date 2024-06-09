@@ -23,6 +23,7 @@ class ThreadManager final : public QObject
         int availableThreads();
         bool setThreadCount(int newCount);
 
+        bool hasConnection(const QString token);
         bool sendData(const QString& connectionToken, const QByteArray& data);
 
         void setConnectionCallbacks(const std::function<Exchange::Packet ()> &onConnectionCallback, const std::function<void (const QString &)> &onDisconnectedCallback);

@@ -5,6 +5,11 @@
 #include <QListWidgetItem>
 #include <QStandardItemModel>
 #include <QTimer>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+
+#include <nlohmann/json.hpp>
 
 #include "commonstructs.h"
 #include "controlserver.h"
@@ -76,10 +81,20 @@ private:
     ControlServer* m_server;
     QTimer* m_requestTimer;
 
+    QSqlDatabase m_db;
+    QSqlQuery m_query;
+
     std::list<QString> m_deviceTokens;
     ConnectedDevice m_currentDevice;
 
     uint64_t m_updateTime {1000};
+
+    bool setupDatabase();
+    void loadAllTokens();
+    QString getDeviceName(const QString& token);
+    ConnectedDevice loadDeviceFromDatabase(const QString& token);
+    void uploadDeviceToDatabase(const ConnectedDevice& dev);
+    void updateDeviceInDatabase(const ConnectedDevice& dev);
 
     void updateDeviceList();
     void setDevice(const QString &devToken);

@@ -40,6 +40,8 @@ namespace stdfs = std::experimental::filesystem;
 #define DEBUG_EXIT          std::cout << "DEBUG EXIT FROM " << __FILE__ << " : " << __LINE__ << std::endl; exit(1)
 #define DEBUG_TRY(FUNC)     try { FUNC; } catch (std::exception& ex) { std::cout << __FUNCTION__ << "() Exception got: " << ex.what() << std::endl; exit(2); };
 
+#define DEBUG_BASEPATH "../DATA"
+
 /*
 chess
 photo1

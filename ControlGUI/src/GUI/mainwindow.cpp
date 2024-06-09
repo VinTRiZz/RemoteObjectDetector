@@ -40,7 +40,26 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_server, &ControlServer::deviceStatusGot, this, &MainWindow::deviceStatusGot);
 
-//    startTestFunction();
+#warning "Move path as a define"
+    m_db = QSqlDatabase::addDatabase("QSQLITE");
+    m_db.setDatabaseName("../DATA/cgui.db");
+    if (!m_db.open())
+    {
+        emit addMessageToHistory("Warning: Error opening database. Setup database and reopen the app.");
+        qDebug() << "Error text:" << m_db.lastError().text();
+    }
+
+    m_query = QSqlQuery(m_db);
+    if (!setupDatabase())
+    {
+        emit addMessageToHistory("Error setting up database. Setup database and reopen the app.");
+        qDebug() << "DB Setup error text:" << m_query.lastError().text();
+        return;
+    }
+    m_db.close();
+    m_db.open();
+    loadAllTokens();
+
     if (!m_server->init(9001))
     {
         ui->statusbar->setStatusTip("Internal error. Please restart application");
@@ -52,143 +71,24 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    m_db.close();
     delete ui;
-}
-
-
-void MainWindow::on_systemMenu_pushButton_clicked()
-{
-    ui->menu_stackedWidget->setCurrentIndex(0);
-}
-
-
-void MainWindow::on_typeManagerMenu_pushButton_clicked()
-{
-    ui->menu_stackedWidget->setCurrentIndex(1);
-}
-
-
-void MainWindow::on_monitor_pushButton_clicked()
-{
-    ui->menu_stackedWidget->setCurrentIndex(2);
-}
-
-void MainWindow::addConnection(const QString &devToken)
-{
-    m_deviceTokens.push_back(devToken);
-    emit addMessageToHistory(QString("Connected with device %1").arg(devToken));
-    updateDeviceList();
-}
-
-void MainWindow::removeConnection(const QString &devToken)
-{
-    emit addMessageToHistory(QString("Connection with %1 removed").arg(devToken));
-    auto devTokenPos = std::find(m_deviceTokens.begin(), m_deviceTokens.end(), devToken);
-    if (devTokenPos == m_deviceTokens.end())
-        return;
-    m_deviceTokens.erase(devTokenPos);
-    if (devToken == m_currentDevice.token)
-    {
-        m_currentDevice.isValid = false;
-        cleanDeviceContent();
-    }
-    updateDeviceList();
-}
-
-void MainWindow::deviceIsReady(const QString &devToken)
-{
-    m_currentDevice.canWork = true;
-    emit addMessageToHistory(QString("Device %1 is ready").arg(devToken));
-}
-
-void MainWindow::deviceStarted(const QString &devToken)
-{
-    m_currentDevice.isWorking = true;
-    emit addMessageToHistory(QString("Device %1 started").arg(devToken));
-}
-
-void MainWindow::deviceStopped(const QString &devToken)
-{
-    m_currentDevice.isWorking = false;
-    emit addMessageToHistory(QString("Device %1 stopped").arg(devToken));
-}
-
-void MainWindow::objectListGot(const QString &objectList)
-{
-    // TODO: Parse
-    qDebug() << "Got types:" << objectList;
-}
-
-void MainWindow::objectDetectedListGot(const QString &objectDetectedList)
-{
-    // TODO: Parse
-    qDebug() << "Got detected types:" << objectDetectedList;
-}
-
-void MainWindow::objectAdded(const QString &objectName)
-{
-    ui->objects_listWidget->addItem(objectName);
-    emit addMessageToHistory(QString("Added object %1").arg(objectName));
-}
-
-void MainWindow::objectRenamed(const QString &objectName, const QString &newName)
-{
-    auto itemList = ui->objects_listWidget->findItems(objectName, Qt::MatchExactly);
-    if (itemList.isEmpty()) return;
-    itemList[0]->setText(newName);
-    emit addMessageToHistory(QString("Renamed object %1 to %2").arg(objectName, newName));
-}
-
-void MainWindow::objectRemoved(const QString &objectName)
-{
-    auto itemList = ui->objects_listWidget->findItems(objectName, Qt::MatchExactly);
-    if (itemList.isEmpty()) return;
-    ui->objects_listWidget->removeItemWidget(itemList[0]);
-    emit addMessageToHistory(QString("Removed object %1").arg(objectName));
-}
-
-void MainWindow::deviceStatusGot(const Exchange::StatusData &devStatus)
-{
-    // Status setup
-    m_pStatusModel->clear();
-    m_pStatusModel->setColumnCount(2);
-    for (auto& statusPair : devStatus.statusMap)
-    {
-        QList<QStandardItem*> items;
-        items.push_back(new QStandardItem(statusPair.first.c_str()));
-        items.push_back(new QStandardItem(statusPair.second.c_str()));
-        m_pStatusModel->appendRow(items);
-    }
-
-    // Add position from database
-    auto positionString = "Somewhere"; // TODO: Load from database
-    QList<QStandardItem*> items;
-    items.push_back(new QStandardItem("Position"));
-    items.push_back(new QStandardItem(positionString));
-    m_pStatusModel->appendRow(items);
-
-    // Add update period
-    items.clear();
-    items.push_back(new QStandardItem("Update period"));
-    items.push_back(new QStandardItem(QString("%1 s").arg(QString::number(m_updateTime / 1000))));
-    m_pStatusModel->appendRow(items);
-
-    // Camera is enabled
-    items.clear();
-    items.push_back(new QStandardItem("Camera enabled"));
-    items.push_back(new QStandardItem(m_currentDevice.cameraEnabled ? "Yes" : "No"));
-    m_pStatusModel->appendRow(items);
 }
 
 void MainWindow::addMessageToHistory(const QString &messageText)
 {
     qDebug() << "New message:" << messageText;
+    ui->statusbar->showMessage(messageText, (float)messageText.size() * 0.05f);
     ui->history_listWidget->addItem(messageText);
 }
 
 void MainWindow::periodicRequest()
 {
     m_requestTimer->stop();
+    ui->connectionStatus_label->setText( m_currentDevice.isConnected ? "Connected" : "N/a" );
+    if (!m_currentDevice.isConnected)
+        return;
+
     if (m_currentDevice.isValid)
         m_server->status(m_currentDevice.token);
 
@@ -214,7 +114,7 @@ void MainWindow::updateDeviceList()
 
 void MainWindow::setDevice(const QString &devToken)
 {
-    m_requestTimer->stop();
+    if (m_currentDevice.isConnected) m_requestTimer->stop();
     if (devToken == "")
     {
         m_currentDevice.isValid = false;
@@ -224,18 +124,16 @@ void MainWindow::setDevice(const QString &devToken)
     // Clear from previous device
     cleanDeviceContent();
 
-    // TODO: Load info from database (including name)
-    m_currentDevice.name = devToken; // TODO: Remove
-    m_currentDevice.token = devToken;
+    // Load device info
+    if (m_currentDevice.isValid) updateDeviceInDatabase(m_currentDevice);
+    m_currentDevice = loadDeviceFromDatabase(devToken);
+    m_currentDevice.isConnected = m_server->isConnected(m_currentDevice.token);
 
     // UI updates
     ui->name_lineEdit->setText(devToken);
 
-    // TODO: Load object list and check if it inited
-//    m_server->getObjectList(m_currentDevice.token);
-
     m_currentDevice.isValid = true;
-    m_requestTimer->start(m_updateTime);
+    if (m_currentDevice.isConnected) m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device changed");
 }
 
@@ -248,87 +146,96 @@ void MainWindow::cleanDeviceContent()
     m_pStatusModel->clear();
 }
 
-
-void MainWindow::on_init_pushButton_clicked()
+bool MainWindow::setupDatabase()
 {
-    m_server->setup(m_currentDevice.token);
-    emit addMessageToHistory("Device init called");
+    const QString setupQuery1 = R"(
+        CREATE TABLE IF NOT EXISTS devices(
+            id 		integer primary key AUTOINCREMENT not null,
+            token 	text UNIQUE,
+            name	text,
+            config	text,
+            place	text
+        );
+    )";
+
+    const QString setupQuery2 = R"(
+        CREATE TABLE IF NOT EXISTS templates (
+            id 		integer primary key AUTOINCREMENT not null,
+            token	text unique,
+            path	text
+        );
+    )";
+
+    return (m_query.exec(setupQuery1) && m_query.exec(setupQuery2));
 }
 
-
-void MainWindow::on_viewEnable_pushButton_clicked()
+void MainWindow::loadAllTokens()
 {
-    m_currentDevice.cameraEnabled = true;
-}
-
-
-void MainWindow::on_viewDisable_pushButton_clicked()
-{
-    m_currentDevice.cameraEnabled = false;
-}
-
-
-void MainWindow::on_start_pushButton_clicked()
-{
-    m_server->start(m_currentDevice.token);
-}
-
-
-void MainWindow::on_stop_pushButton_clicked()
-{
-    m_server->stop(m_currentDevice.token);
-}
-
-
-void MainWindow::on_reboot_pushButton_clicked()
-{
-    m_server->reboot(m_currentDevice.token);
-}
-
-
-void MainWindow::on_addObject_pushButton_clicked()
-{
-    auto objectName = ui->objectName_lineEdit->text();
-    if (!objectName.size())
+    if (!m_query.exec(QString("SELECT token FROM devices")))
     {
-        emit addMessageToHistory("Error: no name written");
+        qDebug() << "Error in load tokens query:" << m_query.lastError().text();
         return;
     }
-    m_server->addObject(objectName, m_currentDevice.token);
-}
-
-
-void MainWindow::on_objects_listWidget_itemClicked(QListWidgetItem *item)
-{
-    ui->objectName_lineEdit->setText(item->text());
-}
-
-
-void MainWindow::on_removeObject_pushButton_clicked()
-{
-    auto pItem = ui->objects_listWidget->currentItem();
-    if (!pItem)
+    if (!m_query.next())
     {
-        emit addMessageToHistory("Error: no object selected");
+        qDebug() << "No tokens in database";
         return;
     }
-    m_server->removeObject(pItem->text(), m_currentDevice.token);
+    while (m_query.next()) m_deviceTokens.push_back(m_query.value(0).toString());
+    updateDeviceList();
 }
 
-
-void MainWindow::on_renameObject_pushButton_clicked()
+QString MainWindow::getDeviceName(const QString &token)
 {
-    auto pItem = ui->objects_listWidget->currentItem();
-    if (!pItem)
+    if (!m_query.exec(QString("SELECT name FROM devices WHERE token='%1'").arg(token)))
     {
-        emit addMessageToHistory("Error: no object selected");
+        qDebug() << "Error in get dev query:" << m_query.lastError().text();
+        return "";
+    }
+    if (!m_query.next())
+    {
+        qDebug() << "Not found device in database";
+        return "";
+    }
+    return m_query.value(0).toString();
+}
+
+ConnectedDevice MainWindow::loadDeviceFromDatabase(const QString &token)
+{
+    ConnectedDevice result;
+    if (!m_query.exec(QString("SELECT name, config, place FROM devices WHERE token='%1'").arg(token)))
+    {
+        qDebug() << "Error in load dev query:" << m_query.lastError().text();
+        return result;
+    }
+    if (!m_query.next())
+    {
+        qDebug() << "Not found device in database";
+        return result;
+    }
+    result.token = token;
+    result.name = m_query.value(0).toString();
+    result.config = m_query.value(1).toString();
+    result.place = m_query.value(2).toString();
+    return result;
+}
+
+void MainWindow::uploadDeviceToDatabase(const ConnectedDevice &dev)
+{
+    if (!m_query.exec(QString("INSERT INTO devices(token, name, config, place) VALUES ('%1', '%2', '%3', '%4')").arg(dev.token, dev.name, dev.config, dev.place)))
+    {
+        qDebug() << "Error in upload query:" << m_query.lastError().text();
         return;
     }
-    auto newName = ui->objectName_lineEdit->text();
-    if (!newName.size())
+    qDebug() << "Added device to database";
+}
+
+void MainWindow::updateDeviceInDatabase(const ConnectedDevice &dev)
+{
+    if (!m_query.exec(QString("UPDATE devices SET name='%1', config='%2', place='%3' WHERE token='%4'").arg(dev.name, dev.config, dev.place, dev.token)))
     {
-        emit addMessageToHistory("Error: no name written");
+        qDebug() << "Error in update query:" << m_query.lastError().text();
         return;
     }
-    m_server->renameObject(pItem->text(), newName, m_currentDevice.token);
+    qDebug() << "Updated device info in database";
 }

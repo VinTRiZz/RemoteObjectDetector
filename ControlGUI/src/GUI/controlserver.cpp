@@ -26,6 +26,11 @@ bool ControlServer::init(const uint16_t portNo)
     return m_server->start(QHostAddress::LocalHost, portNo);
 }
 
+bool ControlServer::isConnected(const QString &token)
+{
+    return m_server->hasConnection(token);
+}
+
 void ControlServer::request(Exchange::PacketMetaInfo commandCode, const QString &token, const QString payload)
 {
     Exchange::Packet requestPacket;

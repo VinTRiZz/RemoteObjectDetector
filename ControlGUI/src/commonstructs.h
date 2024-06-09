@@ -14,9 +14,15 @@ struct ImageObject
 
 struct ConnectedDevice
 {
+    // Database fields
     QString token {"[INVALID]"};
     QString name {"Unknown"};
+    QString config;
+    QString place;
+
+    // For GUI
     bool cameraEnabled {false};
+    bool isConnected {false};
     bool isWorking {false};
     bool isValid {false};
     bool canWork {false};

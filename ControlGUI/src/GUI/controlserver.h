@@ -17,6 +17,8 @@ public:
 
     bool init(const uint16_t portNo);
 
+    bool isConnected(const QString& token);
+
     void setup(const QString& token)        { request(Exchange::PACKET_INFO_CT_SETUP, token); }
     void reconnect(const QString& token)    { request(Exchange::PACKET_INFO_CT_RECONNECT, token); }
     void reboot(const QString& token)       { request(Exchange::PACKET_INFO_CT_REBOOT, token); }

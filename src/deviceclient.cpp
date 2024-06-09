@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QThread>
+#include <nlohmann/json.hpp>
 
 #include "statusfunctions.hpp"
 
@@ -58,7 +59,6 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             {
                 response.payload += obj.name + ";";
             }
-            #error "Use JSON for it"
             print(QString("Object list asked. List: %1").arg(response.payload.c_str()));
             return response;
         }
@@ -69,10 +69,12 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             Exchange::Packet response;
             response.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED;
             auto objects = m_analyseInterface.detectedObjects();
+            nlohmann::json objectsPacketJson;
             for (auto& obj : objects)
             {
-                response.payload += obj.name + "," + std::to_string(obj.percent) + ";";
+                objectsPacketJson[obj.name] = std::to_string(obj.percent);
             }
+            response.payload = objectsPacketJson.dump();
             print("Detected asked");
             return response;
         }

@@ -89,6 +89,21 @@ bool Utility::Network::ThreadManager::setThreadCount(int newCount)
     return true;
 }
 
+bool Utility::Network::ThreadManager::hasConnection(const QString token)
+{
+    qDebug() << "TM Requesting if exist" << token;
+    for (auto& worker : m_workers)
+    {
+        if (token == worker->getToken())
+        {
+            qDebug() << "Exist";
+            return true;
+        }
+    }
+    qDebug() << "Not found";
+    return false;
+}
+
 bool Utility::Network::ThreadManager::sendData(const QString &connectionToken, const QByteArray &data)
 {
     auto pConWorker = std::find_if(m_workers.begin(), m_workers.end(), [&connectionToken](auto& con){ return (con->getToken() == connectionToken); });

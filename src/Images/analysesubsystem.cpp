@@ -66,7 +66,7 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
 #warning "DEBUG MODE ON"
     void testAnalyse(std::list<std::pair<std::string, double> > &analyseResultBuffer)
     {
-        const std::string path = "temp/" DEBUG_DIRECTORY "/" DEBUG_TARGET_DIRECTORY;
+        const std::string path = DEBUG_BASEPATH "/" DEBUG_DIRECTORY "/" DEBUG_TARGET_DIRECTORY;
 
         if (!stdfs::exists(path) || !stdfs::is_directory(path))
         {
