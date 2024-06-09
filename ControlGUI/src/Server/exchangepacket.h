@@ -15,6 +15,8 @@
 namespace Exchange
 {
 
+const uint64_t DOWNLOAD_PAYLOAD_SIZE {20000};
+
 enum PacketMetaInfo
 {
     // For exchanging one turn only (without response)
@@ -43,7 +45,7 @@ enum PacketMetaInfo
     PACKET_INFO_CT_LIST,
     PACKET_INFO_CT_DETECTED,
     PACKET_INFO_CT_ADD_OBJECT,
-    PACKET_INFO_CT_UPD_OBJECT, // Rename
+    PACKET_INFO_CT_UPD_OBJECT,
     PACKET_INFO_CT_REM_OBJECT,
 };
 

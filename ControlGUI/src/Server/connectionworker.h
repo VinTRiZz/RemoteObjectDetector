@@ -28,10 +28,13 @@ namespace Network
 
         public slots:
             void setConnection(int descriptor, unsigned long workerId = 0);
-            void sendData(const QByteArray& dataString);
+
+        private slots:
+            void sendDataSlot(const QByteArray& dataString);
 
         signals:
             void finished();
+            void sendData(const QByteArray& dataString);
 
         private:
             void onMessage();

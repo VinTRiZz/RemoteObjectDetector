@@ -36,6 +36,7 @@ void MainWindow::on_viewEnable_pushButton_clicked()
 
 void MainWindow::on_viewDisable_pushButton_clicked()
 {
+    m_imageIsLoadingNow = false;
     m_currentDevice.cameraEnabled = false;
     emit addMessageToHistory("Camera disabled");
 }

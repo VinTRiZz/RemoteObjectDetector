@@ -11,6 +11,8 @@ Utility::Network::ConnectionWorker::ConnectionWorker(
 {
     connect(m_pCon, &QTcpSocket::readyRead, this, &ConnectionWorker::onMessage);
     connect(m_pCon, &QTcpSocket::disconnected, this, &ConnectionWorker::onDisconnect);
+
+    connect(this, &Utility::Network::ConnectionWorker::sendData, this, &Utility::Network::ConnectionWorker::sendDataSlot);
 }
 
 Utility::Network::ConnectionWorker::~ConnectionWorker()
@@ -24,7 +26,7 @@ Utility::Network::ConnectionWorker::~ConnectionWorker()
     }
 }
 
-void Utility::Network::ConnectionWorker::sendData(const QByteArray &dataString)
+void Utility::Network::ConnectionWorker::sendDataSlot(const QByteArray &dataString)
 {
     m_pCon->write(dataString);
     m_pCon->waitForBytesWritten(1000);

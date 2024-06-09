@@ -4,6 +4,7 @@
 #include <memory>
 #include <list>
 #include <string>
+#include <opencv2/opencv.hpp>
 
 struct DetectedObject
 {
@@ -35,6 +36,7 @@ public:
     uint64_t getInitTime() const;
 
     void setCamera(const std::string& cameraFile);
+    cv::Mat getCameraShot();
     std::string getCamera() const;
 
     bool startDetectObjects();

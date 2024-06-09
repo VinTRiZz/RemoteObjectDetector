@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 
 #include <algorithm>
+#include <nlohmann/json.hpp>
 
 ControlServer::ControlServer(QObject *parent):
     QObject{parent},
@@ -31,6 +32,15 @@ bool ControlServer::isConnected(const QString &token)
     return m_server->hasConnection(token);
 }
 
+QImage ControlServer::getPhoto()
+{
+    if (!m_imageDataBuffer.use_count())
+        return {};
+
+    // Convert the cv::Mat to a QImage
+    return QImage(reinterpret_cast<uchar*>(m_imageDataBuffer.get()), m_imageCols, m_imageRows, QImage::Format_RGB888);
+}
+
 void ControlServer::request(Exchange::PacketMetaInfo commandCode, const QString &token, const QString payload)
 {
     Exchange::Packet requestPacket;
@@ -50,8 +60,12 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
 
     if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS)
     {
-        // TODO: Use downloaded data got
-        qDebug() << "Downloading photo";
+        if (!request.payload.size())
+            return {};
+        qDebug() << "Downloading photo step" << m_currentPos << "/" << m_photoSize << "SIZE NOW:" << request.payload.size();
+        std::copy(request.payload.begin(), request.payload.end(), m_imageDataBuffer.get() + m_currentPos);
+        m_currentPos += request.payload.size();
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, std::to_string(m_currentPos));
     }
 
     switch (request.packetMetadata)
@@ -59,19 +73,30 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO:
         if (request.payload != "success")
             emit errorGot(QString("Photo shot error: %1").arg(request.payload.c_str()));
-        qDebug() << "Object photo get succeed";
-        {
-            Exchange::Packet response;
-            response.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN;
-            return response;
-        }
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN, "");
 
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_END:
+        qDebug() << "Photo downloaded";
+        emit photoGot();
+        break;
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN:
-        // TODO: Start download, setup temporary buffers
+        {
+            nlohmann::json objectsPacketJson;
+            try {
+                objectsPacketJson = nlohmann::json::parse(request.payload);
+            } catch (nlohmann::json::exception& ex)
+            {
+                emit errorGot("Error parsing detected object list");
+                return {};
+            }
+            m_imageCols = objectsPacketJson["cols"];
+            m_imageRows = objectsPacketJson["rows"];
+            m_photoSize = objectsPacketJson["size"];
+            m_imageDataBuffer = std::shared_ptr<char>(new char[m_photoSize] );
+        }
         qDebug() << "Started photo download";
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, "0");
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
         qDebug() << "Got object list : " << request.payload.c_str();

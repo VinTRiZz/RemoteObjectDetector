@@ -133,6 +133,18 @@ void AnalyseSubsystem::setCameraFile(const std::string &cameraDevicePath)
     }
 }
 
+cv::Mat AnalyseSubsystem::getCameraShot()
+{
+#ifdef DEBUG_MODE
+#warning "Debug mode for camera enabled"
+    return cv::imread("../DATA/chess/black_knight_distort/angle_1.png");
+#endif // DEBUG
+
+    cv::Mat bufImage;
+    d->m_camera.shotToBuffer(bufImage);
+    return bufImage;
+}
+
 std::string AnalyseSubsystem::getCameraFile() const
 {
     return d->m_camera.getCamera();

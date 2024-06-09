@@ -36,7 +36,7 @@ public:
     void removeObject(const QString& objectName, const QString& token)                          { request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, objectName); }
 
     // Get last downloaded image
-    QImage getPhoto() { return m_imageIsDownloading ? m_bufferPhoto : QImage(); }
+    QImage getPhoto();
 
 signals:
     void deviceConnected(const QString& devToken);
@@ -66,8 +66,11 @@ private:
     void onDisconnected(const QString& token);
 
     // For image downloading
-    bool m_imageIsDownloading {false};
-    QByteArray m_photoDataBuffer;
+    uint64_t m_currentPos {0};
+    uint64_t m_photoSize {0};
+    uint64_t m_imageCols {0};
+    uint64_t m_imageRows {0};
+    std::shared_ptr<char> m_imageDataBuffer;
     QImage m_bufferPhoto;
 };
 

@@ -32,23 +32,55 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
 
     if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS)
     {
-        // TODO: Use downloaded data got
-        print("Photo in progress");
+        uint64_t currentPos = 0;
+        try {
+            currentPos = std::stoul(request.payload);
+        } catch (std::invalid_argument& ex)
+        {
+            print(QString("Error converting payload \"%1\" to pos").arg(request.payload.c_str()));
+            return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, "");
+        }
+
+        if (currentPos >= m_imageBuffer.dataend - m_imageBuffer.datastart) return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_END, "");
+
+        Exchange::Packet response(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, "");
+
+        if ((m_imageBuffer.dataend - m_imageBuffer.datastart - currentPos) >= Exchange::DOWNLOAD_PAYLOAD_SIZE)
+        {
+            qDebug() << "Logic 1";
+            response.payload.resize(Exchange::DOWNLOAD_PAYLOAD_SIZE);
+            std::copy(m_imageBuffer.datastart + currentPos, m_imageBuffer.datastart + currentPos + Exchange::DOWNLOAD_PAYLOAD_SIZE, response.payload.begin());
+        }
+        else
+        {
+            qDebug() << "Logic 2";
+            response.payload.resize(m_imageBuffer.dataend - m_imageBuffer.datastart - currentPos);
+            std::copy(m_imageBuffer.datastart + currentPos, m_imageBuffer.dataend, response.payload.begin());
+        }
+        return response;
     }
 
     switch (request.packetMetadata)
     {
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO:
-        if (request.payload != "success")
-            errorGot(QString("Photo shot error: %1").arg(request.payload.c_str()));
+        m_imageBuffer = m_analyseInterface.getCameraShot();
+        if (m_imageBuffer.empty())
+            return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "Image shot is empty");
+
+        cv::cvtColor(m_imageBuffer, m_imageBuffer, cv::COLOR_BGR2RGB);
         print("Photo shot");
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN:
-        // TODO: Start download, setup temporary buffers
-        print("Photo begin");
-        break;
+        {
+            nlohmann::json imageProperties;
+            imageProperties["cols"] = m_imageBuffer.cols;
+            imageProperties["rows"] = m_imageBuffer.rows;
+            imageProperties["size"] = m_imageBuffer.dataend - m_imageBuffer.datastart;
+            print("Photo begin");
+            return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN, imageProperties.dump());
+        }
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
         {

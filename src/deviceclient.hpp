@@ -20,6 +20,8 @@ private:
 
     void print(const QString& messageText);
     void errorGot(const QString& errorText);
+
+    cv::Mat m_imageBuffer;
 };
 
 #endif // DEVICECLIENT_HPP

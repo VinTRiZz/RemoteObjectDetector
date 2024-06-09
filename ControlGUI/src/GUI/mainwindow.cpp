@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // server connections
     connect(m_server, &ControlServer::errorGot, this, &MainWindow::addMessageToHistory);
+    connect(m_server, &ControlServer::photoGot, this, &MainWindow::photoGot);
 
     connect(m_server, &ControlServer::deviceConnected, this, &MainWindow::addConnection);
     connect(m_server, &ControlServer::deviceDisconnected, this, &MainWindow::removeConnection);
@@ -89,11 +90,13 @@ void MainWindow::periodicRequest()
     if (!m_currentDevice.isConnected)
         return;
 
-    if (m_currentDevice.isValid)
-        m_server->status(m_currentDevice.token);
-
-    if (m_currentDevice.cameraEnabled)
+    if (m_currentDevice.cameraEnabled && !m_imageIsLoadingNow)
+    {
         m_server->photo(m_currentDevice.token);
+        m_imageIsLoadingNow = true;
+    }
+    else
+        m_server->status(m_currentDevice.token);
 
     m_requestTimer->start(m_updateTime);
 }
@@ -132,6 +135,7 @@ void MainWindow::setDevice(const QString &devToken)
     // UI updates
     ui->name_lineEdit->setText(devToken);
 
+    m_imageIsLoadingNow = false;
     m_currentDevice.isValid = true;
     if (m_currentDevice.isConnected) m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device changed");

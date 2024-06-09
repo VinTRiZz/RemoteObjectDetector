@@ -91,16 +91,11 @@ bool Utility::Network::ThreadManager::setThreadCount(int newCount)
 
 bool Utility::Network::ThreadManager::hasConnection(const QString token)
 {
-    qDebug() << "TM Requesting if exist" << token;
     for (auto& worker : m_workers)
     {
         if (token == worker->getToken())
-        {
-            qDebug() << "Exist";
             return true;
-        }
     }
-    qDebug() << "Not found";
     return false;
 }
 
@@ -110,7 +105,8 @@ bool Utility::Network::ThreadManager::sendData(const QString &connectionToken, c
     if (pConWorker == m_workers.end())
         return false;
 
-    QMetaObject::invokeMethod(pConWorker->get(), "sendData", Qt::QueuedConnection, Q_ARG(const QByteArray&, data));
+    emit (*pConWorker)->sendData(data);
+//    QMetaObject::invokeMethod(pConWorker->get(), "sendData", Qt::QueuedConnection, Q_ARG(const QByteArray&, data));
     return true;
 }
 

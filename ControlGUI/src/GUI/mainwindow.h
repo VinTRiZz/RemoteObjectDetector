@@ -47,6 +47,8 @@ private slots:
     void objectRenamed(const QString& objectName, const QString& newName);
     void objectRemoved(const QString& objectName);
 
+    void photoGot();
+
     void deviceStatusGot(const Exchange::StatusData& devStatus);
 
     // UI things
@@ -83,6 +85,8 @@ private:
 
     QSqlDatabase m_db;
     QSqlQuery m_query;
+
+    bool m_imageIsLoadingNow {false};
 
     std::list<QString> m_deviceTokens;
     ConnectedDevice m_currentDevice;

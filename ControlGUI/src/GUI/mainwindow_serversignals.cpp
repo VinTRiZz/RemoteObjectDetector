@@ -98,6 +98,13 @@ void MainWindow::objectRemoved(const QString &objectName)
     emit addMessageToHistory(QString("Removed object %1").arg(objectName));
 }
 
+void MainWindow::photoGot()
+{
+    qDebug() << "Got camera shot";
+    ui->camera_label->setPixmap(QPixmap::fromImage(m_server->getPhoto()));
+    m_imageIsLoadingNow = false;
+}
+
 
 void MainWindow::deviceStatusGot(const Exchange::StatusData &devStatus)
 {

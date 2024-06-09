@@ -54,6 +54,11 @@ void ImageManipulationInterface::setCamera(const std::string &cameraFile)
     d->m_analysator.setCameraFile(cameraFile);
 }
 
+cv::Mat ImageManipulationInterface::getCameraShot()
+{
+    return d->m_analysator.getCameraShot();
+}
+
 std::string ImageManipulationInterface::getCamera() const
 {
     return d->m_analysator.getCameraFile();

@@ -81,6 +81,9 @@ void TcpCLientInstanceQ::setSendTimeout(uint16_t TIMEOUT)
 
 void TcpCLientInstanceQ::connectToServer()
 {
+    if (!d->m_requestProcessor)
+        throw std::runtime_error("Request processor not inited. Work prohibited");
+
     if (isConnected()) return; // Connect only if disconnected
 
     d->m_client->connectToHost(d->m_hostAddress, d->m_serverPort);
@@ -161,15 +164,12 @@ void TcpCLientInstanceQ::onFail()
 void TcpCLientInstanceQ::onMessage()
 {
     d->readBuf = d->m_client->readAll();
-    if (d->readBuf.size() < 2) return;
     d->m_request = Exchange::decode<Exchange::Packet>(d->readBuf);
-    if (!d->m_requestProcessor)
-    {
-        throw std::runtime_error("Request processor not inited. Work prohibited");
-    }
     d->m_response = d->m_requestProcessor(d->m_request);
-    if (d->m_response.packetMetadata != Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
-        this->sendMessage(d->m_response);
+    if (d->m_response.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
+        return;
+    qDebug() << "Sending size:" << d->m_response.payload.size();
+    this->sendMessage(d->m_response);
 }
 
 }

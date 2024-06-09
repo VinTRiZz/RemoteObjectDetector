@@ -22,6 +22,7 @@ public:
 
     void setBackgroundEraseMethod(int historySize = 0, BGR_ERASE_METHOD method = BGR_ERASE_METHOD::METHOD_KNN);
     void setCameraFile(const std::string& cameraDevicePath);
+    cv::Mat getCameraShot();
     std::string getCameraFile() const;
 
     bool addTemplate(const std::string& path);
