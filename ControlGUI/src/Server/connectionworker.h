@@ -16,7 +16,7 @@ namespace Network
         Q_OBJECT
         public:
             explicit ConnectionWorker(
-                std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor,
+                std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor,
                 std::function<Exchange::Packet()>& onConnectionCallback,
                 std::function<void(const QString&)>& onDisconnectedCallback,
                 QObject* parent = 0);

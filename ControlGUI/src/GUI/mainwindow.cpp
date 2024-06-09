@@ -5,7 +5,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_pStatusModel {new QStandardItemModel(this)},
-    m_server {new ControlServer(this)}
+    m_server {new ControlServer(this)},
+    m_requestTimer{new QTimer(this)}
 {
     ui->setupUi(this);
 
@@ -19,15 +20,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->device_comboBox, &QComboBox::currentTextChanged, this, &MainWindow::setDevice);
 
+    connect(m_requestTimer, &QTimer::timeout, this, &MainWindow::periodicRequest);
+
     // server connections
     connect(m_server, &ControlServer::errorGot, this, &MainWindow::addMessageToHistory);
     connect(m_server, &ControlServer::deviceConnected, this, &MainWindow::addConnection);
+    connect(m_server, &ControlServer::deviceDisconnected, this, &MainWindow::removeConnection);
+    connect(m_server, &ControlServer::deviceSetupComplete, this, &MainWindow::deviceIsReady);
+    connect(m_server, &ControlServer::deviceStarted, this, &MainWindow::deviceStarted);
+    connect(m_server, &ControlServer::deviceStopped, this, &MainWindow::deviceStopped);
+    connect(m_server, &ControlServer::objectAdded, this, &MainWindow::objectAdded);
+    connect(m_server, &ControlServer::objectRenamed, this, &MainWindow::objectRenamed);
+    connect(m_server, &ControlServer::objectRemoved, this, &MainWindow::objectRemoved);
+    connect(m_server, &ControlServer::deviceStatusGot, this, &MainWindow::deviceStatusGot);
 
 //    startTestFunction();
     if (!m_server->init(9001))
     {
         ui->statusbar->setStatusTip("Internal error. Please restart application");
+        return;
     }
+    m_requestTimer->start(m_updateTime);
+    emit addMessageToHistory("Init complete");
 }
 
 MainWindow::~MainWindow()
@@ -55,15 +69,74 @@ void MainWindow::on_monitor_pushButton_clicked()
 
 void MainWindow::addConnection(const QString &devToken)
 {
-    ConnectedDevice dev;
-    dev.token = devToken;
-    m_devices.push_back(dev);
+    m_deviceTokens.push_back(devToken);
+    emit addMessageToHistory(QString("Connected with device %1").arg(devToken));
     updateDeviceList();
 }
 
-void MainWindow::removeConnection(const QString devToken)
+void MainWindow::removeConnection(const QString &devToken)
 {
-    m_devices.erase(std::find_if(m_devices.begin(), m_devices.end(), [&devToken](auto& dev){ return (dev.token == devToken); }));
+    m_deviceTokens.remove(devToken);
+
+    auto pDev = std::find(m_deviceTokens.begin(), m_deviceTokens.end(), m_currentDevice.token);
+    updateDeviceList();
+
+    emit addMessageToHistory(QString("Connection with %1 removed").arg(devToken));
+}
+
+void MainWindow::deviceIsReady(const QString &devToken)
+{
+    if (devToken == m_currentDevice.token)
+        m_periodicUpdateStatus = true;
+    emit addMessageToHistory(QString("Device %1 is ready").arg(devToken));
+}
+
+void MainWindow::deviceStarted(const QString &devToken)
+{
+    m_currentDevice.isWorking = true;
+    emit addMessageToHistory(QString("Device %1 started").arg(devToken));
+}
+
+void MainWindow::deviceStopped(const QString &devToken)
+{
+    m_currentDevice.isWorking = false;
+    emit addMessageToHistory(QString("Device %1 stopped").arg(devToken));
+}
+
+void MainWindow::objectAdded(const QString &objectName)
+{
+    ui->objects_listWidget->addItem(objectName);
+    emit addMessageToHistory(QString("Added object %1").arg(objectName));
+}
+
+void MainWindow::objectRenamed(const QString &objectName, const QString &newName)
+{
+    auto itemList = ui->objects_listWidget->findItems(objectName, Qt::MatchExactly);
+    if (itemList.isEmpty()) return;
+    itemList[0]->setText(newName);
+    emit addMessageToHistory(QString("Renamed object %1 to %2").arg(objectName, newName));
+}
+
+void MainWindow::objectRemoved(const QString &objectName)
+{
+    auto itemList = ui->objects_listWidget->findItems(objectName, Qt::MatchExactly);
+    if (itemList.isEmpty()) return;
+    ui->objects_listWidget->removeItemWidget(itemList[0]);
+    emit addMessageToHistory(QString("Removed object %1").arg(objectName));
+}
+
+void MainWindow::deviceStatusGot(const Exchange::StatusData &devStatus)
+{
+    // Status setup
+    m_pStatusModel->clear();
+    m_pStatusModel->setColumnCount(2);
+    for (auto& statusPair : devStatus.statusMap)
+    {
+        QList<QStandardItem*> items;
+        items.push_back(new QStandardItem(statusPair.first.c_str()));
+        items.push_back(new QStandardItem(statusPair.second.c_str()));
+        m_pStatusModel->appendRow(items);
+    }
 }
 
 void MainWindow::addMessageToHistory(const QString &messageText)
@@ -72,45 +145,49 @@ void MainWindow::addMessageToHistory(const QString &messageText)
     ui->history_listWidget->addItem(messageText);
 }
 
-void MainWindow::updateDeviceList()
+void MainWindow::periodicRequest()
 {
-    qDebug() << "Updating devices info";
-    for (auto& dev : m_devices)
-    {
-        ui->device_comboBox->addItem(dev.name);
-    }
+    m_requestTimer->stop();
+    if (m_periodicUpdateStatus)
+        m_server->status(m_currentDevice.token);
+
+    if (m_periodicUpdateStatus)
+        m_server->photo(m_currentDevice.token);
+
+    m_requestTimer->start(m_updateTime);
 }
 
-void MainWindow::setDevice(const QString &devName)
+void MainWindow::updateDeviceList()
 {
+    m_requestTimer->stop();
+    ui->device_comboBox->clear();
+    for (auto& dev : m_deviceTokens)
+    {
+        ui->device_comboBox->addItem(dev);
+    }
+    m_requestTimer->start(m_updateTime);
+    emit addMessageToHistory("Device list updated");
+}
+
+void MainWindow::setDevice(const QString &devToken)
+{
+    m_requestTimer->stop();
+
     // Clear from previous device
-    m_pStatusModel->clear();
-    ui->history_listWidget->clear();
     ui->objects_listWidget->clear();
     ui->match_listWidget->clear();
     ui->name_lineEdit->clear();
     ui->camera_label->clear();
 
-    auto devDescriptorIt = std::find_if(m_devices.begin(), m_devices.end(), [&devName](auto& dev){ return (dev.name == devName); });
-    if (devDescriptorIt == m_devices.end())
-    {
-        updateDeviceList();
-        return;
-    }
+    // TODO: Load info from database (including name)
+    m_currentDevice.name = devToken; // TODO: Remove
+    m_currentDevice.token = devToken;
 
-    auto devDescriptor = *devDescriptorIt;
-    ui->name_lineEdit->setText(devName);
+    // UI updates
+    ui->name_lineEdit->setText(devToken);
 
-    m_pStatusModel->setColumnCount(2);
-    for (auto& statusPair : devDescriptor.statusMap)
-    {
-        QList<QStandardItem*> items;
-        items.push_back(new QStandardItem(statusPair.first.c_str()));
-        items.push_back(new QStandardItem(statusPair.second.c_str()));
-        m_pStatusModel->appendRow(items);
-    }
-
-    // TODO: Load info from database
+    m_requestTimer->start(m_updateTime);
+    emit addMessageToHistory("Device changed");
 }
 
 void MainWindow::startTestFunction()
@@ -126,15 +203,16 @@ void MainWindow::startTestFunction()
     dev.cameraEnabled = false;
     dev.token = "891duk3qwhauknhbcvulwacbiwe";
 
-    dev.statusMap["CPU load"] = "33 %";
-    dev.statusMap["CPU temp."] = "65 C";
-    dev.statusMap["Analyse interval"] = "1 s";
-    dev.statusMap["Image send interval"] = "5 s";
-    dev.statusMap["Template count"] = "30";
-    dev.statusMap["Power on time"] = "02.02.2024";
-    dev.statusMap["Position"] = "Somewhere in Moscow";
+    Exchange::StatusData devStatus;
+    devStatus.statusMap["CPU load"] = "33 %";
+    devStatus.statusMap["CPU temp."] = "65 C";
+    devStatus.statusMap["Analyse interval"] = "1 s";
+    devStatus.statusMap["Image send interval"] = "5 s";
+    devStatus.statusMap["Template count"] = "30";
+    devStatus.statusMap["Power on time"] = "02.02.2024";
+    devStatus.statusMap["Position"] = "Somewhere in Moscow";
 
-    m_devices.push_back(dev);
+    m_currentDevice = dev;
 
     emit setDevice(dev.name);
 }

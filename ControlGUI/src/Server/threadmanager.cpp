@@ -5,7 +5,7 @@
 
 #define THREAD_SHUTDOWN_TIMEOUT_MS 1000
 
-Utility::Network::ThreadManager::ThreadManager(std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor, QObject *parent) :
+Utility::Network::ThreadManager::ThreadManager(std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor, QObject *parent) :
     QObject{parent},
     m_packetProcessor{ packetProcessor }
 {
@@ -17,7 +17,7 @@ Utility::Network::ThreadManager::~ThreadManager()
 
 }
 
-Utility::Network::ThreadManager &Utility::Network::ThreadManager::getInstance(std::function<Exchange::Packet (const Exchange::Packet &)> &packetProcessor, QObject* parent)
+Utility::Network::ThreadManager &Utility::Network::ThreadManager::getInstance(std::function<Exchange::Packet (const Exchange::Packet &, const QString&)> &packetProcessor, QObject* parent)
 {
     static ThreadManager manager(packetProcessor, parent);
     return manager;

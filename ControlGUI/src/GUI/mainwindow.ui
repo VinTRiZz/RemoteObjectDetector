@@ -247,28 +247,7 @@ border-width: 2px;
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_7">
               <item>
-               <widget class="QListWidget" name="match_listWidget">
-                <item>
-                 <property name="text">
-                  <string>Pen (79%)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Pencil (73%)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Knife (45%)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Other (10%)</string>
-                 </property>
-                </item>
-               </widget>
+               <widget class="QListWidget" name="match_listWidget"/>
               </item>
              </layout>
             </widget>
@@ -283,48 +262,7 @@ border-width: 2px;
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_8">
               <item>
-               <widget class="QListWidget" name="history_listWidget">
-                <item>
-                 <property name="text">
-                  <string>IMG: Found pen</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Started</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Objects init complete</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Background init complete</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Connected</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Connection requested</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Server started</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>SYS: Starting server...</string>
-                 </property>
-                </item>
-               </widget>
+               <widget class="QListWidget" name="history_listWidget"/>
               </item>
              </layout>
             </widget>
@@ -362,13 +300,7 @@ border-width: 2px;
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QComboBox" name="device_comboBox">
-         <item>
-          <property name="text">
-           <string>Dev 1</string>
-          </property>
-         </item>
-        </widget>
+        <widget class="QComboBox" name="device_comboBox"/>
        </item>
        <item>
         <widget class="QPushButton" name="systemMenu_pushButton">

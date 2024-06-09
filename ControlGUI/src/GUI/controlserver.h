@@ -39,8 +39,8 @@ signals:
     void deviceDisconnected(const QString& devToken);
 
     void deviceSetupComplete(const QString& devToken);
-    void deviceStarted(bool isStarted);
-    void deviceStopped(bool isStopped);
+    void deviceStarted(const QString& devToken);
+    void deviceStopped(const QString& devToken);
 
     void objectAdded(const QString& objectName);
     void objectRenamed(const QString& objectName, const QString& newName);
@@ -55,7 +55,7 @@ private:
     Utility::Network::TcpServerInstanceQ* m_server;
 
     void request(Exchange::PacketMetaInfo commandCode, const QString& token, const QString payload = {});
-    Exchange::Packet processPacket(const Exchange::Packet& request);
+    Exchange::Packet processPacket(const Exchange::Packet& request, const QString &token);
     Exchange::Packet onConnected();
     void onDisconnected(const QString& token);
 

@@ -27,7 +27,7 @@ public:
     bool start(const QHostAddress hostAddress, const unsigned port);
 
     void setConnectionCallbacks(std::function<Exchange::Packet()> onConnectionCallback, std::function<void(const QString&)> onDisconnectedCallback);
-    void setPacketProcessor(std::function<Exchange::Packet (const Exchange::Packet &)> packetProcessor);
+    void setPacketProcessor(std::function<Exchange::Packet (const Exchange::Packet &, const QString &)> packetProcessor);
     bool sendData(const QString& connectionToken, const QByteArray& data);
 
 private:

@@ -1,7 +1,7 @@
 ﻿#include "connectionworker.h"
 
 Utility::Network::ConnectionWorker::ConnectionWorker(
-        std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor,
+        std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor,
         std::function<Exchange::Packet()>& onConnectionCallback,
         std::function<void(const QString&)>& onDisconnectedCallback,
         QObject* parent) :
@@ -84,7 +84,7 @@ void Utility::Network::ConnectionWorker::onMessage()
         m_token = request.payload.c_str();
 
     try {
-    response = m_processor.process(request);
+    response = m_processor.process(request, m_token);
     } catch (Exchange::ConnectionException& ex)
     {
         if (ex.errorType() == Exchange::ConnectionException::ErrorType::ConnectionError)

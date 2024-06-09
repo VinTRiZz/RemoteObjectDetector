@@ -2,13 +2,15 @@
 
 #include "Server/exchangepacket.h"
 
+#include <QThread>
+
 #include <algorithm>
 
 ControlServer::ControlServer(QObject *parent):
     QObject{parent},
     m_server{new Utility::Network::TcpServerInstanceQ(this)}
 {
-    m_server->setPacketProcessor( [this](const Exchange::Packet& input) -> Exchange::Packet { return processPacket(input); } );
+    m_server->setPacketProcessor( [this](const Exchange::Packet& input, const QString& token) -> Exchange::Packet { return processPacket(input, token); } );
 
     m_server->setConnectionCallbacks([this](){ return onConnected(); }, [this](const QString& token){ onDisconnected(token); }  );
 
@@ -27,10 +29,14 @@ bool ControlServer::init(const uint16_t portNo)
 
 void ControlServer::request(Exchange::PacketMetaInfo commandCode, const QString &token, const QString payload)
 {
-    // TODO: Write-up
+    Exchange::Packet requestPacket;
+    requestPacket.packetMetadata = commandCode;
+    requestPacket.payload = payload.toStdString();
+    m_server->sendData(token, Exchange::encode(requestPacket));
+    thread()->msleep(10);
 }
 
-Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
+Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, const QString& token)
 {
     if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
     {
@@ -71,7 +77,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
             break;
         }
         emit objectAdded(std::string(request.payload.begin() + 1, request.payload.end()).c_str());
-        qDebug() << "Added object" << std::string(request.payload.begin() + 1, request.payload.end()).c_str();
         break;
 
 
@@ -98,7 +103,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
             }
             std::string prevName(request.payload.begin() + 1, delimeterPos);
             std::string newName(delimeterPos + delimeter.length(), request.payload.end());
-            qDebug() << "Rename object" << prevName.c_str() << newName.c_str() << "succeed";
             emit objectRenamed(prevName.c_str(), newName.c_str());
         }
         break;
@@ -110,7 +114,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
             emit errorGot(QString("Object remove error: %1").arg(request.payload.c_str()));
             break;
         }
-        qDebug() << "Remove object" << std::string(request.payload.begin() + 1, request.payload.end()).c_str() << "succeed";
         emit objectRemoved(std::string(request.payload.begin() + 1, request.payload.end()).c_str());
         break;
 
@@ -124,21 +127,21 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP:
         if (request.payload != "success")
             emit errorGot(QString("Setup error: %1").arg(request.payload.c_str()));
-        qDebug() << "Setup succeed";
+        emit deviceSetupComplete(token);
         break;
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_START:
         if (request.payload != "success")
             emit errorGot(QString("Start error: %1").arg(request.payload.c_str()));
-        qDebug() << "Start command succeed";
+        emit deviceStarted(token);
         break;
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP:
         if (request.payload != "success")
             emit errorGot(QString("Stop error: %1").arg(request.payload.c_str()));
-        qDebug() << "Stop command succeed";
+        emit deviceStopped(token);
         break;
 
 
@@ -149,15 +152,14 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request)
             throw Exchange::ConnectionException(Exchange::ConnectionException::ErrorType::ConnectionError);
             break;
         }
-        qDebug() << "Created connection with token:" << std::string(request.payload.begin() + 1, request.payload.end()).c_str();
         emit deviceConnected(std::string(request.payload.begin() + 1, request.payload.end()).c_str());
         break;
 
 
+        // TODO: Write mechanism
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_SET_TOKEN:
         if (request.payload == "success")
             break;
-        qDebug() << "Token set succeed";
         emit errorGot(QString("Token set error: %1").arg(request.payload.c_str()));
         break;
 

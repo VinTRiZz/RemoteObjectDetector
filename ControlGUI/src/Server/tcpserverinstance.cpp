@@ -12,7 +12,7 @@ struct TcpServerInstanceQ::Impl
     ThreadManager& m_conManager;
 
     // For packet processing
-    std::function<Exchange::Packet (const Exchange::Packet &)> m_packetProcessor;
+    std::function<Exchange::Packet (const Exchange::Packet &, const QString&)> m_packetProcessor;
     std::function<Exchange::Packet()> m_onConnectionCallback;
     std::function<void(const QString&)> m_onDisconnectedCallback;
 
@@ -55,7 +55,7 @@ void TcpServerInstanceQ::setConnectionCallbacks(std::function<Exchange::Packet (
     d->m_conManager.setConnectionCallbacks(d->m_onConnectionCallback, d->m_onDisconnectedCallback);
 }
 
-void TcpServerInstanceQ::setPacketProcessor(std::function<Exchange::Packet (const Exchange::Packet &)> packetProcessor)
+void TcpServerInstanceQ::setPacketProcessor(std::function<Exchange::Packet (const Exchange::Packet &, const QString&)> packetProcessor)
 {
     d->m_packetProcessor = packetProcessor;
 }

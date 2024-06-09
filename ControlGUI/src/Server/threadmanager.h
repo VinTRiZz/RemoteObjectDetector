@@ -16,7 +16,7 @@ class ThreadManager final : public QObject
 {
     Q_OBJECT
     public:
-        static ThreadManager& getInstance(std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor, QObject* parent = 0);
+        static ThreadManager& getInstance(std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor, QObject* parent = 0);
 
         void createConnection(qintptr handler);
 
@@ -31,7 +31,7 @@ class ThreadManager final : public QObject
         void onFinished();
 
     private:
-        ThreadManager(std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor, QObject* parent = 0);
+        ThreadManager(std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor, QObject* parent = 0);
         ~ThreadManager();
 
         ThreadManager(const ThreadManager&) = delete;
@@ -43,7 +43,7 @@ class ThreadManager final : public QObject
         QHash<unsigned long, std::shared_ptr<QThread> > m_threads;
 
         int m_maximumThreadCount {1};
-        std::function<Exchange::Packet (const Exchange::Packet &)>& m_packetProcessor;
+        std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& m_packetProcessor;
         std::function<Exchange::Packet ()> m_onConnectionCallback;
         std::function<void (const QString&)> m_onDisconnectedCallback;
 

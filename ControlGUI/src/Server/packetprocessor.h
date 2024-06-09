@@ -16,7 +16,7 @@ class PacketProcessor : public QObject
 
 public:
     explicit PacketProcessor(
-            std::function<Exchange::Packet (const Exchange::Packet &)>& packetProcessor,
+            std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& packetProcessor,
             std::function<Exchange::Packet()>& onConnectionCallback,
             std::function<void(const QString&)>& onDisconnectedCallback,
             QObject * parent = 0);
@@ -26,12 +26,12 @@ public:
     std::function<Exchange::Packet ()>& onConnectionCallback;
     std::function<void (const QString&)>& onDisconnectedCallback;
 
-    Exchange::Packet process(const Exchange::Packet& p);
+    Exchange::Packet process(const Exchange::Packet& p, const QString&token);
 
 private:
 
     // For packet processing
-    std::function<Exchange::Packet (const Exchange::Packet &)>& m_packetProcessor;
+    std::function<Exchange::Packet (const Exchange::Packet &, const QString&)>& m_packetProcessor;
 };
 
 }

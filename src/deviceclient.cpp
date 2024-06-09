@@ -7,7 +7,7 @@ DeviceClient::DeviceClient(const std::string &hostAddress, uint64_t port)
 {
     m_client.setupServer(QString::fromStdString(hostAddress), port);
     m_client.setPacketProcessor([this](const Exchange::Packet& request){ return processRequest(request); });
-    m_client.enableReconnectOnFail();
+    m_client.enableReconnectOnFail(false);
 }
 
 void DeviceClient::connectToServer()

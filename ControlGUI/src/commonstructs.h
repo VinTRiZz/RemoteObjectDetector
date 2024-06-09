@@ -14,11 +14,10 @@ struct ImageObject
 
 struct ConnectedDevice
 {
-    QString token;
-    QString name;
-    bool isConnected;
-    bool cameraEnabled;
-    std::map<std::string, std::string> statusMap;
+    QString token {"[INVALID]"};
+    QString name {"Unknown"};
+    bool cameraEnabled {false};
+    bool isWorking {false};
     std::list<QString> objects;
 };
 
