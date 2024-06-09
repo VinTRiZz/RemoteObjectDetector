@@ -6,7 +6,26 @@
 #include <unistd.h>
 #include <vector>
 #include <thread>
+#include <algorithm>
 
+std::string exec(const char* cmd) {
+    char buffer[128];
+    std::string result = "";
+    FILE* pipe = popen(cmd, "r");
+
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != NULL) {
+            result += buffer;
+        }
+    }
+
+    pclose(pipe);
+    return result;
+}
 
 std::vector<size_t> get_cpu_times() {
     std::ifstream proc_stat("/proc/stat");
@@ -42,4 +61,17 @@ float cpuLoad()
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     return utilization;
+}
+
+float cpuTemperature()
+{
+    auto tempers = exec("sensors | grep Tctl");
+    auto currentPos = std::find(tempers.begin(), tempers.end(), '+') + 1;
+    auto endPos = std::find(currentPos, tempers.end(), 'C') - 2;
+    return std::stof(std::string(currentPos, endPos));
+}
+
+std::string getStartTime()
+{
+    return exec("who -b | awk '{print $3}' | date +\"%d.%m.%Y\" -f -");
 }

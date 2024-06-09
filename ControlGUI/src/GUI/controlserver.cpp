@@ -3,6 +3,7 @@
 #include "Server/exchangepacket.h"
 
 #include <QThread>
+#include <QCoreApplication>
 
 #include <algorithm>
 
@@ -27,11 +28,11 @@ bool ControlServer::init(const uint16_t portNo)
 
 void ControlServer::request(Exchange::PacketMetaInfo commandCode, const QString &token, const QString payload)
 {
-    qDebug() << "Requesting for" << commandCode;
     Exchange::Packet requestPacket;
     requestPacket.packetMetadata = commandCode;
     requestPacket.payload = payload.toStdString();
     m_server->sendData(token, Exchange::encode(requestPacket));
+    QCoreApplication::processEvents();
 }
 
 Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, const QString& token)
@@ -65,6 +66,14 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN:
         // TODO: Start download, setup temporary buffers
         qDebug() << "Started photo download";
+        break;
+
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
+        emit objectListGot(token, request.payload.c_str());
+        break;
+
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED:
+        emit objectDetectedListGot(token, request.payload.c_str());
         break;
 
 
@@ -117,7 +126,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_STATUS:
-        qDebug() << "Status got";
         emit deviceStatusGot(Exchange::decode<Exchange::StatusData>(request.payload));
         break;
 

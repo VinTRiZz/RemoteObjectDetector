@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QListWidgetItem>
 #include <QStandardItemModel>
 #include <QTimer>
 
@@ -30,12 +31,17 @@ private slots:
     // Server slots
     void addConnection(const QString &devToken);
     void removeConnection(const QString& devToken);
+
     void deviceIsReady(const QString& devToken);
     void deviceStarted(const QString& devToken);
     void deviceStopped(const QString& devToken);
+
+    void objectListGot(const QString& objectList);
+    void objectDetectedListGot(const QString& objectDetectedList);
     void objectAdded(const QString& objectName);
     void objectRenamed(const QString& objectName, const QString& newName);
     void objectRemoved(const QString& objectName);
+
     void deviceStatusGot(const Exchange::StatusData& devStatus);
 
     // UI things
@@ -43,6 +49,28 @@ private slots:
 
     // Periodic requests for choosen device
     void periodicRequest();
+
+    void on_init_pushButton_clicked();
+
+    void on_viewEnable_pushButton_clicked();
+
+    void on_viewDisable_pushButton_clicked();
+
+    void on_start_pushButton_clicked();
+
+    void on_stop_pushButton_clicked();
+
+    void on_reboot_pushButton_clicked();
+
+    void on_addObject_pushButton_clicked();
+
+    void on_objects_listWidget_itemClicked(QListWidgetItem *item);
+
+    void on_removeObject_pushButton_clicked();
+
+    void on_renameObject_pushButton_clicked();
+
+    void on_DEBUG_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -58,7 +86,5 @@ private:
     void updateDeviceList();
     void setDevice(const QString &devToken);
     void cleanDeviceContent();
-
-    void startTestFunction();
 };
 #endif // MAINWINDOW_H

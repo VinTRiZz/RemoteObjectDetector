@@ -49,6 +49,38 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
         print("Photo begin");
         break;
 
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
+        {
+            Exchange::Packet response;
+            auto objects = m_analyseInterface.availableTypes();
+            for (auto& obj : objects)
+            {
+                response.payload += obj.name + ";";
+            }
+            return response;
+        }
+        print("Object list asked");
+        break;
+
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED:
+        {
+            Exchange::Packet response;
+            auto objects = m_analyseInterface.detectedObjects();
+            for (auto& obj : objects)
+            {
+                response.payload += obj.name + "," + std::to_string(obj.percent) + ";";
+            }
+            return response;
+        }
+        print("Detected asked");
+        break;
+
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_REBOOT:
+#warning "Reboot disabled"
+        // system("reboot");
+        print("Reboot called");
+        break;
+
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_ADD_OBJECT:
         if (request.payload[0] != 'S')
@@ -103,28 +135,36 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
         {
             std::string token = "891duk3qwhauknhbcvulwacbiwe";
 
+            std::string cpuLoadStr = std::to_string(cpuLoad());
+            cpuLoadStr.erase(cpuLoadStr.begin() + 5, cpuLoadStr.end());
+
+            std::string cpuTempStr = std::to_string(cpuTemperature());
+            cpuTempStr.erase(cpuTempStr.begin() + 5, cpuTempStr.end());
+
             Exchange::StatusData dev;
-            dev.statusMap["CPU load"] = std::to_string(cpuLoad()) + " %";
-            dev.statusMap["CPU temp."] = "65 C";
-            dev.statusMap["Analyse interval"] = "1 s";
-            dev.statusMap["Image send interval"] = "5 s";
-            dev.statusMap["Template count"] = "30";
-            dev.statusMap["Power on time"] = "02.02.2024";
-            dev.statusMap["Position"] = "Somewhere in Moscow";
+            dev.statusMap["CPU load"] = cpuLoadStr + " %";
+            dev.statusMap["CPU temp."] = cpuTempStr + " C";
+            dev.statusMap["Template count"] = std::to_string(m_analyseInterface.availableTypesCount());
+            dev.statusMap["Init succeed"] = m_analyseInterface.isReady() ? "true" : "false";
+            dev.statusMap["Power on time"] = getStartTime();
 
             Exchange::Packet devPacket(Exchange::PacketMetaInfo::PACKET_INFO_CT_STATUS, Exchange::encode(dev).toStdString());
             m_client.sendMessage(devPacket);
         }
-        print("Status sent");
         break;
 
 
-    case Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP: // TODO: Setup
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP:
+        print("Loading template images");
+        m_analyseInterface.setCamera("/dev/camera0");
+        m_analyseInterface.init();
+        m_analyseInterface.processTemplatesDirectory("templates");
         print("Setup complete");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_START: // TODO: Start
+        m_analyseInterface.startDetectObjects();
         print("Started");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_START, "success");
 

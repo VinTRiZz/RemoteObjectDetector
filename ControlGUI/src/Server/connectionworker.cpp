@@ -95,11 +95,7 @@ void Utility::Network::ConnectionWorker::onMessage()
     }
 
     if (response.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
-    {
-        qDebug() << "Skipped response";
         return; // Skip packet if it have no need in response
-    }
-    qDebug() << "Sending request with metadata:" << response.packetMetadata;
 
     responsePacket = Exchange::encode(response);
     if ((m_pCon->write(responsePacket) == -1) || (!m_pCon->waitForBytesWritten()))

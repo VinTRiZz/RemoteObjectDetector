@@ -24,7 +24,7 @@ border-width: 2px;
     <item row="1" column="0">
      <widget class="QStackedWidget" name="menu_stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="system_page">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -65,30 +65,6 @@ border-width: 2px;
               <set>Qt::AlignCenter</set>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
-              <item row="3" column="1">
-               <widget class="QPushButton" name="reboot_pushButton">
-                <property name="text">
-                 <string>Reboot</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0" colspan="2">
-               <widget class="QLineEdit" name="name_lineEdit"/>
-              </item>
-              <item row="1" column="1">
-               <widget class="QPushButton" name="stop_pushButton">
-                <property name="text">
-                 <string>Stop</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QPushButton" name="viewDisable_pushButton">
-                <property name="text">
-                 <string>Disable view</string>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="0">
                <widget class="QPushButton" name="viewEnable_pushButton">
                 <property name="text">
@@ -96,21 +72,28 @@ border-width: 2px;
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="start_pushButton">
-                <property name="text">
-                 <string>Start</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QPushButton" name="rename_pushButton">
                 <property name="text">
                  <string>Rename</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="2">
+              <item row="2" column="1">
+               <widget class="QPushButton" name="stop_pushButton">
+                <property name="text">
+                 <string>Stop</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QPushButton" name="reboot_pushButton">
+                <property name="text">
+                 <string>Reboot</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0" colspan="2">
                <spacer name="verticalSpacer_3">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -122,6 +105,30 @@ border-width: 2px;
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QLineEdit" name="name_lineEdit"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="start_pushButton">
+                <property name="text">
+                 <string>Start</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="viewDisable_pushButton">
+                <property name="text">
+                 <string>Disable view</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QPushButton" name="init_pushButton">
+                <property name="text">
+                 <string>Init device</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -148,17 +155,10 @@ border-width: 2px;
               <string>Object manage</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
-              <item row="0" column="0" colspan="2">
-               <widget class="QLineEdit" name="objectName_lineEdit">
-                <property name="placeholderText">
-                 <string>Название класса объектов</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QPushButton" name="addObject_pushButton">
+              <item row="1" column="0" colspan="2">
+               <widget class="QPushButton" name="renameObject_pushButton">
                 <property name="text">
-                 <string>Add object</string>
+                 <string>Rename</string>
                 </property>
                </widget>
               </item>
@@ -169,7 +169,14 @@ border-width: 2px;
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="2">
+              <item row="2" column="0">
+               <widget class="QPushButton" name="addObject_pushButton">
+                <property name="text">
+                 <string>Add object</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
                <spacer name="verticalSpacer_2">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -182,27 +189,10 @@ border-width: 2px;
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0" colspan="2">
-               <widget class="QPushButton" name="renameObject_pushButton">
-                <property name="text">
-                 <string>Rename</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QPushButton" name="switchMode_pushButton">
-                <property name="text">
-                 <string>Switch mode</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>View mode</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLineEdit" name="objectName_lineEdit">
+                <property name="placeholderText">
+                 <string>Название класса объектов</string>
                 </property>
                </widget>
               </item>
@@ -320,6 +310,16 @@ border-width: 2px;
         <widget class="QPushButton" name="monitor_pushButton">
          <property name="text">
           <string>Monitor</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="DEBUG_pushButton">
+         <property name="styleSheet">
+          <string notr="true">background-color: red;</string>
+         </property>
+         <property name="text">
+          <string>DEBUG</string>
          </property>
         </widget>
        </item>

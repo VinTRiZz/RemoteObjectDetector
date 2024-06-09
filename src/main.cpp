@@ -11,58 +11,7 @@ int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
     DeviceClient devClient("127.0.0.1", 9001);
-
     devClient.connectToServer();
-
-//    if (argc < 3) // Zero arg is path to program, first is camera, second is directory with templates
-//    {
-//        std::cout << "Error: no camera or templates directory provided" << std::endl
-//                  << "Usage example: ObjectSearcher /dev/camera0 ./templates" << std::endl;
-//        return 1;
-//    }
-
-//    std::list<std::string> args;
-//    for (int i = 0; i < argc; i++)
-//        args.push_back(argv[i]);
-//    args.pop_front(); // Erase zero argument
-
-//    ImageManipulationInterface imgInterface;
-
-//    auto cameraFile = args.front();
-//    args.pop_front();
-
-//    std::cout << "Setting camera" << std::endl;
-//    imgInterface.setCamera(cameraFile);
-
-//    std::cout << "Init step" << std::endl;
-//    imgInterface.init();
-
-//    std::cout << "Setting templates" << std::endl;
-//    for (auto& dirEntry : args) imgInterface.processTemplatesDirectory(dirEntry);
-
-//    std::cout << "Detected types:" << std::endl;
-//    std::cout << "-----------------------" << std::endl;
-//    for (auto& templateType : imgInterface.availableTypes())
-//    {
-//        std::cout << templateType.name << " --- " << templateType.imagePath << std::endl;
-//    }
-//    std::cout << "-----------------------" << std::endl;
-
-//    std::cout << "Start detect" << std::endl;
-//    imgInterface.startDetectObjects();
-
-//    std::cout << "Poll detect" << std::endl;
-//    imgInterface.pollDetecting();
-
-//    std::cout << "Detected:" << std::endl;
-//    uint64_t no = 0;
-//    std::cout << "-----------------------" << std::endl;
-//    for (auto& res : imgInterface.detectedObjects())
-//    {
-//        std::cout << no++ << " " << res.name << " " << res.percent << std::endl;
-//    }
-//    std::cout << "-----------------------" << std::endl;
-
     return app.exec();
 }
 

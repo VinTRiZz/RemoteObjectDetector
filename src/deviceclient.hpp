@@ -3,6 +3,7 @@
 
 #include "Client/exchangepacket.hpp"
 #include "Client/tcpclientinstance.hpp"
+#include "Images/imagemanipulationinterface.hpp"
 
 class DeviceClient
 {
@@ -13,6 +14,7 @@ public:
 
 private:
     Utility::Network::TcpCLientInstanceQ m_client;
+    ImageManipulationInterface m_analyseInterface;
 
     Exchange::Packet processRequest(const Exchange::Packet& request);
 

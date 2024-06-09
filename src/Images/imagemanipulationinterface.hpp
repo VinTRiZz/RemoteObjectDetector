@@ -48,6 +48,7 @@ public:
     void removeType(const std::string& _otName);
     bool renameType(const std::string& _otOldName, const std::string& _otNewName);
     std::list<ObjectType> availableTypes() const;
+    size_t availableTypesCount() const;
 
 private:
     struct ImageManipulationInterfacePrivate;

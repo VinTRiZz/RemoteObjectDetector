@@ -27,6 +27,8 @@ public:
 
     void photo(const QString& token)        { request(Exchange::PACKET_INFO_CT_PHOTO, token); }
 
+    void getDetected(const QString& token)  { request(Exchange::PACKET_INFO_CT_DETECTED, token); }
+    void getObjectList(const QString& token){ request(Exchange::PACKET_INFO_CT_LIST, token); }
     void addObject(const QString& objectName, const QString& token)                             { request(Exchange::PACKET_INFO_CT_ADD_OBJECT, token, objectName); }
     void renameObject(const QString& objectName, const QString& newName, const QString& token)  { request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, objectName + "****" + newName); }
     void removeObject(const QString& objectName, const QString& token)                          { request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, objectName); }
@@ -42,6 +44,8 @@ signals:
     void deviceStarted(const QString& devToken);
     void deviceStopped(const QString& devToken);
 
+    void objectListGot(const QString& devToken, const QString& objectList);
+    void objectDetectedListGot(const QString& devToken, const QString& objectList);
     void objectAdded(const QString& objectName);
     void objectRenamed(const QString& objectName, const QString& newName);
     void objectRemoved(const QString& objectName);
