@@ -96,12 +96,13 @@ private:
     bool setupDatabase();
     void loadAllTokens();
     QString getDeviceName(const QString& token);
+    QString getDeviceToken(const QString& devName);
     ConnectedDevice loadDeviceFromDatabase(const QString& token);
     void uploadDeviceToDatabase(const ConnectedDevice& dev);
     void updateDeviceInDatabase(const ConnectedDevice& dev);
 
     void updateDeviceList();
-    void setDevice(const QString &devToken);
+    void setDevice(const QString &devName);
     void cleanDeviceContent();
 };
 #endif // MAINWINDOW_H

@@ -79,8 +79,6 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             print("JSON parsing error");
             return {};
         }
-
-        print("Photo shot");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "success");
 
 
@@ -90,7 +88,6 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             imageProperties["cols"] = m_imageBuffer.cols;
             imageProperties["rows"] = m_imageBuffer.rows;
             imageProperties["size"] = m_imageBuffer.dataend - m_imageBuffer.datastart;
-            print("Photo begin");
             return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN, imageProperties.dump());
         }
 

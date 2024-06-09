@@ -137,7 +137,7 @@ cv::Mat AnalyseSubsystem::getCameraShot()
 {
 #ifdef DEBUG_MODE
 #warning "Debug mode for camera enabled"
-    return cv::imread("../DATA/chess/black_knight_distort/angle_1.png");
+    return cv::imread("../DATA/templates/photos2/ear.jpg");
 #endif // DEBUG
 
     cv::Mat bufImage;

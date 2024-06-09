@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->devStatus_tableView->setSizeAdjustPolicy(QTableView::AdjustToContents);
     ui->devStatus_tableView->verticalHeader()->hide();
     ui->devStatus_tableView->horizontalHeader()->setStretchLastSection(true);
+    ui->camera_label->hide();
 
     connect(ui->device_comboBox, &QComboBox::currentTextChanged, this, &MainWindow::setDevice);
 
@@ -108,18 +109,17 @@ void MainWindow::updateDeviceList()
     ui->device_comboBox->clear();
     for (auto& dev : m_deviceTokens)
     {
-        ui->device_comboBox->addItem(dev);
+        ui->device_comboBox->addItem(getDeviceName(dev));
     }
-    if (m_deviceTokens.size() == 1)
-        setDevice(m_deviceTokens.front());
+    if (m_deviceTokens.size() == 1) setDevice(getDeviceName(m_deviceTokens.front()));
     m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device list updated");
 }
 
-void MainWindow::setDevice(const QString &devToken)
+void MainWindow::setDevice(const QString &devName)
 {
     if (m_currentDevice.isConnected) m_requestTimer->stop();
-    if (devToken == "")
+    if (devName == "")
     {
         m_currentDevice.isValid = false;
         return;
@@ -130,11 +130,11 @@ void MainWindow::setDevice(const QString &devToken)
 
     // Load device info
     if (m_currentDevice.isValid) updateDeviceInDatabase(m_currentDevice);
-    m_currentDevice = loadDeviceFromDatabase(devToken);
+    m_currentDevice = loadDeviceFromDatabase(getDeviceToken(devName));
     m_currentDevice.isConnected = m_server->isConnected(m_currentDevice.token);
 
     // UI updates
-    ui->name_lineEdit->setText(devToken);
+    ui->name_lineEdit->setText(devName);
 
     m_imageIsLoadingNow = false;
     m_currentDevice.isValid = true;
@@ -147,7 +147,6 @@ void MainWindow::cleanDeviceContent()
     ui->objects_listWidget->clear();
     ui->match_listWidget->clear();
     ui->name_lineEdit->clear();
-    ui->camera_label->clear();
     m_pStatusModel->clear();
 }
 
@@ -193,6 +192,21 @@ void MainWindow::loadAllTokens()
 QString MainWindow::getDeviceName(const QString &token)
 {
     if (!m_query.exec(QString("SELECT name FROM devices WHERE token='%1'").arg(token)))
+    {
+        qDebug() << "Error in get dev query:" << m_query.lastError().text();
+        return "";
+    }
+    if (!m_query.next())
+    {
+        qDebug() << "Not found device in database";
+        return "";
+    }
+    return m_query.value(0).toString();
+}
+
+QString MainWindow::getDeviceToken(const QString &devName)
+{
+    if (!m_query.exec(QString("SELECT token FROM devices WHERE name='%1'").arg(devName)))
     {
         qDebug() << "Error in get dev query:" << m_query.lastError().text();
         return "";

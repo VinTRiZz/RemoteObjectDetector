@@ -30,6 +30,7 @@ void MainWindow::on_init_pushButton_clicked()
 void MainWindow::on_viewEnable_pushButton_clicked()
 {
     m_currentDevice.cameraEnabled = true;
+    ui->camera_label->show();
     emit addMessageToHistory("Camera enabled");
 }
 
@@ -38,6 +39,7 @@ void MainWindow::on_viewDisable_pushButton_clicked()
 {
     m_imageIsLoadingNow = false;
     m_currentDevice.cameraEnabled = false;
+    ui->camera_label->hide();
     emit addMessageToHistory("Camera disabled");
 }
 

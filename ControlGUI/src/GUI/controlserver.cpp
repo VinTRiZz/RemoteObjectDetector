@@ -84,7 +84,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
     {
         if (!request.payload.size())
             return {};
-        qDebug() << "Downloading photo step" << m_currentPos << "/" << m_photoSize << "SIZE NOW:" << request.payload.size();
         std::copy(request.payload.begin(), request.payload.end(), m_imageDataBuffer.get() + m_currentPos);
         m_currentPos += request.payload.size();
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, std::to_string(m_currentPos));
@@ -99,7 +98,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN, "");
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_END:
-        qDebug() << "Photo downloaded";
         emit photoGot();
         break;
 
@@ -118,7 +116,6 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
             m_photoSize = objectsPacketJson["size"];
             m_imageDataBuffer = std::shared_ptr<char>(new char[m_photoSize]);
         }
-        qDebug() << "Started photo download";
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, "0");
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
