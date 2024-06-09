@@ -16,6 +16,7 @@ private:
 
     Exchange::Packet processRequest(const Exchange::Packet& request);
 
+    void print(const QString& messageText);
     void errorGot(const QString& errorText);
 };
 

@@ -30,6 +30,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
     if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS)
     {
         // TODO: Use downloaded data got
+        print("Photo in progress");
     }
 
     switch (request.packetMetadata)
@@ -37,11 +38,13 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO:
         if (request.payload != "success")
             errorGot(QString("Photo shot error: %1").arg(request.payload.c_str()));
+        print("Photo shot");
         break;
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN:
         // TODO: Start download, setup temporary buffers
+        print("Photo begin");
         break;
 
 
@@ -51,7 +54,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             errorGot(QString("Object add error: %1").arg(request.payload.c_str()));
             break;
         }
-        qDebug() << "Object add request";
+        print("Add object");
         break;
 
 
@@ -79,6 +82,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             std::string prevName(request.payload.begin() + 1, delimeterPos);
             std::string newName(delimeterPos + delimeter.length(), request.payload.end());
             qDebug() << "Renaming object:" << prevName.c_str() << newName.c_str();
+            print(QString("Object rename: %1 ---> %2").arg(prevName.c_str(), newName.c_str()));
         }
         break;
 
@@ -89,7 +93,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
              errorGot(QString("Object remove error: %1").arg(request.payload.c_str()));
             break;
         }
-        qDebug() << "Removing object:" << std::string(request.payload.begin() + 1, request.payload.end()).c_str();
+        print(QString("Removing object %1").arg(std::string(request.payload.begin() + 1, request.payload.end()).c_str()));
         break;
 
 
@@ -110,32 +114,27 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             devPacket.payload = Exchange::encode(dev).toStdString();
             m_client.sendMessage(devPacket);
         }
+        print("Status sent");
         break;
 
 
-    case Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP:
-        if (request.payload != "success")
-             errorGot(QString("Setup error: %1").arg(request.payload.c_str()));
-        break;
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP: // TODO: Setup
+        print("Setup complete");
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP, "success");
 
 
-    case Exchange::PacketMetaInfo::PACKET_INFO_CT_START:
-        if (request.payload != "success")
-             errorGot(QString("Start error: %1").arg(request.payload.c_str()));
-        break;
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_START: // TODO: Start
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_START, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP:
-        if (request.payload != "success")
-             errorGot(QString("Stop error: %1").arg(request.payload.c_str()));
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN:
         {
             Exchange::Packet tokenPacket;
             tokenPacket.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN;
-            tokenPacket.payload = "S"; // Mean that operation succeed
             tokenPacket.payload += "qkucbikqb2t3K1237916ncasDLKHl";
             return tokenPacket;
         }
@@ -143,13 +142,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_SET_TOKEN:
-        {
-            Exchange::Packet tokenPacket;
-            tokenPacket.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_SET_TOKEN;
-            tokenPacket.payload = "success";
-            return tokenPacket;
-        }
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_SET_TOKEN, "success");
 
 
     default:
@@ -157,6 +150,11 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
     }
 
     return {};
+}
+
+void DeviceClient::print(const QString &messageText)
+{
+    qDebug() << "Client message:" << messageText.toUtf8().data();
 }
 
 void DeviceClient::errorGot(const QString &errorText)

@@ -11,9 +11,7 @@ ControlServer::ControlServer(QObject *parent):
     m_server{new Utility::Network::TcpServerInstanceQ(this)}
 {
     m_server->setPacketProcessor( [this](const Exchange::Packet& input, const QString& token) -> Exchange::Packet { return processPacket(input, token); } );
-
     m_server->setConnectionCallbacks([this](){ return onConnected(); }, [this](const QString& token){ onDisconnected(token); }  );
-
     qRegisterMetaType<Exchange::StatusData>("Exchange::StatusData");
 }
 
@@ -146,13 +144,13 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN:
-        if (request.payload[0] != 'S')
+        if (request.payload == "ERROR")
         {
-            emit errorGot(QString("Connection error: %1").arg(request.payload.c_str()));
+            emit errorGot("Token exchange error");
             throw Exchange::ConnectionException(Exchange::ConnectionException::ErrorType::ConnectionError);
             break;
         }
-        emit deviceConnected(std::string(request.payload.begin() + 1, request.payload.end()).c_str());
+        emit deviceConnected(std::string(request.payload.begin(), request.payload.end()).c_str());
         break;
 
 

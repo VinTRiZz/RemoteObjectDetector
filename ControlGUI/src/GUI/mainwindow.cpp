@@ -71,17 +71,26 @@ void MainWindow::addConnection(const QString &devToken)
 {
     m_deviceTokens.push_back(devToken);
     emit addMessageToHistory(QString("Connected with device %1").arg(devToken));
+    qDebug() << "A Size of" << m_deviceTokens.size();
     updateDeviceList();
 }
 
 void MainWindow::removeConnection(const QString &devToken)
 {
-    m_deviceTokens.remove(devToken);
-
-    auto pDev = std::find(m_deviceTokens.begin(), m_deviceTokens.end(), m_currentDevice.token);
-    updateDeviceList();
-
+    qDebug() << "R Size of" << m_deviceTokens.size();
+    if (m_deviceTokens.size())
+    {
+        qDebug() << "First element:" << m_deviceTokens.front();
+    }
+    auto devTokenPos = std::find(m_deviceTokens.begin(), m_deviceTokens.end(), devToken);
+    if (devTokenPos == m_deviceTokens.end())
+    {
+        emit addMessageToHistory(QString("Connection with %1 remove error (no such connection)").arg(devToken));
+        return;
+    }
+    m_deviceTokens.erase(devTokenPos);
     emit addMessageToHistory(QString("Connection with %1 removed").arg(devToken));
+    updateDeviceList();
 }
 
 void MainWindow::deviceIsReady(const QString &devToken)

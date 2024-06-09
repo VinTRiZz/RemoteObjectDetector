@@ -72,6 +72,7 @@ unsigned long Utility::Network::ConnectionWorker::getId() const
 void Utility::Network::ConnectionWorker::onDisconnect()
 {
     qDebug() << "Client disconnected: [\033[33m" << m_workerId << "\033[0m]";
+    m_processor.onDisconnectedCallback(m_token);
     emit finished();
 }
 
