@@ -1,0 +1,6 @@
+#ifndef STATUSFUNCTIONS_HPP
+#define STATUSFUNCTIONS_HPP
+
+float cpuLoad();
+
+#endif // STATUSFUNCTIONS_HPP

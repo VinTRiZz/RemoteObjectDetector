@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QThread>
 
+#include "statusfunctions.hpp"
+
 DeviceClient::DeviceClient(const std::string &hostAddress, uint64_t port)
 {
     m_client.setupServer(QString::fromStdString(hostAddress), port);
@@ -102,7 +104,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             std::string token = "891duk3qwhauknhbcvulwacbiwe";
 
             Exchange::StatusData dev;
-            dev.statusMap["CPU load"] = "33 %";
+            dev.statusMap["CPU load"] = std::to_string(cpuLoad()) + " %";
             dev.statusMap["CPU temp."] = "65 C";
             dev.statusMap["Analyse interval"] = "1 s";
             dev.statusMap["Image send interval"] = "5 s";
