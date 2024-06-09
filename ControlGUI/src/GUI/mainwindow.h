@@ -54,10 +54,11 @@ private:
     ConnectedDevice m_currentDevice;
 
     uint64_t m_updateTime {1000};
-    bool m_periodicUpdateStatus {false};
 
     void updateDeviceList();
     void setDevice(const QString &devToken);
+    void cleanDeviceContent();
+
     void startTestFunction();
 };
 #endif // MAINWINDOW_H

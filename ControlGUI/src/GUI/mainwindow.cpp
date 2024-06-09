@@ -71,32 +71,27 @@ void MainWindow::addConnection(const QString &devToken)
 {
     m_deviceTokens.push_back(devToken);
     emit addMessageToHistory(QString("Connected with device %1").arg(devToken));
-    qDebug() << "A Size of" << m_deviceTokens.size();
     updateDeviceList();
 }
 
 void MainWindow::removeConnection(const QString &devToken)
 {
-    qDebug() << "R Size of" << m_deviceTokens.size();
-    if (m_deviceTokens.size())
-    {
-        qDebug() << "First element:" << m_deviceTokens.front();
-    }
+    emit addMessageToHistory(QString("Connection with %1 removed").arg(devToken));
     auto devTokenPos = std::find(m_deviceTokens.begin(), m_deviceTokens.end(), devToken);
     if (devTokenPos == m_deviceTokens.end())
-    {
-        emit addMessageToHistory(QString("Connection with %1 remove error (no such connection)").arg(devToken));
         return;
-    }
     m_deviceTokens.erase(devTokenPos);
-    emit addMessageToHistory(QString("Connection with %1 removed").arg(devToken));
+    if (devToken == m_currentDevice.token)
+    {
+        m_currentDevice.isValid = false;
+        cleanDeviceContent();
+    }
     updateDeviceList();
 }
 
 void MainWindow::deviceIsReady(const QString &devToken)
 {
-    if (devToken == m_currentDevice.token)
-        m_periodicUpdateStatus = true;
+    m_currentDevice.canWork = true;
     emit addMessageToHistory(QString("Device %1 is ready").arg(devToken));
 }
 
@@ -157,10 +152,10 @@ void MainWindow::addMessageToHistory(const QString &messageText)
 void MainWindow::periodicRequest()
 {
     m_requestTimer->stop();
-    if (m_periodicUpdateStatus)
+    if (m_currentDevice.isValid)
         m_server->status(m_currentDevice.token);
 
-    if (m_periodicUpdateStatus)
+    if (m_currentDevice.cameraEnabled)
         m_server->photo(m_currentDevice.token);
 
     m_requestTimer->start(m_updateTime);
@@ -181,12 +176,14 @@ void MainWindow::updateDeviceList()
 void MainWindow::setDevice(const QString &devToken)
 {
     m_requestTimer->stop();
+    if (devToken == "")
+    {
+        m_currentDevice.isValid = false;
+        return;
+    }
 
     // Clear from previous device
-    ui->objects_listWidget->clear();
-    ui->match_listWidget->clear();
-    ui->name_lineEdit->clear();
-    ui->camera_label->clear();
+    cleanDeviceContent();
 
     // TODO: Load info from database (including name)
     m_currentDevice.name = devToken; // TODO: Remove
@@ -195,8 +192,18 @@ void MainWindow::setDevice(const QString &devToken)
     // UI updates
     ui->name_lineEdit->setText(devToken);
 
+    m_currentDevice.isValid = true;
     m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device changed");
+}
+
+void MainWindow::cleanDeviceContent()
+{
+    ui->objects_listWidget->clear();
+    ui->match_listWidget->clear();
+    ui->name_lineEdit->clear();
+    ui->camera_label->clear();
+    m_pStatusModel->clear();
 }
 
 void MainWindow::startTestFunction()

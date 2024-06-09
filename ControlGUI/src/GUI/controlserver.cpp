@@ -27,11 +27,11 @@ bool ControlServer::init(const uint16_t portNo)
 
 void ControlServer::request(Exchange::PacketMetaInfo commandCode, const QString &token, const QString payload)
 {
+    qDebug() << "Requesting for" << commandCode;
     Exchange::Packet requestPacket;
     requestPacket.packetMetadata = commandCode;
     requestPacket.payload = payload.toStdString();
     m_server->sendData(token, Exchange::encode(requestPacket));
-    thread()->msleep(10);
 }
 
 Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, const QString& token)

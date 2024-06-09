@@ -24,7 +24,8 @@ PacketProcessor::~PacketProcessor()
 
 Exchange::Packet PacketProcessor::process(const Exchange::Packet& p, const QString& token)
 {
-    if (m_packetProcessor) return m_packetProcessor(p, token);
+    if (m_packetProcessor)
+        return m_packetProcessor(p, token);
     return {};
 }
 

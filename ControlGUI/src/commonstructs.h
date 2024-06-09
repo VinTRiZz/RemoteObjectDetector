@@ -18,6 +18,8 @@ struct ConnectedDevice
     QString name {"Unknown"};
     bool cameraEnabled {false};
     bool isWorking {false};
+    bool isValid {false};
+    bool canWork {false};
     std::list<QString> objects;
 };
 

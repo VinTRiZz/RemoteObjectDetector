@@ -110,8 +110,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             dev.statusMap["Power on time"] = "02.02.2024";
             dev.statusMap["Position"] = "Somewhere in Moscow";
 
-            Exchange::Packet devPacket;
-            devPacket.payload = Exchange::encode(dev).toStdString();
+            Exchange::Packet devPacket(Exchange::PacketMetaInfo::PACKET_INFO_CT_STATUS, Exchange::encode(dev).toStdString());
             m_client.sendMessage(devPacket);
         }
         print("Status sent");
@@ -124,15 +123,18 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_START: // TODO: Start
+        print("Started");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_START, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP:
+        print("Stopped");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN:
         {
+            print("Token thrown");
             Exchange::Packet tokenPacket;
             tokenPacket.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN;
             tokenPacket.payload += "qkucbikqb2t3K1237916ncasDLKHl";

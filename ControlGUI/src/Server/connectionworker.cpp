@@ -9,14 +9,12 @@ Utility::Network::ConnectionWorker::ConnectionWorker(
     m_pCon (new QTcpSocket(this)),
     m_processor{packetProcessor, onConnectionCallback, onDisconnectedCallback, this}
 {
-
+    connect(m_pCon, &QTcpSocket::readyRead, this, &ConnectionWorker::onMessage);
+    connect(m_pCon, &QTcpSocket::disconnected, this, &ConnectionWorker::onDisconnect);
 }
 
 Utility::Network::ConnectionWorker::~ConnectionWorker()
 {
-    disconnect(m_pCon, &QTcpSocket::readyRead, this,&ConnectionWorker::onMessage);
-    disconnect(m_pCon, &QTcpSocket::disconnected, this,&ConnectionWorker::onDisconnect);
-
     if (QTcpSocket::ConnectedState == m_pCon->state())
         m_pCon->disconnectFromHost();
 
@@ -26,10 +24,11 @@ Utility::Network::ConnectionWorker::~ConnectionWorker()
     }
 }
 
-bool Utility::Network::ConnectionWorker::sendData(const QByteArray &dataString)
+void Utility::Network::ConnectionWorker::sendData(const QByteArray &dataString)
 {
     m_pCon->write(dataString);
-    return m_pCon->waitForBytesWritten(m_timeout);
+    m_pCon->waitForBytesWritten(1000);
+    return;
 }
 
 QString Utility::Network::ConnectionWorker::getToken() const
@@ -46,9 +45,6 @@ void Utility::Network::ConnectionWorker::setConnection(int descriptor, unsigned 
     }
 
     m_workerId = workerId;
-
-    connect(m_pCon, &QTcpSocket::readyRead, this, &ConnectionWorker::onMessage);
-    connect(m_pCon, &QTcpSocket::disconnected, this, &ConnectionWorker::onDisconnect);
 
     m_pCon->setSocketDescriptor(descriptor);
 
@@ -73,6 +69,8 @@ void Utility::Network::ConnectionWorker::onDisconnect()
 {
     qDebug() << "Client disconnected: [\033[33m" << m_workerId << "\033[0m]";
     m_processor.onDisconnectedCallback(m_token);
+    disconnect(m_pCon, &QTcpSocket::readyRead, this,&ConnectionWorker::onMessage);
+    disconnect(m_pCon, &QTcpSocket::disconnected, this,&ConnectionWorker::onDisconnect);
     emit finished();
 }
 
@@ -81,7 +79,7 @@ void Utility::Network::ConnectionWorker::onMessage()
 {
     request = Exchange::decode<Exchange::Packet>(m_pCon->readAll());
 
-    if (request.packetMetadata & Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN)
+    if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN)
         m_token = request.payload.c_str();
 
     try {

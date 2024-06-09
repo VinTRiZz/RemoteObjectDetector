@@ -48,7 +48,7 @@ enum PacketMetaInfo
 struct Packet
 {
     Packet() = default;
-    Packet(uint8_t metadata, std::string payload) : packetMetadata(metadata), payload(payload) {}
+    Packet(uint8_t metadata, const std::string& payload) : packetMetadata{metadata}, payload{payload} {}
     uint8_t packetMetadata {PACKET_INFO_NULL_PACKET};
     std::string payload;
 

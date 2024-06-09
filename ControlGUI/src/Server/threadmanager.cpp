@@ -95,7 +95,8 @@ bool Utility::Network::ThreadManager::sendData(const QString &connectionToken, c
     if (pConWorker == m_workers.end())
         return false;
 
-    return (*pConWorker)->sendData(data);
+    QMetaObject::invokeMethod(pConWorker->get(), "sendData", Qt::QueuedConnection, Q_ARG(const QByteArray&, data));
+    return true;
 }
 
 void Utility::Network::ThreadManager::setConnectionCallbacks(const std::function<Exchange::Packet ()> &onConnectionCallback, const std::function<void (const QString&)> &onDisconnectedCallback)

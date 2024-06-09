@@ -22,13 +22,13 @@ namespace Network
                 QObject* parent = 0);
             ~ConnectionWorker();
 
-            bool sendData(const QByteArray& dataString);
 
             QString getToken() const;
             unsigned long getId() const;
 
         public slots:
             void setConnection(int descriptor, unsigned long workerId = 0);
+            void sendData(const QByteArray& dataString);
 
         signals:
             void finished();
