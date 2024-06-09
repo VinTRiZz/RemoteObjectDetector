@@ -116,11 +116,13 @@ void MainWindow::deviceStopped(const QString &devToken)
 void MainWindow::objectListGot(const QString &objectList)
 {
     // TODO: Parse
+    qDebug() << "Got types:" << objectList;
 }
 
 void MainWindow::objectDetectedListGot(const QString &objectDetectedList)
 {
     // TODO: Parse
+    qDebug() << "Got detected types:" << objectDetectedList;
 }
 
 void MainWindow::objectAdded(const QString &objectName)
@@ -204,6 +206,8 @@ void MainWindow::updateDeviceList()
     {
         ui->device_comboBox->addItem(dev);
     }
+    if (m_deviceTokens.size() == 1)
+        setDevice(m_deviceTokens.front());
     m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device list updated");
 }
@@ -227,7 +231,8 @@ void MainWindow::setDevice(const QString &devToken)
     // UI updates
     ui->name_lineEdit->setText(devToken);
 
-    m_server->getObjectList(m_currentDevice.token);
+    // TODO: Load object list and check if it inited
+//    m_server->getObjectList(m_currentDevice.token);
 
     m_currentDevice.isValid = true;
     m_requestTimer->start(m_updateTime);
@@ -327,11 +332,3 @@ void MainWindow::on_renameObject_pushButton_clicked()
     }
     m_server->renameObject(pItem->text(), newName, m_currentDevice.token);
 }
-
-
-void MainWindow::on_DEBUG_pushButton_clicked()
-{
-    m_server->setup(m_currentDevice.token);
-    m_server->start(m_currentDevice.token);
-}
-

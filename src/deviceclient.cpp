@@ -52,27 +52,30 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
         {
             Exchange::Packet response;
+            response.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST;
             auto objects = m_analyseInterface.availableTypes();
             for (auto& obj : objects)
             {
                 response.payload += obj.name + ";";
             }
+            #error "Use JSON for it"
+            print(QString("Object list asked. List: %1").arg(response.payload.c_str()));
             return response;
         }
-        print("Object list asked");
         break;
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED:
         {
             Exchange::Packet response;
+            response.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED;
             auto objects = m_analyseInterface.detectedObjects();
             for (auto& obj : objects)
             {
                 response.payload += obj.name + "," + std::to_string(obj.percent) + ";";
             }
+            print("Detected asked");
             return response;
         }
-        print("Detected asked");
         break;
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_REBOOT:
@@ -87,6 +90,12 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
         {
             errorGot(QString("Object add error: %1").arg(request.payload.c_str()));
             break;
+        }
+        {
+            ObjectType _ot;
+            _ot.name = request.payload;
+            _ot.imagePath = std::string("addedTemplates/") + _ot.name + ".jpg"; // TODO: Use this in program
+            m_analyseInterface.addType(_ot);
         }
         print("Add object");
         break;
@@ -115,8 +124,8 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             }
             std::string prevName(request.payload.begin() + 1, delimeterPos);
             std::string newName(delimeterPos + delimeter.length(), request.payload.end());
-            qDebug() << "Renaming object:" << prevName.c_str() << newName.c_str();
-            print(QString("Object rename: %1 ---> %2").arg(prevName.c_str(), newName.c_str()));
+            print(QString("Object rename called: %1 ---> %2").arg(prevName.c_str(), newName.c_str()));
+            return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_UPD_OBJECT, m_analyseInterface.renameType(prevName, newName) ? "success" : m_analyseInterface.lastErrorText());
         }
         break;
 
@@ -127,7 +136,12 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
              errorGot(QString("Object remove error: %1").arg(request.payload.c_str()));
             break;
         }
-        print(QString("Removing object %1").arg(std::string(request.payload.begin() + 1, request.payload.end()).c_str()));
+        {
+            auto objectName = std::string(request.payload.begin() + 1, request.payload.end());
+            print(QString("Removing object %1").arg(objectName.c_str()));
+            m_analyseInterface.removeType(objectName);
+            return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_REM_OBJECT,  "success");
+        }
         break;
 
 
@@ -146,6 +160,7 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             dev.statusMap["CPU temp."] = cpuTempStr + " C";
             dev.statusMap["Template count"] = std::to_string(m_analyseInterface.availableTypesCount());
             dev.statusMap["Init succeed"] = m_analyseInterface.isReady() ? "true" : "false";
+            dev.statusMap["Init last error text"] = m_analyseInterface.lastErrorText();
             dev.statusMap["Power on time"] = getStartTime();
 
             Exchange::Packet devPacket(Exchange::PacketMetaInfo::PACKET_INFO_CT_STATUS, Exchange::encode(dev).toStdString());
@@ -163,13 +178,13 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_SETUP, "success");
 
 
-    case Exchange::PacketMetaInfo::PACKET_INFO_CT_START: // TODO: Start
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_START:
         m_analyseInterface.startDetectObjects();
         print("Started");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_START, "success");
 
 
-    case Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP:
+    case Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP: // TODO: Interrupt
         print("Stopped");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_STOP, "success");
 

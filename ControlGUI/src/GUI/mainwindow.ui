@@ -314,16 +314,6 @@ border-width: 2px;
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="DEBUG_pushButton">
-         <property name="styleSheet">
-          <string notr="true">background-color: red;</string>
-         </property>
-         <property name="text">
-          <string>DEBUG</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

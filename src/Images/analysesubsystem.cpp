@@ -19,20 +19,18 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
     Adaptors::CameraAdaptor m_camera;
     Analyse::AnalyseMethodManager m_analysator{m_typeHolder};
 
-#ifdef DEBUG_MODE
-#warning "DEBUG MODE ON"
-    void loadImagesForDebug(const std::string& path, std::list<cv::Mat>& targetList)
+    std::list<std::string> getImagePaths(const std::string& basedir)
     {
         // Check if directory exist and it's directory
-        if (!stdfs::exists(path) || !stdfs::is_directory(path))
+        if (!stdfs::exists(basedir) || !stdfs::is_directory(basedir))
         {
-            std::cout << "Error: " << std::strerror(errno) << std::endl;
-            return;
+            errorText = std::string("Error opening basedir: ") + std::strerror(errno);
+            return {};
         }
 
         // Iterate in directory
-        std::vector<std::string> paths;
-        for (const auto& dirent : stdfs::directory_iterator(path))
+        std::list<std::string> paths;
+        for (const auto& dirent : stdfs::directory_iterator(basedir))
         {
             // If a file, try to get image from it
             if (stdfs::is_regular_file(dirent.path()))
@@ -45,15 +43,18 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
             }
         }
 
-        std::sort(paths.begin(), paths.end());
+        paths.sort();
+        return paths;
+    }
 
-        for (auto& path : paths)
+    void loadImages(const std::string& basepath, std::list<cv::Mat>& targetList)
+    {
+        for (auto& path : getImagePaths(basepath))
         {
-            std::cout << "Loading file: " << path << std::endl;
             auto img = cv::imread(path);
             if (img.empty())
             {
-                std::cout << "ERROR!" << std::endl;
+                std::cout << "Error loading image by path " << path << std::endl;
                 continue;
             }
             targetList.push_back(img);
@@ -61,6 +62,8 @@ struct AnalyseSubsystem::AnalyseSubsystemPrivate
         return;
     }
 
+#ifdef DEBUG_MODE
+#warning "DEBUG MODE ON"
     void testAnalyse(std::list<std::pair<std::string, double> > &analyseResultBuffer)
     {
         const std::string path = "temp/" DEBUG_DIRECTORY "/" DEBUG_TARGET_DIRECTORY;
@@ -128,17 +131,6 @@ void AnalyseSubsystem::setCameraFile(const std::string &cameraDevicePath)
         d->errorText = "Invalid camera file provided";
         d->isReady = false;
     }
-
-/*
-    if (d->m_camera.status() != Adaptors::AdaptorStatus::READY)
-    {
-        LOG_EMPTY("========================================");
-        LOG_ERROR("Camera adaptor not inited. Try to install drivers for your camera. Connected USB devices:");
-        system("lsusb | sed -n 's/Bus [0-9]\\{3\\} [a-zA-Z]\\{1,\\} [0-9]\\{3\\}: ID [a-z0-9:]\\{9\\}/Device:/; /Linux Foundation/d; p'");
-        LOG_EMPTY("========================================");
-        return;
-    }
-*/
 }
 
 std::string AnalyseSubsystem::getCameraFile() const
@@ -195,6 +187,23 @@ void AnalyseSubsystem::init()
 #endif // DEBUG_MODE
 
     studyBackground();
+
+    auto templateImagesPaths = d->getImagePaths("templates");
+    if (!templateImagesPaths.size())
+    {
+        d->isReady = false;
+        d->errorText = std::string("Template dir open error: ") + d->errorText;
+        return;
+    }
+
+    for (auto& templateImage: templateImagesPaths)
+    {
+        TypeInfoHolder tih;
+        tih.typeName = stdfs::path(templateImage).filename();
+        tih.typeName.erase(tih.typeName.find_last_of('.'), tih.typeName.size());
+        tih.imagePath = templateImage;
+        d->m_typeHolder.addType(tih);
+    }
 }
 
 bool AnalyseSubsystem::isReady() const
@@ -236,7 +245,7 @@ void AnalyseSubsystem::studyBackground()
 #ifdef DEBUG_MODE
 #warning "DEBUG MODE ON"
     const std::string path = "./temp/" DEBUG_DIRECTORY "/background";
-    d->loadImagesForDebug(path, backgrounds);
+    d->loadImages(path, backgrounds);
 #endif // DEBUG_MODE
 
     for (uint64_t elapsedMs = 0; elapsedMs < d->initTimeMs; elapsedMs+= cameraShotPeriod)
@@ -250,4 +259,7 @@ void AnalyseSubsystem::studyBackground()
     cv::Mat result;
     for (auto& backgrd : backgrounds)
         d->m_pBackgroundSub->apply(backgrd, result);
+
+    if (backgrounds.size())
+        d->isReady = true;
 }

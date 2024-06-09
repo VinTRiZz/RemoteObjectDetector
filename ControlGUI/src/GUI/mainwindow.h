@@ -70,8 +70,6 @@ private slots:
 
     void on_renameObject_pushButton_clicked();
 
-    void on_DEBUG_pushButton_clicked();
-
 private:
     Ui::MainWindow *ui;
     QStandardItemModel* m_pStatusModel;

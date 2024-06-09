@@ -69,10 +69,12 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
         break;
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST:
+        qDebug() << "Got object list : " << request.payload.c_str();
         emit objectListGot(token, request.payload.c_str());
         break;
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_DETECTED:
+        qDebug() << "Got detected list : " << request.payload.c_str();
         emit objectDetectedListGot(token, request.payload.c_str());
         break;
 
@@ -134,7 +136,7 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
         if (request.payload != "success")
             emit errorGot(QString("Setup error: %1").arg(request.payload.c_str()));
         emit deviceSetupComplete(token);
-        break;
+        return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_LIST, "");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_START:
@@ -182,7 +184,6 @@ Exchange::Packet ControlServer::onConnected()
     Exchange::Packet tokenGetPacket;
     tokenGetPacket.packetMetadata = Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN;
     tokenGetPacket.payload = "";
-    qDebug() << "Created init packet with metadata:" << tokenGetPacket.packetMetadata;
     return tokenGetPacket;
 }
 
