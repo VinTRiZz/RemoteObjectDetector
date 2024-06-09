@@ -168,7 +168,6 @@ void TcpCLientInstanceQ::onMessage()
     d->m_response = d->m_requestProcessor(d->m_request);
     if (d->m_response.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
         return;
-    qDebug() << "Sending size:" << d->m_response.payload.size();
     this->sendMessage(d->m_response);
 }
 

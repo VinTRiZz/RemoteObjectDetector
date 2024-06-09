@@ -18,6 +18,7 @@ public:
     bool init(const uint16_t portNo);
 
     bool isConnected(const QString& token);
+    void setImageSize(uint64_t height, uint64_t width);
 
     void setup(const QString& token)        { request(Exchange::PACKET_INFO_CT_SETUP, token); }
     void reconnect(const QString& token)    { request(Exchange::PACKET_INFO_CT_RECONNECT, token); }
@@ -27,12 +28,12 @@ public:
     void start(const QString& token)        { request(Exchange::PACKET_INFO_CT_START, token); }
     void stop(const QString& token)         { request(Exchange::PACKET_INFO_CT_STOP, token); }
 
-    void photo(const QString& token)        { request(Exchange::PACKET_INFO_CT_PHOTO, token); }
+    void photo(const QString& token);
 
-    void getDetected(const QString& token)  { request(Exchange::PACKET_INFO_CT_DETECTED, token); }
-    void getObjectList(const QString& token){ request(Exchange::PACKET_INFO_CT_LIST, token); }
+    void getDetected(const QString& token)                                                      { request(Exchange::PACKET_INFO_CT_DETECTED, token); }
+    void getObjectList(const QString& token)                                                    { request(Exchange::PACKET_INFO_CT_LIST, token); }
     void addObject(const QString& objectName, const QString& token)                             { request(Exchange::PACKET_INFO_CT_ADD_OBJECT, token, objectName); }
-    void renameObject(const QString& objectName, const QString& newName, const QString& token)  { request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, objectName + "****" + newName); }
+    void renameObject(const QString& objectName, const QString& newName, const QString& token);
     void removeObject(const QString& objectName, const QString& token)                          { request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, objectName); }
 
     // Get last downloaded image
@@ -66,6 +67,8 @@ private:
     void onDisconnected(const QString& token);
 
     // For image downloading
+    uint64_t m_maxImageHeight {0};
+    uint64_t m_maxImageWidth {0};
     uint64_t m_currentPos {0};
     uint64_t m_photoSize {0};
     uint64_t m_imageCols {0};

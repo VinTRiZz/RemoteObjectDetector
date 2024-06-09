@@ -47,13 +47,11 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
 
         if ((m_imageBuffer.dataend - m_imageBuffer.datastart - currentPos) >= Exchange::DOWNLOAD_PAYLOAD_SIZE)
         {
-            qDebug() << "Logic 1";
             response.payload.resize(Exchange::DOWNLOAD_PAYLOAD_SIZE);
             std::copy(m_imageBuffer.datastart + currentPos, m_imageBuffer.datastart + currentPos + Exchange::DOWNLOAD_PAYLOAD_SIZE, response.payload.begin());
         }
         else
         {
-            qDebug() << "Logic 2";
             response.payload.resize(m_imageBuffer.dataend - m_imageBuffer.datastart - currentPos);
             std::copy(m_imageBuffer.datastart + currentPos, m_imageBuffer.dataend, response.payload.begin());
         }
@@ -68,6 +66,20 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "Image shot is empty");
 
         cv::cvtColor(m_imageBuffer, m_imageBuffer, cv::COLOR_BGR2RGB);
+
+        try {
+            auto imageSizesJson = nlohmann::json::parse(request.payload);
+            uint64_t imageMaxHeight = imageSizesJson["maxH"];
+            uint64_t imageMaxWidth = imageSizesJson["maxW"];
+            float scaleCoeff = (float)m_imageBuffer.cols / (float)m_imageBuffer.rows;
+            cv::Size newSize(imageMaxHeight * scaleCoeff, imageMaxWidth / scaleCoeff);
+            cv::resize(m_imageBuffer, m_imageBuffer, newSize);
+        } catch (nlohmann::json::exception& ex)
+        {
+            print("JSON parsing error");
+            return {};
+        }
+
         print("Photo shot");
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "success");
 

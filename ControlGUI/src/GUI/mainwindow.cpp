@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_db.open();
     loadAllTokens();
 
+    m_server->setImageSize(400, 400);
     if (!m_server->init(9001))
     {
         ui->statusbar->setStatusTip("Internal error. Please restart application");

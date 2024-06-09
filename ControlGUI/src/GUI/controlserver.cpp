@@ -32,6 +32,28 @@ bool ControlServer::isConnected(const QString &token)
     return m_server->hasConnection(token);
 }
 
+void ControlServer::setImageSize(uint64_t height, uint64_t width)
+{
+    m_maxImageHeight = height;
+    m_maxImageWidth = width;
+}
+
+void ControlServer::photo(const QString &token)
+{
+    nlohmann::json requestSizes;
+    requestSizes["maxH"] = m_maxImageHeight;
+    requestSizes["maxW"] = m_maxImageWidth;
+    request(Exchange::PACKET_INFO_CT_PHOTO, token, requestSizes.dump().c_str());
+}
+
+void ControlServer::renameObject(const QString &objectName, const QString &newName, const QString &token)
+{
+    nlohmann::json requestRenames;
+    requestRenames["oldName"] = objectName.toUtf8().data();
+    requestRenames["newName"] = newName.toUtf8().data();
+    request(Exchange::PACKET_INFO_CT_REM_OBJECT, token, requestRenames.dump().c_str());
+}
+
 QImage ControlServer::getPhoto()
 {
     if (!m_imageDataBuffer.use_count())
@@ -73,6 +95,7 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO:
         if (request.payload != "success")
             emit errorGot(QString("Photo shot error: %1").arg(request.payload.c_str()));
+        m_currentPos = 0;
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN, "");
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_END:
@@ -93,7 +116,7 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
             m_imageCols = objectsPacketJson["cols"];
             m_imageRows = objectsPacketJson["rows"];
             m_photoSize = objectsPacketJson["size"];
-            m_imageDataBuffer = std::shared_ptr<char>(new char[m_photoSize] );
+            m_imageDataBuffer = std::shared_ptr<char>(new char[m_photoSize]);
         }
         qDebug() << "Started photo download";
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_IN_PROCESS, "0");
