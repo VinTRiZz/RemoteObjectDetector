@@ -61,9 +61,14 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
     switch (request.packetMetadata)
     {
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO:
+        qDebug() << "Requested for photo";
         m_imageBuffer = m_analyseInterface.getCameraShot();
         if (m_imageBuffer.empty())
+        {
+            qDebug() << "Photo error";
             return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "Image shot is empty");
+        }
+        qDebug() << "Photo got";
 
         cv::cvtColor(m_imageBuffer, m_imageBuffer, cv::COLOR_BGR2RGB);
 
@@ -79,11 +84,13 @@ Exchange::Packet DeviceClient::processRequest(const Exchange::Packet &request)
             print("JSON parsing error");
             return {};
         }
+        qDebug() << "Photo succeed sent";
         return Exchange::Packet(Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO, "success");
 
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_PHOTO_BEGIN:
         {
+            qDebug() << "Photo download called";
             nlohmann::json imageProperties;
             imageProperties["cols"] = m_imageBuffer.cols;
             imageProperties["rows"] = m_imageBuffer.rows;

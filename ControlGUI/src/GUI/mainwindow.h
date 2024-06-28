@@ -104,5 +104,8 @@ private:
     void updateDeviceList();
     void setDevice(const QString &devName);
     void cleanDeviceContent();
+
+#warning "Falsification"
+    void startFalsific();
 };
 #endif // MAINWINDOW_H

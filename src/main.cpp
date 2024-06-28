@@ -13,6 +13,19 @@ int main(int argc, char* argv[])
     DeviceClient devClient("127.0.0.1", 9001);
     devClient.connectToServer();
     return app.exec();
+
+//    ImageManipulationInterface inter;
+//    inter.setCamera("/dev/video0");
+
+//    for (int i = 0; i < 10; i++)
+//    {
+//        std::cout << "Getting image" << std::endl;
+//        auto mat = inter.getCameraShot();
+//        cv::imwrite(std::string("result") + std::to_string(i) + ".jpg", mat);
+//        std::cout << "Got" << std::endl;
+//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+//    }
+//    return 0;
 }
 
 

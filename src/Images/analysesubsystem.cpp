@@ -135,10 +135,10 @@ void AnalyseSubsystem::setCameraFile(const std::string &cameraDevicePath)
 
 cv::Mat AnalyseSubsystem::getCameraShot()
 {
-#ifdef DEBUG_MODE
-#warning "Debug mode for camera enabled"
-    return cv::imread("../DATA/templates/photos2/ear.jpg");
-#endif // DEBUG
+//#ifdef DEBUG_MODE
+//#warning "Debug mode for camera enabled"
+//    return cv::imread("../DATA/templates/photos2/ear.jpg");
+//#endif // DEBUG
 
     cv::Mat bufImage;
     d->m_camera.shotToBuffer(bufImage);

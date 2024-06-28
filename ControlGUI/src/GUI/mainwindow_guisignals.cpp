@@ -29,8 +29,9 @@ void MainWindow::on_init_pushButton_clicked()
 
 void MainWindow::on_viewEnable_pushButton_clicked()
 {
-    m_currentDevice.cameraEnabled = true;
-    ui->camera_label->show();
+#warning "Fals"
+//    m_currentDevice.cameraEnabled = true;
+//    ui->camera_label->show();
     emit addMessageToHistory("Camera enabled");
 }
 

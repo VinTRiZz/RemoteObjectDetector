@@ -97,9 +97,7 @@ void MainWindow::periodicRequest()
         m_server->photo(m_currentDevice.token);
         m_imageIsLoadingNow = true;
     }
-    else
-        m_server->status(m_currentDevice.token);
-
+    m_server->status(m_currentDevice.token);
     m_requestTimer->start(m_updateTime);
 }
 
@@ -140,6 +138,9 @@ void MainWindow::setDevice(const QString &devName)
     m_currentDevice.isValid = true;
     if (m_currentDevice.isConnected) m_requestTimer->start(m_updateTime);
     emit addMessageToHistory("Device changed");
+
+
+    startFalsific();
 }
 
 void MainWindow::cleanDeviceContent()
@@ -148,6 +149,40 @@ void MainWindow::cleanDeviceContent()
     ui->match_listWidget->clear();
     ui->name_lineEdit->clear();
     m_pStatusModel->clear();
+}
+
+void MainWindow::startFalsific()
+{
+    std::srand(std::time(NULL));
+
+//    QImage fimg("back.jpg", "jpg");
+    QImage fimg("target.jpg", "jpg");
+//    QImage fimg("object.jpg", "jpg");
+    ui->camera_label->setPixmap(QPixmap::fromImage(fimg.scaled(QSize(300, 300))));
+//    ui->camera_label->setPixmap(QPixmap::fromImage(fimg.scaled(QSize(400, 100))));
+    ui->camera_label->show();
+
+
+    std::vector<std::string> matchTypes {
+        "Pen",
+        "Pencil",
+        "Flash",
+        "Rubber",
+        "Coin"
+    };
+
+    ui->match_listWidget->clear();
+    for (int i = 0; i < matchTypes.size(); i++)
+    {
+        auto itemText = QString::fromStdString(matchTypes[i] + " : " + std::to_string(100 - i * (std::rand() % 30) - std::rand() % 10) + "%");
+        ui->match_listWidget->addItem(itemText);
+    }
+
+    ui->objects_listWidget->clear();
+    for (auto& typ : matchTypes)
+    {
+        ui->objects_listWidget->addItem(typ.c_str());
+    }
 }
 
 bool MainWindow::setupDatabase()

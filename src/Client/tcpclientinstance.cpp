@@ -36,6 +36,7 @@ TcpCLientInstanceQ::TcpCLientInstanceQ(QObject *parent) :
 {
     qRegisterMetaType<Exchange::Packet>("Exchange::Packet");
 
+    connect(this, &TcpCLientInstanceQ::sendMessage, this, &TcpCLientInstanceQ::sendMessageSlot);
     d->m_client = new QTcpSocket(this);
 }
 
@@ -64,10 +65,6 @@ void TcpCLientInstanceQ::enableReconnectOnFail(bool reconnect)
     d->mustReconnect = reconnect;
 }
 
-bool TcpCLientInstanceQ::waitForSend(int TIMEOUT)
-{
-    return d->m_client->waitForBytesWritten(TIMEOUT);
-}
 
 void TcpCLientInstanceQ::setConnectionTimeout(uint16_t TIMEOUT)
 {
@@ -120,28 +117,6 @@ bool TcpCLientInstanceQ::isConnected()
     return (d->m_client->state() == QTcpSocket::SocketState::ConnectedState);
 }
 
-void TcpCLientInstanceQ::sendMessage(const Exchange::Packet& sendPacket)
-{
-    if (!isConnected()) return;
-
-    QByteArray sendData = Exchange::encode(sendPacket);
-
-    if (!d->m_client->isWritable())
-    {
-        qDebug() << "[\033[31mE\033[0m]: Is not writable";
-        return;
-    }
-
-    if (d->m_client->write(sendData) == -1)
-    {
-        qDebug() << "[\033[31mE\033[0m]: WRITE DATA ERROR";
-        return;
-    }
-
-    if (!d->m_client->waitForBytesWritten(d->SEND_TIMEOUT))
-        qDebug() << "[\033[31mE\033[0m]: SEND TIMEOUT";
-}
-
 void TcpCLientInstanceQ::onFail()
 {
     qDebug() << "[\033[33mW\033[0m] Disconnected";
@@ -168,7 +143,29 @@ void TcpCLientInstanceQ::onMessage()
     d->m_response = d->m_requestProcessor(d->m_request);
     if (d->m_response.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
         return;
-    this->sendMessage(d->m_response);
+    emit sendMessage(d->m_response);
+}
+
+void TcpCLientInstanceQ::sendMessageSlot(const Exchange::Packet &sendPacket)
+{
+    if (!isConnected()) return;
+
+    QByteArray sendData = Exchange::encode(sendPacket);
+
+    if (!d->m_client->isWritable())
+    {
+        qDebug() << "[\033[31mE\033[0m]: Is not writable";
+        return;
+    }
+
+    if (d->m_client->write(sendData) == -1)
+    {
+        qDebug() << "[\033[31mE\033[0m]: WRITE DATA ERROR";
+        return;
+    }
+
+    if (!d->m_client->waitForBytesWritten(d->SEND_TIMEOUT))
+        qDebug() << "[\033[31mE\033[0m]: SEND TIMEOUT";
 }
 
 }

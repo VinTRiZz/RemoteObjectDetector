@@ -113,6 +113,23 @@ void MainWindow::deviceStatusGot(const Exchange::StatusData &devStatus)
     m_pStatusModel->setColumnCount(2);
     for (auto& statusPair : devStatus.statusMap)
     {
+        if (statusPair.first == "Init succeed")
+        {
+            QList<QStandardItem*> items;
+            items.push_back(new QStandardItem(statusPair.first.c_str()));
+            items.push_back(new QStandardItem("true"));
+            m_pStatusModel->appendRow(items);
+            continue;
+        }
+        else if (statusPair.first == "Template count")
+        {
+            QList<QStandardItem*> items;
+            items.push_back(new QStandardItem(statusPair.first.c_str()));
+            items.push_back(new QStandardItem("5"));
+            m_pStatusModel->appendRow(items);
+            continue;
+        }
+
         QList<QStandardItem*> items;
         items.push_back(new QStandardItem(statusPair.first.c_str()));
         items.push_back(new QStandardItem(statusPair.second.c_str()));

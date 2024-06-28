@@ -84,6 +84,8 @@ void Utility::Network::ConnectionWorker::onMessage()
     if (request.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_CT_GET_TOKEN)
         m_token = request.payload.c_str();
 
+    qDebug() << "Request:" << request.packetMetadata;
+
     try {
     response = m_processor.process(request, m_token);
     } catch (Exchange::ConnectionException& ex)
@@ -99,7 +101,7 @@ void Utility::Network::ConnectionWorker::onMessage()
     if (response.packetMetadata == Exchange::PacketMetaInfo::PACKET_INFO_NULL_PACKET)
         return; // Skip packet if it have no need in response
 
+    qDebug() << "Answering";
     responsePacket = Exchange::encode(response);
-    if ((m_pCon->write(responsePacket) == -1) || (!m_pCon->waitForBytesWritten()))
-        qDebug() << "\033[31mError sending data to connection\033[0m";
+    emit sendData(responsePacket);
 }

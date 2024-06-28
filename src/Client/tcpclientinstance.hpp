@@ -30,6 +30,7 @@ public:
     bool isConnected();
     QString errorText() const;
 
+signals:
     void sendMessage(const Exchange::Packet& sendPacket);
 
 public slots:
@@ -40,11 +41,10 @@ private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
-    bool waitForSend(int TIMEOUT = 10000);
-
 private slots:
     void onFail();
     void onMessage();
+    void sendMessageSlot(const Exchange::Packet& sendPacket);
 };
 
 }

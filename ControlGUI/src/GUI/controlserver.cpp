@@ -179,6 +179,7 @@ Exchange::Packet ControlServer::processPacket(const Exchange::Packet &request, c
 
     case Exchange::PacketMetaInfo::PACKET_INFO_CT_STATUS:
         emit deviceStatusGot(Exchange::decode<Exchange::StatusData>(request.payload));
+        qDebug() << "Status";
         break;
 
 
