@@ -4,6 +4,7 @@
 # Ignore BUILD dir
 BUILD/
 BIN/
+build/
 CMakeLists.txt.*
 Makefile
 *.pro.user*

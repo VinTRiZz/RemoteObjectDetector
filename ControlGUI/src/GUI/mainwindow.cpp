@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #warning "Move path as a define"
     m_db = QSqlDatabase::addDatabase("QSQLITE");
-    m_db.setDatabaseName("../DATA/cgui.db");
+    m_db.setDatabaseName("cgui.db");
     if (!m_db.open())
     {
         emit addMessageToHistory("Warning: Error opening database. Setup database and reopen the app.");
