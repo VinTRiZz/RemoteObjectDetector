@@ -1,0 +1,3 @@
+add_subdirectory(ManagePanel)
+add_subdirectory(DetectorEndpoint)
+add_subdirectory(Server)

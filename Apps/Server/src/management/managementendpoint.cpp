@@ -38,6 +38,7 @@ void Endpoint::start(uint16_t port)
     std::filesystem::create_directory("dummy");
     drogon::app().setDocumentRoot("dummy");
 
+    drogon::app().addListener("0.0.0.0", port);
     drogon::app().run();
 }
 

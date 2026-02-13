@@ -1,30 +1,38 @@
-# Build cmake setting
+# CMake required
 cmake_minimum_required(VERSION 3.7)
-project(ObjectSearcher LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON)
-
-# Setup output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BIN)
-
+# C++ configuration
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Build binary directory
-set(
-    CMAKE_RUNTIME_OUTPUT_DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}/BIN
+project(
+    RemoteObjectDetector
+    VERSION 1.0.0
+    LANGUAGES C CXX
 )
 
-set(
-    CMAKE_LIBRARY_OUTPUT_DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}/BIN
-)
 
-set(
-    CMAKE_CACHEFILE_DIR
-    ${CMAKE_CURRENT_SOURCE_DIR}/build
+# TODO: How to move it into CMake component????
+# Installation
+set(INSTALL_DESTINATION_PREFIX
+    "${CMAKE_CURRENT_LIST_DIR}/BIN"
 )
+set(CMAKE_INSTALL_PREFIX
+    "${INSTALL_DESTINATION_PREFIX}"
+)
+set_property(GLOBAL PROPERTY COMPONENTS_INSTALL_PATH ${INSTALL_DESTINATION_PREFIX})
 
-add_subdirectory(ServerApp)
-add_subdirectory(ControlGUI)
+
+add_subdirectory(ComponentsSystem)
+
+# Build options (for making on target device)
+option (ROD_BUILD_MANAGE_PANEL OFF)
+option (ROD_BUILD_DETECTOR OFF)
+
+if (ROD_BUILD_DETECTOR)
+    COMPONENTS_CCR_DEFINE_PROJECT(${PROJECT_NAME} ${PROJECT_VERSION} Libraries Apps)
+else()
+    COMPONENTS_CCR_FIND_LIBRARY(boost_system)
+    COMPONENTS_CCR_FIND_LIBRARY(boost_thread)
+    COMPONENTS_CCR_DEFINE_PROJECT(${PROJECT_NAME} ${PROJECT_VERSION} 3rdparty Libraries Apps)
+endif()
