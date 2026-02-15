@@ -1,5 +1,4 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Network/ClientHTTP.h>
 
 #include "gui/mainwindow.hpp"
 #include <QApplication>

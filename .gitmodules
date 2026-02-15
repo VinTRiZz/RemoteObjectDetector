@@ -31,9 +31,6 @@
 [submodule "Components-Logger"]
         path = ComponentsSystem/Components-Logger
         url = git@github.com:VinTRiZz/Components-Logger.git
-[submodule "Components-Network"]
-        path = ComponentsSystem/Components-Network
-        url = git@github.com:VinTRiZz/Components-Network.git
 [submodule "Components-StyleCollection"]
         path = ComponentsSystem/Components-Styles
         url = git@github.com:VinTRiZz/Components-Styles.git

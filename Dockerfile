@@ -50,7 +50,9 @@ FROM ${BASE_IMAGE}
         -DBUILD_REDIS=OFF \
         -DBUILD_POSTGRESQL=OFF \
         -DBUILD_SQLITE=OFF \
-        -DENABLE_PCC11=OFF
+        -DENABLE_PCC11=OFF \
+        -DROD_BUILD_SERVER=ON \
+        -DROD_BUILD_DETECTOR=OFF
     WORKDIR ${BUILD_TMPDIR}/build
     RUN cmake --build . --target install -- -j$(nproc)
 

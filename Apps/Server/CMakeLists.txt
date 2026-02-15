@@ -1,3 +1,8 @@
+if (NOT ROD_BUILD_SERVER)
+    message(STATUS "Server build disabled")
+    return()
+endif()
+
 COMPONENTS_CCR_CONFIGURE_APP(ROD-Server ${CMAKE_CURRENT_LIST_DIR}
     ssl
     crypto
@@ -12,4 +17,3 @@ COMPONENTS_LINK_COMPONENT(ROD-Server Common)
 COMPONENTS_LINK_COMPONENT(ROD-Server Database)
 COMPONENTS_LINK_COMPONENT(ROD-Server Encryption)
 COMPONENTS_LINK_COMPONENT(ROD-Server SystemProcessing)
-COMPONENTS_LINK_COMPONENT(ROD-Server Network)
