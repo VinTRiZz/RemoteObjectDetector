@@ -22,6 +22,9 @@ set(CMAKE_INSTALL_PREFIX
 )
 set_property(GLOBAL PROPERTY COMPONENTS_INSTALL_PATH ${INSTALL_DESTINATION_PREFIX})
 
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_compile_definitions(DEBUG_BUILD_MODE)
+endif()
 
 add_subdirectory(ComponentsSystem)
 
