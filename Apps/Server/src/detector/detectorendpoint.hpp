@@ -8,7 +8,7 @@ namespace Detector
 {
 
 /**
- * @brief The Endpoint class Инстанция сервера, взаимодействующая с детекторами
+ * @brief The Endpoint class Инстанция сервера, информирующая о событиях на детекторах
  */
 class Endpoint : public AbstractEndpoint
 {

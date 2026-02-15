@@ -2,6 +2,8 @@ COMPONENTS_CCR_CONFIGURE_APP(ROD-Server ${CMAKE_CURRENT_LIST_DIR}
     ssl
     crypto
     drogon
+    boost_system
+    boost_program_options
 )
 
 

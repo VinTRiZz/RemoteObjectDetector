@@ -13,8 +13,8 @@ struct ServerEndpoint::Impl
     Database::SQLiteDatabase db;
     ServerEventLogger eventLogger {db};
 
-    Detector::Endpoint  detectorEndpoint {eventLogger};
-    std::thread         detectorThread;
+    Detector::Endpoint  detectorEventEndpoint {eventLogger};
+    std::thread         detectorEventThread;
 
     Management::Endpoint    managementEndpoint {eventLogger};
 };
@@ -32,14 +32,19 @@ ServerEndpoint::~ServerEndpoint()
     if (d == nullptr) {
         return;
     }
-    if (d->detectorThread.joinable()) {
-        d->detectorThread.join();
+    if (d->detectorEventThread.joinable()) {
+        d->detectorEventThread.join();
     }
     d->eventLogger.logEvent(ServerCommon::EventType::Stopped);
 }
 
-void ServerEndpoint::start(uint16_t detectorGatewayPort, uint16_t managementPort)
+void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t udpStreamingPort)
 {
+    COMPLOG_INFO("Starting RemoteObjectDetector server. Port configuration:");
+    COMPLOG_INFO("Event:    ", wsEventPort);
+    COMPLOG_INFO("API:      ", httpAPIPort);
+    COMPLOG_INFO("Streaming:", udpStreamingPort);
+
     d = std::make_unique<Impl>();
     auto res = d->db.setDatabase("./local.db");
     if (!res) {
@@ -53,10 +58,14 @@ void ServerEndpoint::start(uint16_t detectorGatewayPort, uint16_t managementPort
     }
     d->eventLogger.logEvent(ServerCommon::EventType::Started);
 
-    d->detectorThread = std::thread([this, detectorGatewayPort](){
-        d->detectorEndpoint.start(detectorGatewayPort);
+    d->detectorEventThread = std::thread([this, wsEventPort](){
+        d->detectorEventEndpoint.start(wsEventPort);
     });
-    d->managementEndpoint.start(managementPort);
+
+    // TODO: Start UDP streamer
+    d->managementEndpoint.start(httpAPIPort);
+
+    COMPLOG_INFO("RemoteObjectDetector server exited");
 }
 
 bool ServerEndpoint::isWorking() const
@@ -64,7 +73,7 @@ bool ServerEndpoint::isWorking() const
     if (d.get() == nullptr) {
         return false;
     }
-    return (d->detectorEndpoint.isWorking() || d->managementEndpoint.isWorking());
+    return (d->detectorEventEndpoint.isWorking() || d->managementEndpoint.isWorking());
 }
 
 void ServerEndpoint::stop()
@@ -72,6 +81,6 @@ void ServerEndpoint::stop()
     if (!isWorking()) {
         return;
     }
-    d->detectorEndpoint.stop();
+    d->detectorEventEndpoint.stop();
     d->managementEndpoint.stop();
 }

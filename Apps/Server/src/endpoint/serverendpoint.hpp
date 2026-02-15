@@ -12,7 +12,7 @@ public:
     ServerEndpoint();
     ~ServerEndpoint();
 
-    void start(uint16_t detectorGatewayPort, uint16_t managementPort);
+    void start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t udpStreamingPort);
     bool isWorking() const;
     void stop();
 
