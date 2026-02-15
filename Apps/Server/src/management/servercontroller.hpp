@@ -2,6 +2,8 @@
 
 #include <drogon/drogon.h>
 
+#include <Components/SystemProcessing/StatusManager.h>
+
 class ServerController : public drogon::HttpController<ServerController, false>
 {
 public:
@@ -19,5 +21,8 @@ public:
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
     void shutdownServer(const drogon::HttpRequestPtr &req,
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+
+private:
+    SystemProcessing::StatusManager m_statusManager;
 };
 
