@@ -1,5 +1,7 @@
 #include "devicesoftversioncontroller.hpp"
 
+#include <Components/Common/DirectoryManager.h>
+
 DeviceSoftVersionController::DeviceSoftVersionController(ServerEventLogger &eventLogger) :
     drogon::HttpController<DeviceSoftVersionController, false>(),
     m_eventLogger {eventLogger}
