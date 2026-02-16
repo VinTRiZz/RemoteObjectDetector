@@ -14,7 +14,13 @@ enum EventType : int
 
     // Server common
     Started,
+    CreatedBackup,
     Stopped,
+
+    // Soft versions
+    AddedVersion,
+    SetVersion,
+    RemovedVersion,
 
     // Manager
     ManagerConnected,

@@ -27,7 +27,13 @@ public:
     void removeVersion(const drogon::HttpRequestPtr &req,
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 
+    void setVersionGetter(std::function<std::string()>&& versionGetter);
+    void setUpdater(std::function<bool(const std::string&)>&& versionUpdater);
+
 private:
     ServerEventLogger &m_eventLogger;
+
+    std::function<std::string()> m_versionGetter;
+    std::function<bool(const std::string&)> m_versionUpdater;
 };
 

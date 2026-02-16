@@ -1,6 +1,10 @@
 #include "devicesoftversioncontroller.hpp"
 
+#include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>
+#include <Components/Filework/Common.h>
+
+#include "../endpoint/servercommon.hpp"
 
 DeviceSoftVersionController::DeviceSoftVersionController(ServerEventLogger &eventLogger) :
     drogon::HttpController<DeviceSoftVersionController, false>(),
@@ -11,123 +15,132 @@ DeviceSoftVersionController::DeviceSoftVersionController(ServerEventLogger &even
 
 void DeviceSoftVersionController::getSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
-
+    if (m_versionGetter) {
+        auto version = m_versionGetter();
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_TEXT_PLAIN);
+        pResponse->setBody(version);
+        callback(pResponse);
+        return;
+    }
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+    callback(pResponse);
 }
 
 void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
+    auto versionNameString = req->getParameter("version");
+    auto versionHash = req->getParameter("hash");
 
+    // 32 -- SHA-256 or MD5 HEX hash byte count
+    if (versionNameString.empty() || versionHash.empty() || (versionHash.size() != 32)) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::CT_NONE);
+        callback(pResponse);
+        return;
+    }
+
+    // Receive file
+    drogon::MultiPartParser fileUpload;
+    if (fileUpload.parse(req) != 0) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k400BadRequest);
+        resp->setBody("Failed to process file");
+        callback(resp);
+        return;
+    }
+
+    // Checkup
+    auto &files = fileUpload.getFiles();
+    if (files.empty()) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k400BadRequest);
+        resp->setBody("No file uploaded");
+        callback(resp);
+        return;
+    }
+
+    // Try to save file
+    auto &file = files[0];
+    auto resfilePath = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
+    if (file.save(resfilePath) != 0) {
+        auto resp = drogon::HttpResponse::newHttpResponse();
+        resp->setStatusCode(drogon::k500InternalServerError);
+        resp->setBody("Failed to save file");
+        callback(resp);
+    }
+    std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionNameString + "_" + versionHash));
+    COMPLOG_OK("Added version:", versionNameString, versionHash);
+
+    m_eventLogger.logEvent(ServerCommon::AddedVersion, versionHash);
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
+    callback(pResponse);
 }
 
 void DeviceSoftVersionController::setSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
+    auto versionNameString = req->getParameter("version");
+    if (!m_versionUpdater) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+        callback(pResponse);
+        return;
+    }
 
+    std::string versionFilename;
+    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
+    for (auto& filename : Filework::Common::getContentNames(versionsDir)) {
+        auto versionString = filename;
+        versionString.erase(versionString.find_first_of("_"), -1);
+        if (versionString != versionNameString) {
+            continue;
+        }
+        versionFilename = (versionsDir / filename);
+        break;
+    }
+
+    if (versionFilename.empty()) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k404NotFound, drogon::CT_NONE);
+        callback(pResponse);
+        return;
+    }
+
+    auto isSucceed = m_versionUpdater(versionFilename);
+    if (isSucceed) {
+        m_eventLogger.logEvent(ServerCommon::SetVersion, versionFilename);
+    }
+
+    auto pResponse = drogon::HttpResponse::newHttpResponse(isSucceed ? drogon::k200OK : drogon::k500InternalServerError, drogon::CT_NONE);
+    callback(pResponse);
+    return;
 }
 
 void DeviceSoftVersionController::removeVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
+    auto versionNameString = req->getParameter("version");
+    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
+    for (auto& filename : Filework::Common::getContentNames(versionsDir)) {
+        auto versionString = filename;
+        versionString.erase(versionString.find_first_of("_"), -1);
+        if (versionString != versionNameString) {
+            continue;
+        }
+        std::filesystem::remove(versionsDir / filename);
 
+        auto versionHash = filename;
+        versionHash.erase(0, versionHash.find_last_of("_") + 1);
+        m_eventLogger.logEvent(ServerCommon::RemovedVersion);
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
+        callback(pResponse);
+        return;
+    }
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+    callback(pResponse);
 }
 
+void DeviceSoftVersionController::setVersionGetter(std::function<std::string ()> &&versionGetter)
+{
+    m_versionGetter = std::move(versionGetter);
+}
 
-
-
-/*
-    // GET /api/device/status?dev=...
-    void getDeviceStatus(const HttpRequestPtr &req,
-                         std::function<void(const HttpResponsePtr &)> &&callback)
-    {
-        auto dev = req->getParameter("dev");
-        if (dev.empty())
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k400BadRequest);
-            resp->setBody("Missing 'dev' parameter");
-            callback(resp);
-            return;
-        }
-
-        Json::Value json;
-        json["device"] = dev;
-        json["status"] = "online";
-        json["timestamp"] = trantor::Date::now().toCustomedFormattedString();
-
-        auto resp = HttpResponse::newHttpJsonResponse(json);
-        callback(resp);
-    }
-
-    // GET /api/update?version=...
-    void getUpdateFile(const HttpRequestPtr &req,
-                       std::function<void(const HttpResponsePtr &)> &&callback)
-    {
-        auto version = req->getParameter("version");
-        if (version.empty())
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k400BadRequest);
-            resp->setBody("Missing 'version' parameter");
-            callback(resp);
-            return;
-        }
-
-        // Формируем путь к файлу: ./updates/update_<version>.bin
-        fs::path filePath = fs::current_path() / "updates" / ("update_" + version + ".bin");
-        if (!fs::exists(filePath))
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k404NotFound);
-            resp->setBody("Update file not found for version " + version);
-            callback(resp);
-            return;
-        }
-
-        // Отправляем файл
-        auto resp = HttpResponse::newFileResponse(filePath.string());
-        callback(resp);
-    }
-
-    // PUT /api/update?version=2.0
-    void putUpdateFile(const HttpRequestPtr &req,
-                       std::function<void(const HttpResponsePtr &)> &&callback)
-    {
-        auto version = req->getParameter("version");
-        if (version != "2.0")
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k400BadRequest);
-            resp->setBody("Only version=2.0 is supported for PUT");
-            callback(resp);
-            return;
-        }
-
-        fs::path filePath = fs::current_path() / "myfile.bin";
-        if (!fs::exists(filePath))
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k404NotFound);
-            resp->setBody("myfile.bin not found");
-            callback(resp);
-            return;
-        }
-
-        // Проверяем размер файла (от 1 до 20 Мбайт)
-        std::uintmax_t fileSize = fs::file_size(filePath);
-        const std::uintmax_t minSize = 1 * 1024 * 1024;     // 1 МБ
-        const std::uintmax_t maxSize = 20 * 1024 * 1024;    // 20 МБ
-
-        if (fileSize < minSize || fileSize > maxSize)
-        {
-            auto resp = HttpResponse::newHttpResponse();
-            resp->setStatusCode(k400BadRequest);
-            resp->setBody("File size must be between 1 and 20 MB (current: " +
-                          std::to_string(fileSize) + " bytes)");
-            callback(resp);
-            return;
-        }
-
-        // Отправляем файл
-        auto resp = HttpResponse::newFileResponse(filePath.string());
-        callback(resp);
-    }
-
-  */
+void DeviceSoftVersionController::setUpdater(std::function<bool (const std::string &)> &&versionUpdater)
+{
+    m_versionUpdater = std::move(versionUpdater);
+}

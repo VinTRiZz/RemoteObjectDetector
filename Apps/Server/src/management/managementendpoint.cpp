@@ -23,8 +23,8 @@ Endpoint::~Endpoint()
 
 void Endpoint::start(uint16_t port)
 {
-    // 1 поток оставим для этого сервера, больше незачем. Менеджер 1 за раз
-    drogon::app().setThreadNum(1);
+    // Большая часть будет задействована детекторами
+    drogon::app().setThreadNum(4);
 
     // Настройка контроллеров
     drogon::app().registerController(std::make_shared<ServerController>());
