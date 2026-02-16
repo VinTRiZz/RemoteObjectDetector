@@ -24,7 +24,8 @@ struct ServerEndpoint::Impl
 ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
     m_dbPath {dbPath}
 {
-    if (Filework::Common::copyFile(m_dbPath, m_dbPath + ".backup_" + Common::getCurrentTimestampFormatted())) {
+    auto backupFile = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::DirectoryType::Backup) / (std::string("backup_") + Common::getCurrentTimestampFormatted());
+    if (Filework::Common::copyFile(m_dbPath, backupFile)) {
         COMPLOG_INFO("Created backup of database");
     }
 }
