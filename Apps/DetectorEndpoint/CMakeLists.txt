@@ -6,6 +6,8 @@ endif()
 COMPONENTS_CCR_CONFIGURE_APP(ROD-DetectorEndpoint ${CMAKE_CURRENT_LIST_DIR}
     boost_system
     boost_program_options
+    crypto
+    ssl
 )
 
 COMPONENTS_LINK_COMPONENT(ROD-DetectorEndpoint Logger)
