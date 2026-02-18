@@ -40,3 +40,6 @@
 [submodule "Components-Thread"]
         path = ComponentsSystem/Components-Thread
         url = git@github.com:VinTRiZz/Components-Thread.git
+[submodule "ComponentsSystem/Components-Network"]
+	path = ComponentsSystem/Components-Network
+	url = git@github.com:VinTRiZz/Components-Network.git
