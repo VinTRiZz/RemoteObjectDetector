@@ -31,27 +31,27 @@ void ServerController::getStatus(const drogon::HttpRequestPtr &req, std::functio
     callback(pResponse);
 }
 
-void ServerController::rebootServer(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void ServerController::processPowerRequest(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
-    callback(pResponse);
-
-#ifdef DEBUG_BUILD_MODE
-    COMPLOG_DEBUG("REBOT PROCEDURE CALLED");
-#else
-    system("systemctl reboot");
-#endif // DEBUG_BUILD_MODE
-}
-
-void ServerController::shutdownServer(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
-{
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
-    callback(pResponse);
-
+    auto actionText = req->getParameter("action");
+    if (actionText == "poweroff") {
 #ifdef DEBUG_BUILD_MODE
     COMPLOG_DEBUG("POWEROFF PROCEDURE CALLED");
 #else
     system("systemctl poweroff");
 #endif // DEBUG_BUILD_MODE
-}
+    } else if (actionText == "reboot") {
+#ifdef DEBUG_BUILD_MODE
+    COMPLOG_DEBUG("REBOT PROCEDURE CALLED");
+#else
+    system("systemctl reboot");
+#endif // DEBUG_BUILD_MODE
+    } else {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::CT_NONE);
+        callback(pResponse);
+        return;
+    }
 
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
+    callback(pResponse);
+}

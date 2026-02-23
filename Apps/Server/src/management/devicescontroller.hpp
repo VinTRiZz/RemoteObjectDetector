@@ -13,10 +13,9 @@ public:
     DevicesController(ServerEventLogger& eventLogger);
 
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(DevicesController::getDeviceStatus,   "/api/device/status",   drogon::Get);
-        ADD_METHOD_TO(DevicesController::rebootDevice,      "/api/device/reboot",   drogon::Put);
-        ADD_METHOD_TO(DevicesController::poweroffDevice,    "/api/device/shutdown", drogon::Put);
-        ADD_METHOD_TO(DevicesController::setStreamingMode,  "/api/device/stream",   drogon::Put); // Start / stop streaming
+        ADD_METHOD_TO(DevicesController::getDeviceStatus,   "/api/detector/status",   drogon::Get);
+        ADD_METHOD_TO(DevicesController::rebootDevice,      "/api/detector/power",    drogon::Put);
+        ADD_METHOD_TO(DevicesController::setStreamingMode,  "/api/detector/stream",   drogon::Put); // Start / stop streaming
     METHOD_LIST_END
 
     void getDeviceStatus(const drogon::HttpRequestPtr &req,

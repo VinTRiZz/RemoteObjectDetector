@@ -12,10 +12,10 @@ public:
     DeviceSoftVersionController(ServerEventLogger &eventLogger);
 
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(DeviceSoftVersionController::getSoftVersion,  "/api/soft", drogon::Get);
-        ADD_METHOD_TO(DeviceSoftVersionController::addVersion,      "/api/soft", drogon::Post);
-        ADD_METHOD_TO(DeviceSoftVersionController::setSoftVersion,  "/api/soft", drogon::Put);
-        ADD_METHOD_TO(DeviceSoftVersionController::removeVersion,   "/api/soft", drogon::Delete);
+        ADD_METHOD_TO(DeviceSoftVersionController::getSoftVersion,  "/api/detector/soft", drogon::Get);
+        ADD_METHOD_TO(DeviceSoftVersionController::addVersion,      "/api/detector/soft", drogon::Post);
+        ADD_METHOD_TO(DeviceSoftVersionController::setSoftVersion,  "/api/detector/soft", drogon::Put);
+        ADD_METHOD_TO(DeviceSoftVersionController::removeVersion,   "/api/detector/soft", drogon::Delete);
     METHOD_LIST_END
 
     void getSoftVersion(const drogon::HttpRequestPtr &req,
