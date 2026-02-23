@@ -10,9 +10,6 @@
         <mxCell id="buRPQj8jp5nvrURBmD92-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="GUI" vertex="1">
           <mxGeometry height="40" width="80" x="360" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="buRPQj8jp5nvrURBmD92-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Events&lt;div&gt;(WS)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="80" x="360" y="600" as="geometry" />
-        </mxCell>
         <mxCell id="buRPQj8jp5nvrURBmD92-12" edge="1" parent="1" source="buRPQj8jp5nvrURBmD92-2" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="buRPQj8jp5nvrURBmD92-44" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
             <Array as="points">
@@ -29,10 +26,14 @@
             <mxPoint x="520" y="320" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="buRPQj8jp5nvrURBmD92-15" edge="1" parent="1" source="buRPQj8jp5nvrURBmD92-21" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="buRPQj8jp5nvrURBmD92-4" value="">
+        <mxCell id="buRPQj8jp5nvrURBmD92-15" edge="1" parent="1" source="buRPQj8jp5nvrURBmD92-21" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="V7fubi-O8nhdG1sCZtn5-11" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="560" />
+              <mxPoint x="440" y="560" />
+            </Array>
             <mxPoint x="390" y="580" as="sourcePoint" />
-            <mxPoint x="550" y="480" as="targetPoint" />
+            <mxPoint x="400" y="600" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="buRPQj8jp5nvrURBmD92-16" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="V7fubi-O8nhdG1sCZtn5-2" value="">
@@ -44,17 +45,14 @@
             <mxPoint x="80" y="600" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="buRPQj8jp5nvrURBmD92-17" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="buRPQj8jp5nvrURBmD92-18" value="">
+        <mxCell id="buRPQj8jp5nvrURBmD92-17" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="V7fubi-O8nhdG1sCZtn5-17" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
             <Array as="points">
-              <mxPoint x="760" y="560" />
+              <mxPoint x="700" y="560" />
             </Array>
-            <mxPoint x="400" y="560" as="sourcePoint" />
-            <mxPoint x="640" y="600" as="targetPoint" />
+            <mxPoint x="440" y="560" as="sourcePoint" />
+            <mxPoint x="760.0000000000005" y="600" as="targetPoint" />
           </mxGeometry>
-        </mxCell>
-        <mxCell id="buRPQj8jp5nvrURBmD92-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Translation&lt;div&gt;(UDP)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="80" x="720" y="600" as="geometry" />
         </mxCell>
         <mxCell id="buRPQj8jp5nvrURBmD92-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Web interface" vertex="1">
           <mxGeometry height="40" width="80" x="360" y="480" as="geometry" />
@@ -154,6 +152,54 @@
         </mxCell>
         <mxCell id="V7fubi-O8nhdG1sCZtn5-10" parent="V7fubi-O8nhdG1sCZtn5-2" style="text;strokeColor=none;fillColor=#2D2D2D;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="/api/detector/status?dev=DEVNAMEHEX&lt;div&gt;GET&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;--&amp;gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;JSON&lt;/div&gt;&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&quot;dev&quot; : string,&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;// HEXNAME&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&quot;online&quot; : bool,&lt;/div&gt;&lt;div&gt;&quot;streaming&quot; : bool,&lt;/div&gt;&lt;div&gt;&quot;uptime&quot; : unsigned int,&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;// FROM EPOCH&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&quot;cpu&quot; : {&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&quot;load&quot; : double,&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;// PERCENT&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&quot;temperature&quot; : double&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;// CELSIUM&lt;/span&gt;&lt;/div&gt;&lt;div&gt;},&lt;/div&gt;&lt;div&gt;&quot;ram&quot; : {&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&quot;load&quot;: double&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;// PERCENT&lt;/span&gt;&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;" vertex="1">
           <mxGeometry height="280" width="280" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-11" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Events (WebSockets)" vertex="1">
+          <mxGeometry height="440" width="240" x="320" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-16" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Structure:&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;JSON&lt;/span&gt;&lt;/div&gt;&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&quot;code&quot; :&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;EVENTCODE,&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&quot;payload:&quot; {&lt;/div&gt;&lt;div&gt;// VARIANT A: EVENT IS DEVICE&lt;/div&gt;&lt;div&gt;&quot;dev&quot; : string //&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;DEVNAMEHEX&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&quot;info&quot; : string // ADDITIONAL_INFO_JSON&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;// VARIANT B: EVENT IS SERVER&lt;/div&gt;&lt;div&gt;// JSON with data about event&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;" vertex="1">
+          <mxGeometry height="210" width="240" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-27" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="0 - Server event" vertex="1">
+          <mxGeometry height="40" width="240" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-12" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="1 - Connected device" vertex="1">
+          <mxGeometry height="40" width="240" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-13" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="2 - Disconnected device" vertex="1">
+          <mxGeometry height="40" width="240" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-14" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="3 - Object detected" vertex="1">
+          <mxGeometry height="40" width="240" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-15" parent="V7fubi-O8nhdG1sCZtn5-11" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="4 - Streaming state changed" vertex="1">
+          <mxGeometry height="40" width="240" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-17" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Translation (UDP)" vertex="1">
+          <mxGeometry height="350" width="200" x="600" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-18" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="PACKET STRUCTURE" vertex="1">
+          <mxGeometry height="40" width="200" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-19" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="DEVNAMEHEX&amp;nbsp; -&amp;nbsp; 32 byte" vertex="1">
+          <mxGeometry height="40" width="200" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-20" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="SHOT_&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;HASH_HEX&amp;nbsp; -&amp;nbsp; 32 byte&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="200" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-21" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="SHOT_PART_TOTAL&amp;nbsp; -&amp;nbsp; 8 byte (uint64_t)" vertex="1">
+          <mxGeometry height="40" width="200" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-22" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="SHOT_PART_NO&amp;nbsp; -&amp;nbsp; 8 byte (uint64_t)" vertex="1">
+          <mxGeometry height="40" width="200" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-23" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="SHOT_PART_SIZE&amp;nbsp; -&amp;nbsp;&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;(max is 1388 byte, it&#39;s part, uint32_t)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="80" width="200" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-24" parent="V7fubi-O8nhdG1sCZtn5-17" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="SHOT_PART_DATA&amp;nbsp; -&amp;nbsp; up to 1388&amp;nbsp;bytes" vertex="1">
+          <mxGeometry height="40" width="200" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="V7fubi-O8nhdG1sCZtn5-25" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=3" value="1472 byte -- &quot;safe&quot; limit for UDP packet data size" vertex="1">
+          <mxGeometry height="40" width="200" x="600" y="960" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
