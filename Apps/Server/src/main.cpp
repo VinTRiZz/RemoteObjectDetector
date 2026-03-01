@@ -6,6 +6,7 @@
 #include "endpoint/serverendpoint.hpp"
 
 #include <filesystem>
+#include <iostream>
 
 namespace bpo = boost::program_options;
 
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
     // Setup root of application and logging
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(PROJECT_NAME_STRING);
-    Logging::LoggingMaster::getInstance(dirManager.getDirectory(Common::DirectoryManager::Logs));
+    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
 
     // Configure updates dir
     auto softVersionsDir = dirManager.getDirectory(Common::DirectoryManager::Data) / "versions";
