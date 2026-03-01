@@ -1,5 +1,16 @@
-COMPONENTS_CCR_CONFIGURE_APP(ROD-DetectorEndpoint ${CMAKE_CURRENT_LIST_DIR})
+if (NOT ROD_BUILD_DETECTOR)
+    message(STATUS "Server build disabled")
+    return()
+endif()
 
-COMPONENTS_LINK_COMPONENT(ROD-DetectorEndpoint Logger)
-COMPONENTS_LINK_COMPONENT(ROD-DetectorEndpoint Common)
-COMPONENTS_LINK_COMPONENT(ROD-DetectorEndpoint Network)
+set(ENDPOINT_TARGET_NAME ROD-DetectorEndpoint)
+
+COMPONENTS_CCR_CONFIGURE_APP(${ENDPOINT_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
+    boost_system
+    boost_program_options
+    crypto
+    ssl
+)
+
+COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Logger)
+COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Common)

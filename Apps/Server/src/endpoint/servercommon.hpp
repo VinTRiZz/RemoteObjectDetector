@@ -1,9 +1,12 @@
 #pragma once
 
 #include <string>
+#include <Components/Common/DirectoryManager.h>
 
 namespace ServerCommon
 {
+
+const int DIRTYPE_SOFT_VERSIONS = Common::DirectoryManager::DirectoryType::UserDefined + 1;
 
 enum EventType : int
 {
@@ -11,7 +14,13 @@ enum EventType : int
 
     // Server common
     Started,
+    CreatedBackup,
     Stopped,
+
+    // Soft versions
+    AddedVersion,
+    SetVersion,
+    RemovedVersion,
 
     // Manager
     ManagerConnected,

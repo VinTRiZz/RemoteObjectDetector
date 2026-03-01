@@ -2,8 +2,6 @@
 
 #include "../endpoint/abstractendpoint.hpp"
 
-#include <Components/Network/ClientWS.h>
-
 namespace Detector
 {
 

@@ -4,42 +4,42 @@
 [submodule "Websocketpp"]
 	path = 3rdparty/websocketpp
 	url = https://github.com/zaphoyd/websocketpp.git
-[submodule "Components-CMake"]
+[submodule "ComponentsSystem/Components-CMake"]
         path = ComponentsSystem/Components-CMake
-        url = git@github.com:VinTRiZz/Components-CMake.git
+        url = https://github.com/VinTRiZz/Components-CMake.git
 [submodule "Components-Common"]
         path = ComponentsSystem/Components-Common
-        url = git@github.com:VinTRiZz/Components-Common.git
+        url = https://github.com/VinTRiZz/Components-Common.git
 [submodule "Components-Core"]
         path = ComponentsSystem/Components-Core
-        url = git@github.com:VinTRiZz/Components-Core.git
+        url = https://github.com/VinTRiZz/Components-Core.git
 [submodule "Components-Database"]
         path = ComponentsSystem/Components-Database
-        url = git@github.com:VinTRiZz/Components-Database.git
+        url = https://github.com/VinTRiZz/Components-Database.git
 [submodule "Components-Encryption"]
         path = ComponentsSystem/Components-Encryption
-        url = git@github.com:VinTRiZz/Components-Encryption.git
+        url = https://github.com/VinTRiZz/Components-Encryption.git
 [submodule "Components-ExtraClasses"]
         path = ComponentsSystem/Components-ExtraClasses
-        url = git@github.com:VinTRiZz/Components-ExtraClasses.git
+        url = https://github.com/VinTRiZz/Components-ExtraClasses.git
 [submodule "Components-Filework"]
         path = ComponentsSystem/Components-Filework
-        url = git@github.com:VinTRiZz/Components-Filework.git
+        url = https://github.com/VinTRiZz/Components-Filework.git
 [submodule "Components-Infrastructure"]
         path = ComponentsSystem/Components-Infrastructure
-        url = git@github.com:VinTRiZz/Components-Infrastructure.git
+        url = https://github.com/VinTRiZz/Components-Infrastructure.git
 [submodule "Components-Logger"]
         path = ComponentsSystem/Components-Logger
-        url = git@github.com:VinTRiZz/Components-Logger.git
-[submodule "Components-Network"]
-        path = ComponentsSystem/Components-Network
-        url = git@github.com:VinTRiZz/Components-Network.git
+        url = https://github.com/VinTRiZz/Components-Logger.git
 [submodule "Components-StyleCollection"]
         path = ComponentsSystem/Components-Styles
-        url = git@github.com:VinTRiZz/Components-Styles.git
+        url = https://github.com/VinTRiZz/Components-Styles.git
 [submodule "Components-SystemProcessing"]
         path = ComponentsSystem/Components-SystemProcessing
-        url = git@github.com:VinTRiZz/Components-SystemProcessing.git
+        url = https://github.com/VinTRiZz/Components-SystemProcessing.git
 [submodule "Components-Thread"]
         path = ComponentsSystem/Components-Thread
-        url = git@github.com:VinTRiZz/Components-Thread.git
+        url = https://github.com/VinTRiZz/Components-Thread.git
+[submodule "ComponentsSystem/Components-Network"]
+	path = ComponentsSystem/Components-Network
+	url = https://github.com/VinTRiZz/Components-Network.git

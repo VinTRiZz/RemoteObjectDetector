@@ -5,6 +5,8 @@
 #include "servereventlogger.hpp"
 
 #include <Components/Logger/Logger.h>
+#include <Components/Filework/Common.h>
+#include <Components/Common/Utils.h>
 
 #include <thread>
 
@@ -19,9 +21,13 @@ struct ServerEndpoint::Impl
     Management::Endpoint    managementEndpoint {eventLogger};
 };
 
-ServerEndpoint::ServerEndpoint()
+ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
+    m_dbPath {dbPath}
 {
-
+    auto backupFile = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::DirectoryType::Backup) / (std::string("backup_") + Common::getCurrentTimestampFormatted());
+    if (Filework::Common::copyFile(m_dbPath, backupFile)) {
+        COMPLOG_INFO("Created backup of database");
+    }
 }
 
 ServerEndpoint::~ServerEndpoint()
@@ -46,7 +52,7 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     COMPLOG_INFO("Streaming:", udpStreamingPort);
 
     d = std::make_unique<Impl>();
-    auto res = d->db.setDatabase("./local.db");
+    auto res = d->db.setDatabase(m_dbPath);
     if (!res) {
         COMPLOG_ERROR("DB set failed. Reason:", d->db.getLastError());
         return;
