@@ -6,6 +6,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // DEBUG
+    ui->serverManagementForm->addServer("Локальный", "127.0.0.1:9001");
 }
 
 MainWindow::~MainWindow()
