@@ -7,16 +7,16 @@ Project designed to detect objects on a camera view, using OpenCV.
 3. ManagePanel: GUI carcas
 4. Server: HTTP API server processing
 5. Server: HTTP API device operations processing (no actual work on this step)
+6. ManagePanel: Server management
+7. Server: UDP streaming (test version)
 
 ### PLANS (step by step)
 1. Server: WSS Event processing (setup server to process ManagePanel and DeviceEndpoint messages)
-2. ManagePanel: Server management
-3. ManagePanel: Device management
-4. ManagePanel: Streaming base
-5. Server: UDP streaming (test version)
-6. DeviceEndpoint: WSS Event processing
-7. DeviceEndpoint: Image processing -- copy legacy work, check it up, search for optimisation
-8. Server: Image processing -- setup optimised version. Connect DeviceEndpoint as source for images
+2. ManagePanel: Device management
+3. ManagePanel: Streaming base
+4. DeviceEndpoint: WSS Event processing
+5. DeviceEndpoint: Image processing -- copy legacy work, check it up, search for optimisation
+6. Server: Image processing -- setup optimised version. Connect DeviceEndpoint as source for images
 
 ## Contents
 1. ManagePanel -- GUI application on Qt5, used to work with detectors
