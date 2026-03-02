@@ -1,5 +1,6 @@
-#ifndef IMAGEMANIPULATIONINTERFACE_H
-#define IMAGEMANIPULATIONINTERFACE_H
+#pragma once
+
+#ifdef BUILD_LEGACY
 
 #include <memory>
 #include <list>
@@ -57,4 +58,4 @@ private:
     std::unique_ptr<ImageManipulationInterfacePrivate> d;
 };
 
-#endif // IMAGEMANIPULATIONINTERFACE_H
+#endif // BUILD_LEGACY

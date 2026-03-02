@@ -1,7 +1,6 @@
-#ifndef ANALYSEMETHODMANAGER_HPP
-#define ANALYSEMETHODMANAGER_HPP
+#pragma once
 
-#include "Images/typesholder.hpp"
+#include "typesholder.hpp"
 
 namespace Analyse
 {
@@ -24,5 +23,3 @@ private:
 };
 
 }
-
-#endif // ANALYSEMETHODMANAGER_HPP

@@ -1,5 +1,4 @@
-#ifndef TYPESHOLDER_HPP
-#define TYPESHOLDER_HPP
+#pragma once
 
 #include "common.hpp"
 
@@ -62,5 +61,3 @@ public:
     void addContours(const cv::Mat &img, std::vector<ContourType> &imageContours);
     std::vector<cv::Mat> createRotations(const cv::Mat& image);
 };
-
-#endif // TYPESHOLDER_HPP

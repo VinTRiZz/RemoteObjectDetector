@@ -1,5 +1,6 @@
-#ifndef ANALYSESUBSYSTEM_HPP
-#define ANALYSESUBSYSTEM_HPP
+#pragma once
+
+#ifdef BUILD_LEGACY
 
 #include <memory>
 #include <string>
@@ -49,4 +50,4 @@ private:
     std::unique_ptr<AnalyseSubsystemPrivate> d;
 };
 
-#endif // ANALYSESUBSYSTEM_HPP
+#endif // BUILD_LEGACY

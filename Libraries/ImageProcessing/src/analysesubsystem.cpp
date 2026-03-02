@@ -1,5 +1,7 @@
 #include "analysesubsystem.hpp"
 
+#ifdef BUILD_LEGACY
+
 #include "analysemethodmanager.hpp"
 #include "cameraadaptor.hpp"
 #include "typesholder.hpp"
@@ -275,3 +277,5 @@ void AnalyseSubsystem::studyBackground()
     if (backgrounds.size())
         d->isReady = true;
 }
+
+#endif // BUILD_LEGACY

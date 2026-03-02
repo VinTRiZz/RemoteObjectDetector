@@ -1,5 +1,4 @@
-#ifndef COMMON_H
-#define COMMON_H
+#pragma once
 
 // OpenCV header
 #include <opencv2/opencv.hpp>
@@ -59,5 +58,3 @@ object_1 (GUM or EAR)
 object_2 (PEN or FLASH)
 */
 #define DEBUG_TARGET_DIRECTORY "figures"
-
-#endif // COMMON_H

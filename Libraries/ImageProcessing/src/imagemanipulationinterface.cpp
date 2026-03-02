@@ -1,5 +1,7 @@
 #include "imagemanipulationinterface.hpp"
 
+#ifdef BUILD_LEGACY
+
 #include "common.hpp"
 #include "analysesubsystem.hpp"
 
@@ -148,3 +150,5 @@ size_t ImageManipulationInterface::availableTypesCount() const
 {
     return d->types.size();
 }
+
+#endif // BUILD_LEGACY
