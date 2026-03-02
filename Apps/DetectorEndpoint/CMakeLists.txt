@@ -5,12 +5,33 @@ endif()
 
 set(ENDPOINT_TARGET_NAME ROD-DetectorEndpoint)
 
+COMPONENTS_CCR_FIND_LIBRARY(OpenCV)
+
 COMPONENTS_CCR_CONFIGURE_APP(${ENDPOINT_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     boost_system
     boost_program_options
     crypto
     ssl
+
+    # OpenCV
+    opencv_videoio
+    opencv_imgcodecs
+    opencv_video
+    opencv_photo
+    opencv_imgproc
+    opencv_flann
+    opencv_core
+    opencv_highgui
+    opencv_objdetect
+    opencv_flann
+    opencv_features2d
 )
 
 COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Logger)
 COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Common)
+COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Network)
+COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} ExtraClasses)
+
+set(ROD_LIBRARIES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../Libraries)
+COMPONENTS_CCR_LINK_LIBRARY(${ENDPOINT_TARGET_NAME} DataObjects ${ROD_LIBRARIES_ROOT}/DataObjects)
+COMPONENTS_CCR_LINK_LIBRARY(${ENDPOINT_TARGET_NAME} ImageProcessing ${ROD_LIBRARIES_ROOT}/ImageProcessing)
