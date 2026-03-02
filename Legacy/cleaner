@@ -1,7 +1,0 @@
-#! /bin/bash
-
-rm BIN/*
-rm BUILD -r
-rm .qmake.stash
-rm Makefile
-rm *.user*

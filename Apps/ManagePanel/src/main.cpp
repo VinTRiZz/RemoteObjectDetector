@@ -1,5 +1,6 @@
 #include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>
+#include <Components/Common/ApplicationSettings.h>
 
 #include "gui/mainwindow.hpp"
 #include <QApplication>
@@ -7,6 +8,7 @@
 int main(int argc, char* argv[]) {
 
     int res = -1;
+    auto& appSettings = Common::ApplicationSettings::getInstance();
     {
         QApplication a(argc, argv);
 
@@ -14,6 +16,8 @@ int main(int argc, char* argv[]) {
         dirManager.setRootPath(PROJECT_NAME_STRING);
 
         COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+
+        appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryManager::Config) / "default.ini");
 
         a.setApplicationName(PROJECT_NAME_STRING);
         a.setApplicationDisplayName(PROJECT_NAME_STRING);
@@ -24,6 +28,7 @@ int main(int argc, char* argv[]) {
         res = a.exec();
     }
 
+    appSettings.saveSettings();
     COMPLOG_INFO("Manage panel exited");
     return res;
 }

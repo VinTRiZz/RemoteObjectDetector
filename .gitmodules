@@ -43,3 +43,6 @@
 [submodule "ComponentsSystem/Components-Network"]
 	path = ComponentsSystem/Components-Network
 	url = https://github.com/VinTRiZz/Components-Network.git
+[submodule "3rdparty/opencv"]
+	path = 3rdparty/opencv
+	url = https://github.com/opencv/opencv.git

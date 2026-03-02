@@ -1,0 +1,61 @@
+#pragma once
+
+#ifdef BUILD_LEGACY
+
+#include <memory>
+#include <list>
+#include <string>
+#include <opencv2/opencv.hpp>
+
+struct DetectedObject
+{
+    std::string name {"Unknown"};
+    float percent {0};
+};
+
+struct DetectedObjects
+{
+    std::list<DetectedObject> objects;
+};
+
+struct ObjectType
+{
+    std::string name;
+    std::string imagePath;
+};
+
+class ImageManipulationInterface
+{
+public:
+    ImageManipulationInterface();
+    ~ImageManipulationInterface();
+
+    void init();
+    bool isReady() const;
+
+    void setInitTime(uint64_t newInitTime);
+    uint64_t getInitTime() const;
+
+    void setCamera(const std::string& cameraFile);
+    cv::Mat getCameraShot();
+    std::string getCamera() const;
+
+    bool startDetectObjects();
+    void pollDetecting();
+    std::list<DetectedObject> detectedObjects();
+
+    std::string lastErrorText() const;
+
+    void processTemplatesDirectory(const std::string& templatesDirectoryPath);
+    bool addType(const ObjectType& _ot);
+    void removeType(const std::string& _otName);
+    bool renameType(const std::string& _otOldName, const std::string& _otNewName);
+    std::list<ObjectType> availableTypes() const;
+    size_t availableTypesCount() const;
+
+private:
+    struct ImageManipulationInterfacePrivate;
+    std::unique_ptr<ImageManipulationInterfacePrivate> d;
+};
+
+#endif // BUILD_LEGACY
