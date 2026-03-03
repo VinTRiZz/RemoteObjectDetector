@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 
 #include "endpoint/serverendpoint.hpp"
+#include "endpoint/servercommon.hpp"
 
 #include <filesystem>
 #include <iostream>

@@ -1,6 +1,9 @@
 #include "serverendpoint.hpp"
 
-#include "../detector/detectorendpoint.hpp"
+#include "servercommon.hpp"
+
+#include "../detector/detectoreventendpoint.hpp"
+#include "../detector/detectorstreamendpoint.hpp"
 #include "../management/managementendpoint.hpp"
 #include "servereventlogger.hpp"
 
@@ -15,10 +18,10 @@ struct ServerEndpoint::Impl
     Database::SQLiteDatabase db;
     ServerEventLogger eventLogger {db};
 
-    Detector::Endpoint  detectorEventEndpoint {eventLogger};
-    std::thread         detectorEventThread;
-
-    Management::Endpoint    managementEndpoint {eventLogger};
+    DetectorEventEndpoint       detectorEventEndpoint {eventLogger};
+    DetectorStreamEndpoint      detectorStreamingEndpoint {eventLogger};
+    std::thread                 detectorEventThread;
+    Management::Endpoint        managementEndpoint {eventLogger};
 };
 
 ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
@@ -68,7 +71,7 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
         d->detectorEventEndpoint.start(wsEventPort);
     });
 
-    // TODO: Start UDP streamer
+    d->detectorStreamingEndpoint.start(udpStreamingPort);
     d->managementEndpoint.start(httpAPIPort);
 
     COMPLOG_INFO("RemoteObjectDetector server exited");

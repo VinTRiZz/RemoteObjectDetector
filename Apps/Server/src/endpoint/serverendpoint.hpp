@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <string>
 
-#include "servercommon.hpp"
-
 /**
  * @brief The ServerEndpoint class Главный объект сервера
  */
