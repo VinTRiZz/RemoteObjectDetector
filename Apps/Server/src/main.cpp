@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     // Setup root of application and logging
     auto& dirManager = Common::DirectoryManager::getInstance();
-    dirManager.setRootPath(PROJECT_NAME_STRING);
+    dirManager.setRootPath("ROD-Server");
     COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
 
     // Configure updates dir
