@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 
+/**
+ * @brief The DetectorEndpoint class    Main instance of detector
+ */
 class DetectorEndpoint
 {
 public:
