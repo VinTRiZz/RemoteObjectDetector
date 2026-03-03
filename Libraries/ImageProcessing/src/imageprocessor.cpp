@@ -1,66 +1,22 @@
 #include "imageprocessor.hpp"
 
-//#include <Components/Thread/ThreadPool.h>
+#include <oneapi/tbb/task_arena.h>
+#include <oneapi/tbb/task_group.h>
+#include <oneapi/tbb/parallel_for.h>
 
-#include <unordered_set>
-#include <list>
-
-#include <mutex>
-#include <condition_variable>
-
-namespace {
-
-struct DetectionInfo
-{
-    DetectionInfo() = default;
-    DetectionInfo(DetectionInfo&& oInf) {
-        id = std::move(oInf.id);
-        images = std::move(oInf.images);
-    }
-    explicit DetectionInfo(const std::string& iId) : id {iId} {}
-
-    std::string id {};
-    std::list< std::vector<uint8_t> > images;
-    std::mutex imageManipulationMx;
-
-    bool operator ==(const DetectionInfo& oInf) const {
-        return (oInf.id == id);
-    }
-};
-
-}
-
-template<>
-struct std::hash<DetectionInfo> {
-    std::size_t operator()(const DetectionInfo& info) const {
-        return std::hash<std::string>{}(info.id);
-    }
-};
+#include <Components/Logger/Logger.h>
 
 namespace ImageProcessing
 {
 
 struct Processor::Impl
 {
+    tbb::task_arena taskArena;
     std::function<void(const std::string&, const DataObjects::DetectionObject&)> detectionCallback;
-    std::unordered_set<DetectionInfo> detectionMap;
-
-    std::condition_variable notifyCV;
-    std::mutex notifyMx;
-
-    void waitForImages() {
-        std::unique_lock<std::mutex> lock(notifyMx);
-        notifyCV.wait(lock);
-    }
-
-    void notifyGotImage() {
-        std::unique_lock<std::mutex> lock(notifyMx);
-        notifyCV.notify_one();
-    }
 };
 
 Processor::Processor(unsigned int processorThreadCount) :
-    d {new Impl}
+    d {new Impl{processorThreadCount} }
 {
 
 }
@@ -77,17 +33,32 @@ void Processor::setImageCallback(std::function<void (const std::string &, const 
 
 void Processor::addImage(const std::string &analyseId, std::vector<uint8_t> &&imageData)
 {
-    auto imagesIt = d->detectionMap.find(DetectionInfo(analyseId));
-    if (imagesIt == d->detectionMap.end()) {
-        d->detectionMap.emplace(DetectionInfo(analyseId));
-        imagesIt = d->detectionMap.find(DetectionInfo(analyseId));
-    }
-    auto& imageInfo = const_cast<DetectionInfo&>(*imagesIt); // Да, плохо, но я не меняю хеш, а константный метод для изменения -- странно
-    imageInfo.imageManipulationMx.lock();
-    imageInfo.images.emplace_back(std::move(imageData));
-    imageInfo.imageManipulationMx.unlock();
+    d->taskArena.execute([] {
+        tbb::task_group tg;
 
-    d->notifyGotImage();
+//        tg.run([] {
+//            COMPLOG_INFO("Main task started");
+
+//            // Имитация длительных вычислений
+//            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//            // В процессе задачи оповещаем, что можно выполнять другие дела
+//            // Это достигается через запуск параллельных подзадач
+//            tbb::parallel_for(tbb::blocked_range<int>(0, 5),
+//                [](const tbb::blocked_range<int>& r) {
+//                    COMPLOG_INFO("Other task started");
+//                    for (int i = r.begin(); i < r.end(); ++i) {
+//                        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+//                    }
+//                    COMPLOG_INFO("Other task complete");
+//                }
+//            );
+
+//            COMPLOG_OK("Main task complete");
+//        });
+
+        tg.wait();
+    });
 }
 
 void Processor::start()

@@ -19,3 +19,4 @@ COMPONENTS_LINK_COMPONENT(ImageProcessing Logger)
 COMPONENTS_LINK_COMPONENT(ImageProcessing Thread)
 
 COMPONENTS_CCR_LINK_LIBRARY(ImageProcessing DataObjects ${CMAKE_CURRENT_LIST_DIR}/../DataObjects)
+COMPONENTS_CCR_LINK_LIBRARY(ImageProcessing TBB::tbb ${CMAKE_CURRENT_LIST_DIR}/../../3rdparty/oneTBB)
