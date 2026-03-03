@@ -1,26 +1,34 @@
 #pragma once
 
-#include <Components/Network/ClientUDP.h>
-#include <Components/ExtraClasses/DataFragmentator.h>
-
 #include <string>
 #include <stdint.h>
+#include <memory>
+#include <vector>
 
-namespace ImageProcessing
-{
 
-class Streamer
+/**
+ * @brief The ImageStreamer class   Class to send data by UDP to the server
+ */
+class ImageStreamer
 {
 public:
-    Streamer();
+    ImageStreamer();
+    ~ImageStreamer();
 
+    /**
+     * @brief sendImage Splits image and sends to the host
+     * @param imageData Any bytes, actually, according to server format
+     */
     void sendImage(std::vector<uint8_t>&& imageData);
 
-    void start(const std::string& serverHost, uint16_t serverPort);
+    /**
+     * @brief setHost       Set host to send images
+     * @param serverHost    Address in IPv4 format
+     * @param serverPort
+     */
+    void setHost(const std::string& serverHost, uint16_t serverPort);
 
 private:
-    UDP::Client m_streamClient;
-    ExtraClasses::DataFragmentator m_imagesFragmentator;
+    struct Impl;
+    std::unique_ptr<Impl> d;
 };
-
-}

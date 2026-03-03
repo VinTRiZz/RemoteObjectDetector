@@ -1,22 +1,19 @@
 #pragma once
 
-#include <ROD/ImageProcessing.h>
-#include "../streamer/imagestreamer.hpp"
-#include "../camera/cameraadaptor.hpp"
-
-#include <thread>
+#include <memory>
+#include <string>
 
 class DetectorEndpoint
 {
 public:
-    DetectorEndpoint();
+    DetectorEndpoint(const std::string& host, uint16_t streamPort, uint16_t eventPort);
     ~DetectorEndpoint();
 
-    ImageProcessing::Streamer& getStreamer();
+    void start();
+    void stop();
 
 private:
-    Adaptors::CameraAdaptor m_camera;
-    ImageProcessing::Processor m_imgProcessor {std::thread::hardware_concurrency()};
-    ImageProcessing::Streamer m_imgStreamer;
+    struct Impl;
+    std::unique_ptr<Impl> d;
 };
 
