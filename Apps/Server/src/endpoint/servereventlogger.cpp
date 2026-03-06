@@ -60,12 +60,12 @@ Database::SQLiteDatabase &ServerEventLogger::getServerDb()
     return m_serverDb;
 }
 
-void ServerEventLogger::logEvent(ServerCommon::EventType evType, const std::string &evInfo)
+void ServerEventLogger::logEvent(Protocol::EventType evType, const std::string &evInfo)
 {
     Database::SQLiteTable logTable(m_serverDb);
     logTable.setTable("event_log");
-    logTable.addRow({ {"timestamp", getTimestamp()}, {"type", ServerCommon::toString(evType)}, {"data", Encryption::encodeHex(evInfo)} });
-    COMPLOG_INFO("Server event:", ServerCommon::toString(evType), !evInfo.empty() ? (std::string(": ") + evInfo) : std::string());
+    logTable.addRow({ {"timestamp", getTimestamp()}, {"type", Protocol::toString(evType)}, {"data", Encryption::encodeHex(evInfo)} });
+    COMPLOG_INFO("Server event:", Protocol::toString(evType), !evInfo.empty() ? (std::string(": ") + evInfo) : std::string());
 }
 
 std::string ServerEventLogger::getTimestamp() const

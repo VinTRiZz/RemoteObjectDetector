@@ -2,7 +2,7 @@
 
 #include <drogon/drogon.h>
 
-#include "../endpoint/servereventlogger.hpp"
+#include <ROD/Protocol.h>
 
 /**
  * @brief The DevicesController class Контроллер, отвечающий за управление детекторами
@@ -10,7 +10,7 @@
 class DevicesController : public drogon::HttpController<DevicesController, false>
 {
 public:
-    DevicesController(ServerEventLogger& eventLogger);
+    DevicesController(Protocol::EventProcessor& commandEventProcessor);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DevicesController::getDeviceStatus,   "/api/detector/status",   drogon::Get);
@@ -28,6 +28,6 @@ public:
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 
 private:
-    ServerEventLogger& m_eventLogger;
+    Protocol::EventProcessor& m_commandEventProcessor;
 };
 

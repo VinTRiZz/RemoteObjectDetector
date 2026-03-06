@@ -2,7 +2,7 @@
 
 #include <Components/Database/SQlite.h>
 
-#include "servercommon.hpp"
+#include <ROD/Protocol.h>
 
 /**
  * @brief The ServerEventLogger class Мастер записи событий в лог-бд для панели управления
@@ -16,7 +16,7 @@ public:
     bool init();
     Database::SQLiteDatabase& getServerDb();
 
-    void logEvent(ServerCommon::EventType evType, const std::string& evInfo = {});
+    void logEvent(Protocol::EventType evType, const std::string& evInfo = {});
 
 private:
     Database::SQLiteDatabase& m_serverDb;

@@ -1,8 +1,8 @@
 #include "devicescontroller.hpp"
 
-DevicesController::DevicesController(ServerEventLogger& eventLogger) :
+DevicesController::DevicesController(Protocol::EventProcessor &commandEventProcessor) :
     drogon::HttpController<DevicesController, false>(),
-    m_eventLogger {eventLogger}
+    m_commandEventProcessor {commandEventProcessor}
 {
 
 }

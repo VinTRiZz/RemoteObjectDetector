@@ -16,7 +16,7 @@ namespace Management
 class Endpoint : public AbstractEndpoint
 {
 public:
-    Endpoint(ServerEventLogger &eventLogger);
+    Endpoint(Protocol::EventProcessor& serverEventProcessor, Protocol::EventProcessor &commandEventProcessor);
     ~Endpoint();
 
     // AbstractEndpoint interface
@@ -25,8 +25,8 @@ public:
     void stop() override;
 
 private:
-    ServerEventLogger &m_eventLogger;
     SystemProcessing::StatusManager m_systemStatusManager;
+    Protocol::EventProcessor&       m_commandProcessor;
 };
 
 }

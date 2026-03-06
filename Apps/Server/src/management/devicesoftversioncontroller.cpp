@@ -6,9 +6,9 @@
 
 #include "../endpoint/servercommon.hpp"
 
-DeviceSoftVersionController::DeviceSoftVersionController(ServerEventLogger &eventLogger) :
+DeviceSoftVersionController::DeviceSoftVersionController(Protocol::EventProcessor &serverEventProcessor) :
     drogon::HttpController<DeviceSoftVersionController, false>(),
-    m_eventLogger {eventLogger}
+    m_serverEventProcessor {serverEventProcessor}
 {
 
 }
@@ -70,7 +70,7 @@ void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, 
     std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionNameString + "_" + versionHash));
     COMPLOG_OK("Added version:", versionNameString, versionHash);
 
-    m_eventLogger.logEvent(ServerCommon::AddedVersion, versionHash);
+    m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionAdded, versionNameString);
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
 }
@@ -104,7 +104,7 @@ void DeviceSoftVersionController::setSoftVersion(const drogon::HttpRequestPtr &r
 
     auto isSucceed = m_versionUpdater(versionFilename);
     if (isSucceed) {
-        m_eventLogger.logEvent(ServerCommon::SetVersion, versionFilename);
+        m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionChanged, versionFilename);
     }
 
     auto pResponse = drogon::HttpResponse::newHttpResponse(isSucceed ? drogon::k200OK : drogon::k500InternalServerError, drogon::CT_NONE);
@@ -126,7 +126,7 @@ void DeviceSoftVersionController::removeVersion(const drogon::HttpRequestPtr &re
 
         auto versionHash = filename;
         versionHash.erase(0, versionHash.find_last_of("_") + 1);
-        m_eventLogger.logEvent(ServerCommon::RemovedVersion);
+        m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionRemoved, versionNameString);
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
         callback(pResponse);
         return;

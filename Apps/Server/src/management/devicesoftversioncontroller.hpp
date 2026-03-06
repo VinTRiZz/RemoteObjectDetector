@@ -9,7 +9,7 @@
 class DeviceSoftVersionController : public drogon::HttpController<DeviceSoftVersionController, false>
 {
 public:
-    DeviceSoftVersionController(ServerEventLogger &eventLogger);
+    DeviceSoftVersionController(Protocol::EventProcessor& serverEventProcessor);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DeviceSoftVersionController::getSoftVersion,  "/api/detector/soft", drogon::Get);
@@ -31,7 +31,7 @@ public:
     void setUpdater(std::function<bool(const std::string&)>&& versionUpdater);
 
 private:
-    ServerEventLogger &m_eventLogger;
+    Protocol::EventProcessor& m_serverEventProcessor;
 
     std::function<std::string()> m_versionGetter;
     std::function<bool(const std::string&)> m_versionUpdater;

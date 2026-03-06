@@ -1,2 +1,3 @@
 add_subdirectory(DataObjects)
+add_subdirectory(Protocol)
 add_subdirectory(ImageProcessing)

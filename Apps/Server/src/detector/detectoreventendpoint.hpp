@@ -1,12 +1,13 @@
 #pragma once
 
 #include "../endpoint/abstractendpoint.hpp"
+#include <ROD/Protocol.h>
 
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <nlohmann/json.hpp>
 #include <thread>
-#include <set>
+#include <map>
 
 /**
  * @brief The DetectorEventEndpoint class Detector event management instance
@@ -14,7 +15,7 @@
 class DetectorEventEndpoint : public AbstractEndpoint
 {
 public:
-    DetectorEventEndpoint(ServerEventLogger& eventLogger);
+    DetectorEventEndpoint(Protocol::EventProcessor& serverEventProcessor, Protocol::EventProcessor& deviceEventProcessor);
     ~DetectorEventEndpoint();
 
     // AbstractEndpoint interface
@@ -31,8 +32,15 @@ private:
     std::unique_ptr<std::thread> m_ioThread;
 
     Server m_deviceEventServer;
-    std::set<ConnectionHdl, std::owner_less<ConnectionHdl>> m_connections;
+    std::map<ConnectionHdl, std::string, std::owner_less<ConnectionHdl>> m_connections;
     mutable std::mutex m_connectionMx;
 
     std::atomic<bool> m_isListening {false};
+
+    Protocol::EventProcessor& m_deviceEventProcessor;
+
+    void initConnectionCallbacks();
+
+    mutable bool m_isManagerAuthorized {false};
+    bool isDevValid(const std::string& devname) const;
 };
