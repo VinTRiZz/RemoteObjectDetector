@@ -16,6 +16,12 @@ public:
     ~ImageStreamer();
 
     /**
+     * @brief setToken  Set token to identify device on a server
+     * @param token
+     */
+    void setToken(const std::string& token);
+
+    /**
      * @brief sendImage Splits image and sends to the host
      * @param imageData Any bytes, actually, according to server format
      */
@@ -29,6 +35,8 @@ public:
     void setHost(const std::string& serverHost, uint16_t serverPort);
 
 private:
+    std::string m_token;
+
     struct Impl;
     std::unique_ptr<Impl> d;
 };
