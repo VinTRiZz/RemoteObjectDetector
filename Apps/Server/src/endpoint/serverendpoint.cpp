@@ -7,6 +7,10 @@
 #include "../management/managementendpoint.hpp"
 #include "servereventlogger.hpp"
 
+#include "servereventprocessor.hpp"
+#include "../detector/detectoreventprocessor.hpp"
+#include "../detector/detectorcommandprocessor.hpp"
+
 #include <ROD/Protocol.h>
 
 #include <Components/Logger/Logger.h>
@@ -22,14 +26,14 @@ struct ServerEndpoint::Impl
     ServerEventLogger eventLogger {db};
 
     // Processors for events
-    Protocol::EventProcessor    serverEventProcessor;
-    Protocol::EventProcessor    detectorEventProcessor;
-    Protocol::EventProcessor    commandEventProcessor;
+    std::shared_ptr<ServerEventProcessor>       serverEventProcessor    { std::make_shared<ServerEventProcessor>() };
+    std::shared_ptr<DetectorEventProcessor>     detectorEventProcessor  { std::make_shared<DetectorEventProcessor>() };
+    std::shared_ptr<DetectorCommandProcessor>   commandEventProcessor   { std::make_shared<DetectorCommandProcessor>() };
 
     // Endpoints
-    DetectorEventEndpoint       detectorEventEndpoint       {serverEventProcessor, detectorEventProcessor};
-    DetectorStreamEndpoint      detectorStreamingEndpoint   {serverEventProcessor};
-    Management::Endpoint        managementEndpoint          {serverEventProcessor, commandEventProcessor};
+    DetectorEventEndpoint       detectorEventEndpoint;
+    DetectorStreamEndpoint      detectorStreamingEndpoint;
+    Management::Endpoint        managementEndpoint;
 };
 
 ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
@@ -50,7 +54,7 @@ ServerEndpoint::~ServerEndpoint()
         return;
     }
 
-    d->serverEventProcessor.addServerEvent(Protocol::EventType::ServerStopped);
+    d->serverEventProcessor->addServerEvent(Protocol::EventType::ServerStopped);
 }
 
 void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t udpStreamingPort)
@@ -63,8 +67,8 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d = std::make_unique<Impl>();
 
     auto addEmptyLog = [this](Protocol::EventType evt){
-        d->serverEventProcessor.setEventProcessor(evt, [this, evt](auto&& ev) {
-            d->eventLogger.logEvent(evt, ev.payload);
+        d->serverEventProcessor->setEventProcessor(evt, [this, evt](auto&& ev) {
+            d->eventLogger.logEvent(evt, ev.getPayload());
         });
     };
     addEmptyLog(Protocol::EventType::ServerStarted);
@@ -84,10 +88,15 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     }
 
     // In other threads
+    d->detectorEventEndpoint.setEventProcessor(d->detectorEventProcessor);
     d->detectorEventEndpoint.start(wsEventPort);
+
+    d->detectorStreamingEndpoint.setEventProcessor(d->detectorEventProcessor);
     d->detectorStreamingEndpoint.start(udpStreamingPort);
 
-    d->serverEventProcessor.addServerEvent(Protocol::EventType::ServerStarted,
+    d->managementEndpoint.setEventProcessor(d->serverEventProcessor);
+
+    d->serverEventProcessor->addServerEvent(Protocol::EventType::ServerStarted,
                                            std::string("PORTS: API ") + std::to_string(httpAPIPort) +
                                            " EVENT " + std::to_string(wsEventPort) +
                                            " STREAMING " + std::to_string(udpStreamingPort));

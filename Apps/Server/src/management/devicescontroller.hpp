@@ -4,13 +4,15 @@
 
 #include <ROD/Protocol.h>
 
+#include "detector/detectorcommandprocessor.hpp"
+
 /**
  * @brief The DevicesController class Контроллер, отвечающий за управление детекторами
  */
 class DevicesController : public drogon::HttpController<DevicesController, false>
 {
 public:
-    DevicesController(Protocol::EventProcessor& commandEventProcessor);
+    DevicesController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DevicesController::getDeviceStatus,   "/api/detector/status",   drogon::Get);
@@ -28,6 +30,6 @@ public:
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 
 private:
-    Protocol::EventProcessor& m_commandEventProcessor;
+    std::shared_ptr<DetectorCommandProcessor> m_commandEventProcessor;
 };
 

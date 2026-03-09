@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 namespace Protocol
 {
@@ -20,9 +21,9 @@ enum EventType : short
     ServerAlert, // Critical temperature, available space, etc.
 
     // Detector software
-    VersionAdded,
-    VersionChanged,
-    VersionRemoved,
+    DetectorSoftVersionAdded,
+    DetectorSoftVersionChanged,
+    DetectorSoftVersionRemoved,
 
     // Regular
     DetectorConnected,
@@ -45,17 +46,41 @@ std::string toString(EventType etype);
 
 
 /**
+ * @brief Headers for events
+ */
+namespace EventHeaders
+{
+const std::string HEADER_DEVICE {"device"};
+}
+
+
+/**
  * @brief The Event class   Event of the server, detector, etc.
  */
-struct Event
+class Event
 {
-    std::string device;
-    EventType   type {EventType::Undefined};
-    std::string payload;
+public:
+    Event() = default;
+    explicit Event(const std::string& initialTxt);
+    virtual ~Event() = default;
 
     bool readRaw(const std::string& txt) noexcept;
-    static Event fromRaw(const std::string& txt);
     std::string toRaw() const;
+
+    void setHeader(const std::string& header, const std::string& value);
+    std::string getHeader(const std::string& headerName) const;
+
+    void setType(EventType etype);
+    EventType   getType() const noexcept;
+
+    void setPayload(const std::string& iData);
+    void setPayload(std::string&& iData);
+    std::string getPayload() const;
+
+private:
+    std::map<std::string, std::string>  m_headers;
+    EventType                           m_type {EventType::Undefined};
+    std::string                         m_payload;
 };
 
 }

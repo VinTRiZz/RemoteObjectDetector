@@ -1,8 +1,8 @@
 #include "devicescontroller.hpp"
 
-DevicesController::DevicesController(Protocol::EventProcessor &commandEventProcessor) :
+DevicesController::DevicesController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor) :
     drogon::HttpController<DevicesController, false>(),
-    m_commandEventProcessor {commandEventProcessor}
+    m_commandEventProcessor {detectorCommandProcessor}
 {
 
 }

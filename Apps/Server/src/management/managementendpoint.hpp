@@ -2,7 +2,8 @@
 
 #include <drogon/drogon.h>
 
-#include "../endpoint/abstractendpoint.hpp"
+#include "endpoint/abstractendpoint.hpp"
+#include "detector/detectorcommandprocessor.hpp"
 
 
 #include <Components/SystemProcessing/StatusManager.h>
@@ -16,17 +17,13 @@ namespace Management
 class Endpoint : public AbstractEndpoint
 {
 public:
-    Endpoint(Protocol::EventProcessor& serverEventProcessor, Protocol::EventProcessor &commandEventProcessor);
+    Endpoint();
     ~Endpoint();
 
     // AbstractEndpoint interface
     void start(uint16_t port) override;
     bool isWorking() const override;
     void stop() override;
-
-private:
-    SystemProcessing::StatusManager m_systemStatusManager;
-    Protocol::EventProcessor&       m_commandProcessor;
 };
 
 }

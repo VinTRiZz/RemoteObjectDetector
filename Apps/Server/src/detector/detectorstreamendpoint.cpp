@@ -2,8 +2,8 @@
 
 #include <Components/Logger/Logger.h>
 
-DetectorStreamEndpoint::DetectorStreamEndpoint(Protocol::EventProcessor &serverEventProcessor) :
-    AbstractEndpoint(serverEventProcessor)
+DetectorStreamEndpoint::DetectorStreamEndpoint() :
+    AbstractEndpoint()
 {
     m_streamingServer.setRequestProcessor([this](std::vector<uint8_t>&& receivedData){
         std::string str;

@@ -13,7 +13,7 @@
 class DetectorStreamEndpoint : public AbstractEndpoint
 {
 public:
-    DetectorStreamEndpoint(Protocol::EventProcessor& serverEventProcessor);
+    DetectorStreamEndpoint();
     ~DetectorStreamEndpoint();
 
     // AbstractEndpoint interface

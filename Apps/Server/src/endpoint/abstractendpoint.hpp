@@ -6,13 +6,13 @@
 class AbstractEndpoint
 {
 public:
-    AbstractEndpoint(Protocol::EventProcessor& eventProcessor);
-
     virtual void start(uint16_t port) = 0;
     virtual bool isWorking() const = 0;
     virtual void stop() = 0;
 
+    virtual void setEventProcessor(const Protocol::EventProcessorPtr& pEventProcessor);
+
 protected:
-    Protocol::EventProcessor& m_eventProcessor;
+    Protocol::EventProcessorPtr m_pEventProcessor;
 };
 

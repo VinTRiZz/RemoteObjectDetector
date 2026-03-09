@@ -1,15 +1,13 @@
 #include "detectoreventendpoint.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Encryption/Encoding.h>
 
 #include <ROD/Protocol.h>
 
 #include <regex>
 
-DetectorEventEndpoint::DetectorEventEndpoint(Protocol::EventProcessor &serverEventProcessor, Protocol::EventProcessor &deviceEventProcessor) :
-    AbstractEndpoint(serverEventProcessor),
-    m_deviceEventProcessor {deviceEventProcessor}
+DetectorEventEndpoint::DetectorEventEndpoint() :
+    AbstractEndpoint()
 {
     m_deviceEventServer.init_asio(&m_ioService);
 
@@ -30,11 +28,11 @@ DetectorEventEndpoint::DetectorEventEndpoint(Protocol::EventProcessor &serverEve
         }
         Protocol::Event ev;
         if (!ev.readRaw(msg->get_payload())) {
-            COMPLOG_ERROR(Protocol::toString(ev.type), msg->get_payload());
+            COMPLOG_ERROR(Protocol::toString(ev.getType()), msg->get_payload());
             return;
         }
-        COMPLOG_DEBUG(Protocol::toString(ev.type), msg->get_payload());
-        m_deviceEventProcessor.addEvent(std::move(ev));
+        COMPLOG_DEBUG(Protocol::toString(ev.getType()), msg->get_payload());
+        m_pEventProcessor->addEvent(std::move(ev));
     });
 }
 
@@ -139,9 +137,9 @@ void DetectorEventEndpoint::initConnectionCallbacks()
         COMPLOG_OK("[WS] Client connected:", remote);
 
         Protocol::Event ev;
-        ev.type = Protocol::EventType::DetectorConnected;
-        ev.device = m_connections[hdl];
-        m_deviceEventProcessor.addEvent(std::move(ev));
+        ev.setType(Protocol::EventType::DetectorConnected);
+        ev.setHeader(Protocol::EventHeaders::HEADER_DEVICE, m_connections[hdl]);
+        m_pEventProcessor->addEvent(std::move(ev));
         return true;
     });
 
@@ -176,10 +174,10 @@ void DetectorEventEndpoint::initConnectionCallbacks()
         };
 
         Protocol::Event ev;
-        ev.type = Protocol::EventType::DetectorDisconnected;
-        ev.device = m_connections[hdl];
-        ev.payload = Encryption::encodeHex(reasonStr);
-        m_deviceEventProcessor.addEvent(std::move(ev));
+        ev.setType(Protocol::EventType::DetectorDisconnected);
+        ev.setHeader(Protocol::EventHeaders::HEADER_DEVICE, m_connections[hdl]);
+        ev.setPayload(reasonStr);
+        m_pEventProcessor->addEvent(std::move(ev));
     });
 
     m_deviceEventServer.set_fail_handler([this](ConnectionHdl hdl) {

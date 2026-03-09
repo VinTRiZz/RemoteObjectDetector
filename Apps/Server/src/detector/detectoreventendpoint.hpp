@@ -15,7 +15,7 @@
 class DetectorEventEndpoint : public AbstractEndpoint
 {
 public:
-    DetectorEventEndpoint(Protocol::EventProcessor& serverEventProcessor, Protocol::EventProcessor& deviceEventProcessor);
+    DetectorEventEndpoint();
     ~DetectorEventEndpoint();
 
     // AbstractEndpoint interface
@@ -36,8 +36,6 @@ private:
     mutable std::mutex m_connectionMx;
 
     std::atomic<bool> m_isListening {false};
-
-    Protocol::EventProcessor& m_deviceEventProcessor;
 
     void initConnectionCallbacks();
 

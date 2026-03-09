@@ -7,14 +7,21 @@
 namespace Protocol
 {
 
+Event::Event(const std::string &initialTxt)
+{
+    readRaw(initialTxt);
+}
+
 bool Event::readRaw(const std::string &txt) noexcept
 {
     try {
         auto eventRequest = nlohmann::json::parse(txt);
 
-        device = eventRequest["dev"];
-        type = eventRequest["event"];
-        payload = eventRequest["payload"];
+        for (auto& [key, value] : eventRequest["headers"].items()) {
+            m_headers[key] = value;
+        }
+        m_type = eventRequest["event"];
+        m_payload = eventRequest["payload"];
 
         return true;
     } catch (nlohmann::json::exception& parseEx) {
@@ -25,22 +32,57 @@ bool Event::readRaw(const std::string &txt) noexcept
     }
 }
 
-Event Event::fromRaw(const std::string &txt)
-{
-    Event res;
-    res.readRaw(txt);
-    return res;
-}
-
 std::string Event::toRaw() const
 {
     nlohmann::json res;
 
-    res["dev"] = device;
-    res["event"] = type;
-    res["payload"] = payload;
+    auto& resH = res["headers"];
+    for (auto& [key, value] : m_headers) {
+        resH[key] = value;
+    }
+    res["event"] = m_type;
+    res["payload"] = m_payload;
 
     return res.dump();
+}
+
+void Event::setHeader(const std::string &header, const std::string &value)
+{
+    m_headers[header] = value;
+}
+
+std::string Event::getHeader(const std::string &headerName) const
+{
+    auto targetHeader = m_headers.find(headerName);
+    if (targetHeader == m_headers.end()) {
+        return {};
+    }
+    return targetHeader->second;
+}
+
+void Event::setType(EventType etype)
+{
+    m_type = etype;
+}
+
+EventType Event::getType() const noexcept
+{
+    return m_type;
+}
+
+void Event::setPayload(const std::string &iData)
+{
+    m_payload = iData;
+}
+
+void Event::setPayload(std::string &&iData)
+{
+    m_payload = std::move(iData);
+}
+
+std::string Event::getPayload() const
+{
+    return m_payload;
 }
 
 std::string toString(EventType etype)
@@ -63,12 +105,12 @@ std::string toString(EventType etype)
         return "ServerAlert";
 
     // Detector software
-    case VersionAdded:
-        return "VersionAdded";
-    case VersionChanged:
-        return "VersionChanged";
-    case VersionRemoved:
-        return "VersionRemoved";
+    case DetectorSoftVersionAdded:
+        return "DetectorSoftVersionAdded";
+    case DetectorSoftVersionChanged:
+        return "DetectorSoftVersionChanged";
+    case DetectorSoftVersionRemoved:
+        return "DetectorSoftVersionRemoved";
 
     // Regular
     case DetectorConnected:

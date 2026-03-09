@@ -1,28 +1,21 @@
 #include "devicesoftversioncontroller.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
-#include <Components/Filework/Common.h>
 
 #include "../endpoint/servercommon.hpp"
 
-DeviceSoftVersionController::DeviceSoftVersionController(Protocol::EventProcessor &serverEventProcessor) :
+DeviceSoftVersionController::DeviceSoftVersionController(const std::shared_ptr<DetectorCommandProcessor> &detectorCommandProcessor) :
     drogon::HttpController<DeviceSoftVersionController, false>(),
-    m_serverEventProcessor {serverEventProcessor}
+    m_detectorCommandProcessor {detectorCommandProcessor}
 {
 
 }
 
 void DeviceSoftVersionController::getSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
-    if (m_versionGetter) {
-        auto version = m_versionGetter();
-        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_TEXT_PLAIN);
-        pResponse->setBody(version);
-        callback(pResponse);
-        return;
-    }
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+    auto version = m_detectorCommandProcessor->getCurrentVersion();
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_TEXT_PLAIN);
+    pResponse->setBody(version);
     callback(pResponse);
 }
 
@@ -42,7 +35,7 @@ void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, 
     drogon::MultiPartParser fileUpload;
     if (fileUpload.parse(req) != 0) {
         auto resp = drogon::HttpResponse::newHttpResponse();
-        resp->setStatusCode(drogon::k400BadRequest);
+        resp->setStatusCode(drogon::k406NotAcceptable);
         resp->setBody("Failed to process file");
         callback(resp);
         return;
@@ -68,9 +61,15 @@ void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, 
         callback(resp);
     }
     std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionNameString + "_" + versionHash));
+    if (!m_detectorCommandProcessor->registerSoftVersion(versionNameString, versionHash)) {
+        std::filesystem::remove(resfilePath / (versionNameString + "_" + versionHash));
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
+        COMPLOG_ERROR("Failed to add soft version:", m_detectorCommandProcessor->getLastErrorText());
+        callback(pResponse);
+        return;
+    }
     COMPLOG_OK("Added version:", versionNameString, versionHash);
 
-    m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionAdded, versionNameString);
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
 }
@@ -78,69 +77,41 @@ void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, 
 void DeviceSoftVersionController::setSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
     auto versionNameString = req->getParameter("version");
-    if (!m_versionUpdater) {
-        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
-        callback(pResponse);
-        return;
-    }
+    auto isSucceed = m_detectorCommandProcessor->setSoftVersion(versionNameString);
 
-    std::string versionFilename;
-    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
-    for (auto& filename : Filework::Common::getContentNames(versionsDir)) {
-        auto versionString = filename;
-        versionString.erase(versionString.find_first_of("_"), -1);
-        if (versionString != versionNameString) {
-            continue;
-        }
-        versionFilename = (versionsDir / filename);
-        break;
-    }
-
-    if (versionFilename.empty()) {
+    if (!isSucceed.has_value()) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k404NotFound, drogon::CT_NONE);
         callback(pResponse);
         return;
     }
 
-    auto isSucceed = m_versionUpdater(versionFilename);
-    if (isSucceed) {
-        m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionChanged, versionFilename);
+    if (!isSucceed.value()) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
+        pResponse->setBody(m_detectorCommandProcessor->getLastErrorText());
+        callback(pResponse);
+        return;
     }
 
-    auto pResponse = drogon::HttpResponse::newHttpResponse(isSucceed ? drogon::k200OK : drogon::k500InternalServerError, drogon::CT_NONE);
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
-    return;
 }
 
 void DeviceSoftVersionController::removeVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
 {
     auto versionNameString = req->getParameter("version");
-    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
-    for (auto& filename : Filework::Common::getContentNames(versionsDir)) {
-        auto versionString = filename;
-        versionString.erase(versionString.find_first_of("_"), -1);
-        if (versionString != versionNameString) {
-            continue;
-        }
-        std::filesystem::remove(versionsDir / filename);
-
-        auto versionHash = filename;
-        versionHash.erase(0, versionHash.find_last_of("_") + 1);
-        m_serverEventProcessor.addServerEvent(Protocol::EventType::VersionRemoved, versionNameString);
-        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
+    if (versionNameString.empty()) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k406NotAcceptable, drogon::CT_NONE);
         callback(pResponse);
         return;
     }
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+
+    auto isSucceed = m_detectorCommandProcessor->removeSoftVersion(versionNameString);
+    if (!isSucceed) {
+        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
+        pResponse->setBody(m_detectorCommandProcessor->getLastErrorText());
+        callback(pResponse);
+        return;
+    }
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
-}
-
-void DeviceSoftVersionController::setVersionGetter(std::function<std::string ()> &&versionGetter)
-{
-    m_versionGetter = std::move(versionGetter);
-}
-
-void DeviceSoftVersionController::setUpdater(std::function<bool (const std::string &)> &&versionUpdater)
-{
-    m_versionUpdater = std::move(versionUpdater);
 }

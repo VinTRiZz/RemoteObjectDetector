@@ -1,7 +1,6 @@
 #include "abstractendpoint.hpp"
 
-AbstractEndpoint::AbstractEndpoint(Protocol::EventProcessor &eventProcessor) :
-    m_eventProcessor {eventProcessor}
+void AbstractEndpoint::setEventProcessor(const Protocol::EventProcessorPtr &pEventProcessor)
 {
-
+    m_pEventProcessor = pEventProcessor;
 }

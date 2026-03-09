@@ -1,7 +1,7 @@
 #pragma once
 
 #include <drogon/drogon.h>
-#include "../endpoint/servereventlogger.hpp"
+#include "detector/detectorcommandprocessor.hpp"
 
 /**
  * @brief The DeviceSoftVersionController class Контроллер, отвечающий за версию ПО, установленную на устройствах
@@ -9,7 +9,7 @@
 class DeviceSoftVersionController : public drogon::HttpController<DeviceSoftVersionController, false>
 {
 public:
-    DeviceSoftVersionController(Protocol::EventProcessor& serverEventProcessor);
+    DeviceSoftVersionController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DeviceSoftVersionController::getSoftVersion,  "/api/detector/soft", drogon::Get);
@@ -27,13 +27,7 @@ public:
     void removeVersion(const drogon::HttpRequestPtr &req,
                          std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 
-    void setVersionGetter(std::function<std::string()>&& versionGetter);
-    void setUpdater(std::function<bool(const std::string&)>&& versionUpdater);
-
 private:
-    Protocol::EventProcessor& m_serverEventProcessor;
-
-    std::function<std::string()> m_versionGetter;
-    std::function<bool(const std::string&)> m_versionUpdater;
+    std::shared_ptr<DetectorCommandProcessor>   m_detectorCommandProcessor;
 };
 
