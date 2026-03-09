@@ -9,10 +9,12 @@
 class DetectorEndpoint
 {
 public:
-    DetectorEndpoint(const std::string& host, uint16_t streamPort, uint16_t eventPort);
+    DetectorEndpoint();
     ~DetectorEndpoint();
 
-    void start();
+    void setToken(const std::string& tokenString);
+
+    bool start(const std::string &host, uint16_t streamPort, uint16_t eventPort);
     void stop();
 
 private:

@@ -37,6 +37,8 @@ struct DetectorEndpoint::Impl
     uint16_t    streamPort {};
     uint16_t    eventPort {};
 
+    std::string token;
+
     Adaptors::CameraAdaptor     camera;
     ImageProcessing::Processor  imgProcessor {std::thread::hardware_concurrency()};
 
@@ -45,13 +47,9 @@ struct DetectorEndpoint::Impl
 };
 
 
-DetectorEndpoint::DetectorEndpoint(const std::string &host, uint16_t streamPort, uint16_t eventPort) :
+DetectorEndpoint::DetectorEndpoint() :
     d {new Impl}
 {
-    d->host = host;
-    d->streamPort = streamPort;
-    d->eventPort = eventPort;
-
     d->eventStreamer.setReceiveCallback([this](auto&& stringData){
         auto serverRequest = getServerRequest(stringData);
 
@@ -65,13 +63,22 @@ DetectorEndpoint::~DetectorEndpoint()
     stop();
 }
 
-void DetectorEndpoint::start()
+void DetectorEndpoint::setToken(const std::string &tokenString)
 {
+    d->token = tokenString;
+}
+
+bool DetectorEndpoint::start(const std::string &host, uint16_t streamPort, uint16_t eventPort)
+{
+    d->host = host;
+    d->streamPort = streamPort;
+    d->eventPort = eventPort;
+
     COMPLOG_INFO("Starting endpoint...");
     d->eventStreamer.connect(d->host, d->eventPort);
     if (!d->eventStreamer.isConnected()) {
         COMPLOG_ERROR("Failed to setup event stream");
-        return;
+        return false;
     }
     d->eventStreamer.sendText(createSimpleEvent("start"));
     d->imgStreamer.setHost(d->host, d->streamPort);
@@ -81,6 +88,7 @@ void DetectorEndpoint::start()
         COMPLOG_DEBUG("Processing...");
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    return true;
 }
 
 void DetectorEndpoint::stop()
