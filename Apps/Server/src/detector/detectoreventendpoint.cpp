@@ -118,7 +118,7 @@ void DetectorEventEndpoint::initConnectionCallbacks()
         auto remote = con->get_remote_endpoint();
 
         auto parameters = con->get_resource();
-        std::regex devnameRegexp("\\/[?&]dev=([a-f0-9]+)");
+        std::regex devnameRegexp("\\/[?&]dev=([a-f0-9]{64})");
         std::smatch devnameMatch;
         if (!std::regex_match(parameters, devnameMatch, devnameRegexp)) {
             COMPLOG_WARNING("[INVALID PROTOCOL] Rejected connection from:", remote);
@@ -192,7 +192,6 @@ bool DetectorEventEndpoint::isDevValid(const std::string &devname) const
     if ((devname.empty() ||
         devname.size() != 64) && // Device hash (token)
         (devname != "MANAGER")) {
-        COMPLOG_ERROR("Here", devname.size(), devname);
             return false;
     }
 
