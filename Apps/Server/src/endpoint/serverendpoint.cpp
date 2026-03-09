@@ -97,9 +97,9 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d->managementEndpoint.setEventProcessor(d->serverEventProcessor);
 
     d->serverEventProcessor->addServerEvent(Protocol::EventType::ServerStarted,
-                                           std::string("PORTS: API ") + std::to_string(httpAPIPort) +
+                                           std::string("[ API ") + std::to_string(httpAPIPort) +
                                            " EVENT " + std::to_string(wsEventPort) +
-                                           " STREAMING " + std::to_string(udpStreamingPort));
+                                           " STREAMING " + std::to_string(udpStreamingPort) + " ]");
 
     // In main thread
     d->managementEndpoint.start(httpAPIPort);
