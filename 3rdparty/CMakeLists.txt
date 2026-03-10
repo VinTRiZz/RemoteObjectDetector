@@ -4,6 +4,7 @@ if (ROD_BUILD_SERVER OR ROD_BUILD_DETECTOR)
     # Setup of OneTBB
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--undefined-version")
     set( TBB_TEST OFF CACHE BOOL "Extra 3rdparty function" FORCE )
+    set( BUILD_SHARED_LIBS ON CACHE BOOL "Extra 3rdparty function" FORCE )
     add_subdirectory(oneTBB)
 
     set( BUILD_EXAMPLES         OFF CACHE BOOL "Extra 3rdparty function" FORCE)

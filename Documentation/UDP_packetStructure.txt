@@ -1,0 +1,12 @@
+Description of UDP packets transferred as a realtime images
+
+TOTAL SIZE: 1400 (Ethernet MTU)
+PAYLOAD: Calculates using other parts of a packet
+
+Field name          |  Size (byte)  |    Example    |   Description
+--------------------------------------------------------------------------------------------------------------------
+Shot ID             |       8       |  00000000001  |   Sequential, from 0 to N, increments every time shot created
+Shot hash           |      64       |  a5317f9123e  |   XXH3 hash
+Total size          |       8       |  00000000001  |   Image bytes total count
+Fragment start      |       8       |  00000000001  |   Byte offset of a fragment
+Payload             |   Calculated  |  ...........  |   Image bytes

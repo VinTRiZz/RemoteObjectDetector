@@ -13,12 +13,13 @@ FROM ${BASE_IMAGE}
 
     # Deps for building
     RUN apt update
-    RUN apt install -y cmake make g++ build-essential ninja-build libboost-all-dev
-    RUN apt install -y uuid-dev libpq5 libmariadb3
-    RUN apt install -y libsqlite3-dev
-    RUN apt install -y libssl-dev libsodium-dev
-    RUN apt install -y nlohmann-json3-dev
-    RUN apt install -y libjsoncpp-dev
+    RUN apt install -y cmake make g++ build-essential ninja-build libboost-all-dev  # Common building
+    RUN apt install -y uuid-dev libpq5 libmariadb3                                  # Drogon required libraries
+    RUN apt install -y libjsoncpp-dev                                               # Drogon JSON
+    RUN apt install -y libsqlite3-dev                                               # DB
+    RUN apt install -y libssl-dev libsodium-dev                                     # Encryption
+    RUN apt install -y nlohmann-json3-dev                                           # JSON in events
+    RUN apt install -y libxxhash-dev                                                # XXH3, UDP
 
     # Clean unnsessesary cache
     RUN apt clean && rm -rf /var/lib/apt/lists/*

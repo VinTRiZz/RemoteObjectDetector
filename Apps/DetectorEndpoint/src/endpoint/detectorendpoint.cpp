@@ -1,9 +1,9 @@
 #include "detectorendpoint.hpp"
 
-#include <ROD/ImageProcessing.h>
-#include "streamer/imagestreamer.hpp"
-#include "camera/cameraadaptor.hpp"
+#include <ROD/CameraAdaptor.h>
 #include "eventendpoint.hpp"
+
+#include <ROD/ImageProcessing.h>
 
 #include <Components/Logger/Logger.h>
 
@@ -17,12 +17,9 @@ struct DetectorEndpoint::Impl
     // Events
     EventEndpoint eventEndpoint;
 
-    // UDP
-    ImageStreamer imgStreamer;
-
     // Image processing things
-    Adaptors::CameraAdaptor     camera;
-    ImageProcessing::Processor  imgProcessor {std::thread::hardware_concurrency()};
+    ImageProcessing::CameraAdaptor  camera;
+    ImageProcessing::Processor      imgProcessor {std::thread::hardware_concurrency()};
 };
 
 
@@ -46,7 +43,9 @@ bool DetectorEndpoint::start(const std::string &host, uint16_t streamPort, uint1
 {
     COMPLOG_INFO("Connecting to server...");
     d->eventEndpoint.connect(host, eventPort);
-    d->imgStreamer.setHost(host, streamPort);
+    if (!d->camera.initStreamingSimple(host, streamPort)) {
+        return false;
+    }
 
     COMPLOG_INFO("Starting endpoint...");
     while (d->isWorking.load(std::memory_order_acquire)) {

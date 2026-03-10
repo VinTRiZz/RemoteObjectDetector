@@ -2,9 +2,10 @@
 
 #include <string>
 #include <memory>
-#include <opencv2/opencv.hpp>
+#include <vector>
+#include <stdint.h>
 
-namespace Adaptors
+namespace ImageProcessing
 {
 
 /**
@@ -14,7 +15,7 @@ enum class AdaptorStatus : short
 {
     READY = 0,
     ERROR,
-    BUSY
+    BUSY,
 };
 
 /**
@@ -27,10 +28,10 @@ public:
     ~CameraAdaptor();
 
     /**
-     * @brief status    Получить статус драйвера
+     * @brief getStatus Получить статус драйвера
      * @return          Текущий статус
      */
-    AdaptorStatus status();
+    AdaptorStatus getStatus() const;
 
     /**
      * @brief shot          Запросить снимок с камеры в файл
@@ -40,11 +41,19 @@ public:
     bool shot(const std::string& outputFile);
 
     /**
-     * @brief shotToBuffer  Запросить снимок с камеры в буффер
-     * @param imageBuffer   Буффер для сохранения изображения
-     * @return              true если камера доступна и снимок выполнен
+     * @brief shot  Запросить снимок с камеры в буффер
+     * @return      Пустой vector при ошибке
      */
-    bool shotToBuffer(cv::Mat& imageBuffer);
+    std::vector<uint8_t> shot();
+
+    /**
+     * @brief initStreaming     Подготовить стриминг данных с камеры, используя GStreamer
+     * @param configuration     Конфигурация пайплайна для GStreamer
+     */
+    bool initStreaming(const std::string& configuration);
+    bool initStreamingSimple(const std::string serverIp, uint16_t serverPort);
+    bool streamShot();
+    void deinitStreaming();
 
     /**
      * @brief setCameraDevice   Задать устройство для использования как камеры
@@ -59,6 +68,9 @@ public:
     std::string getCameraDevice() const;
     
 private:
+    bool canWork() const;
+    void setStatus(AdaptorStatus ast);
+
     struct Impl;
     std::unique_ptr<Impl> d;
 };

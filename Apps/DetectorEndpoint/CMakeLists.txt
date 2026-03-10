@@ -12,19 +12,6 @@ COMPONENTS_CCR_CONFIGURE_APP(${ENDPOINT_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     boost_program_options
     crypto
     ssl
-
-    # OpenCV
-    opencv_videoio
-    opencv_imgcodecs
-    opencv_video
-    opencv_photo
-    opencv_imgproc
-    opencv_flann
-    opencv_core
-    opencv_highgui
-    opencv_objdetect
-    opencv_flann
-    opencv_features2d
 )
 
 COMPONENTS_LINK_COMPONENT(${ENDPOINT_TARGET_NAME} Logger)
