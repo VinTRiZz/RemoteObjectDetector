@@ -7,22 +7,25 @@ DevicesController::DevicesController(const std::shared_ptr<DetectorCommandProces
 
 }
 
-void DevicesController::getDeviceStatus(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DevicesController::processGetDeviceStatus(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string &detectorUuid)
 {
 
 }
 
-void DevicesController::rebootDevice(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DevicesController::processDevicePowerRequest(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string& detectorUuid)
 {
 
 }
 
-void DevicesController::poweroffDevice(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
-{
-
-}
-
-void DevicesController::setStreamingMode(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DevicesController::processToggleStreamingMode(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback, const std::string &detectorUuid, const std::string &streamingMode)
 {
 
 }

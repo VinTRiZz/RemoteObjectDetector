@@ -15,19 +15,25 @@ public:
     DevicesController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);
 
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(DevicesController::getDeviceStatus,   "/api/detector/status",   drogon::Get);
-        ADD_METHOD_TO(DevicesController::rebootDevice,      "/api/detector/power",    drogon::Put);
-        ADD_METHOD_TO(DevicesController::setStreamingMode,  "/api/detector/stream",   drogon::Put); // Start / stop streaming
+        ADD_METHOD_TO(DevicesController::processGetDeviceStatus,        Protocol::API::DROGON::DETECTOR_STATUS,             drogon::Get);
+        ADD_METHOD_TO(DevicesController::processDevicePowerRequest,     Protocol::API::DROGON::DETECTOR_POWER,              drogon::Put);
+        ADD_METHOD_TO(DevicesController::processToggleStreamingMode,    Protocol::API::DROGON::DETECTOR_TOGGLE_STREAMING,   drogon::Put);
     METHOD_LIST_END
 
-    void getDeviceStatus(const drogon::HttpRequestPtr &req,
-                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-    void rebootDevice(const drogon::HttpRequestPtr &req,
-                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-    void poweroffDevice(const drogon::HttpRequestPtr &req,
-                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
-    void setStreamingMode(const drogon::HttpRequestPtr &req,
-                         std::function<void(const drogon::HttpResponsePtr &)> &&callback);
+    using ResponseCallback_t = std::function<void(const drogon::HttpResponsePtr&)>;
+
+    void processGetDeviceStatus(const drogon::HttpRequestPtr &req,
+                            ResponseCallback_t &&callback,
+                            const std::string& detectorUuid);
+
+    void processDevicePowerRequest(const drogon::HttpRequestPtr &req,
+                            ResponseCallback_t &&callback,
+                            const std::string& detectorUuid);
+
+    void processToggleStreamingMode(const drogon::HttpRequestPtr &req,
+                            ResponseCallback_t &&callback,
+                            const std::string& detectorUuid,
+                            const std::string& streamingMode);
 
 private:
     std::shared_ptr<DetectorCommandProcessor> m_commandEventProcessor;

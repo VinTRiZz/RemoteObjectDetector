@@ -11,7 +11,10 @@ DeviceSoftVersionController::DeviceSoftVersionController(const std::shared_ptr<D
 
 }
 
-void DeviceSoftVersionController::getSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DeviceSoftVersionController::processGetSoftVersion(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string &deviceUuid)
 {
     auto version = m_detectorCommandProcessor->getCurrentVersion();
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_TEXT_PLAIN);
@@ -19,13 +22,14 @@ void DeviceSoftVersionController::getSoftVersion(const drogon::HttpRequestPtr &r
     callback(pResponse);
 }
 
-void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DeviceSoftVersionController::processAddVersion(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string &versionUuid,
+    const std::string &versionName)
 {
-    auto versionNameString = req->getParameter("version");
-    auto versionHash = req->getParameter("hash");
-
     // 32 -- SHA-256 or MD5 HEX hash byte count
-    if (versionNameString.empty() || versionHash.empty() || (versionHash.size() != 32)) {
+    if (versionName.empty() || versionUuid.empty() || (versionUuid.size() != 32)) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::CT_NONE);
         callback(pResponse);
         return;
@@ -60,24 +64,27 @@ void DeviceSoftVersionController::addVersion(const drogon::HttpRequestPtr &req, 
         resp->setBody("Failed to save file");
         callback(resp);
     }
-    std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionNameString + "_" + versionHash));
-    if (!m_detectorCommandProcessor->registerSoftVersion(versionNameString, versionHash)) {
-        std::filesystem::remove(resfilePath / (versionNameString + "_" + versionHash));
+    std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionName + "_" + versionUuid));
+    if (!m_detectorCommandProcessor->registerSoftVersion(versionName, versionUuid)) {
+        std::filesystem::remove(resfilePath / (versionName + "_" + versionUuid));
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
         COMPLOG_ERROR("Failed to add soft version:", m_detectorCommandProcessor->getLastErrorText());
         callback(pResponse);
         return;
     }
-    COMPLOG_OK("Added version:", versionNameString, versionHash);
+    COMPLOG_OK("Added version:", versionName, versionUuid);
 
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
 }
 
-void DeviceSoftVersionController::setSoftVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DeviceSoftVersionController::processSetSoftVersion(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string& deviceUuid,
+    const std::string& versionUuid)
 {
-    auto versionNameString = req->getParameter("version");
-    auto isSucceed = m_detectorCommandProcessor->setSoftVersion(versionNameString);
+    auto isSucceed = m_detectorCommandProcessor->setSoftVersion(versionUuid);
 
     if (!isSucceed.has_value()) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k404NotFound, drogon::CT_NONE);
@@ -96,16 +103,18 @@ void DeviceSoftVersionController::setSoftVersion(const drogon::HttpRequestPtr &r
     callback(pResponse);
 }
 
-void DeviceSoftVersionController::removeVersion(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void DeviceSoftVersionController::processRemoveVersion(
+    const drogon::HttpRequestPtr &req,
+    ResponseCallback_t &&callback,
+    const std::string &versionUuid)
 {
-    auto versionNameString = req->getParameter("version");
-    if (versionNameString.empty()) {
+    if (versionUuid.empty()) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k406NotAcceptable, drogon::CT_NONE);
         callback(pResponse);
         return;
     }
 
-    auto isSucceed = m_detectorCommandProcessor->removeSoftVersion(versionNameString);
+    auto isSucceed = m_detectorCommandProcessor->removeSoftVersion(versionUuid);
     if (!isSucceed) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
         pResponse->setBody(m_detectorCommandProcessor->getLastErrorText());

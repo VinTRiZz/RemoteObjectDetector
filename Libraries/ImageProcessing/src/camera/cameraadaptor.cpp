@@ -20,7 +20,9 @@ struct CameraAdaptor::Impl
     cv::VideoWriter  streamer;      // OpenCV video streaming interface
 
     // GStreamer configuration
-    std::string gstPipelineBase = "appsrc ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay";
+    std::string gstPipelineBase {
+        "videoconvert ! x264enc tune=zerolatency ! rtph264pay pt=96"
+    };
     std::string gstPipeline;
 
     bool canWork() const {
@@ -99,7 +101,7 @@ bool CameraAdaptor::initStreaming(const std::string &configuration)
 
 bool CameraAdaptor::initStreamingSimple(const std::string serverIp, uint16_t serverPort)
 {
-    return initStreaming(d->gstPipelineBase + "! udpsink host=" + serverIp + " port=" + std::to_string(serverPort));
+    return initStreaming("udpsink host=" + serverIp + " port=" + std::to_string(serverPort) + " sync=false ! " + d->gstPipelineBase);
 }
 
 bool CameraAdaptor::streamShot()

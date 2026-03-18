@@ -10,10 +10,8 @@ ServerController::ServerController() :
 
 }
 
-void ServerController::getStatus(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_APPLICATION_JSON);
-
     // Get status
     nlohmann::json response;
     response["uptime"] = m_statusManager.getUptimeSec();
@@ -26,21 +24,21 @@ void ServerController::getStatus(const drogon::HttpRequestPtr &req, std::functio
     response["space_free"] = spaceInfo.free;
 
     // Response
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_APPLICATION_JSON);
     pResponse->setStatusCode(drogon::k200OK);
     pResponse->setBody(response.dump());
     callback(pResponse);
 }
 
-void ServerController::processPowerRequest(const drogon::HttpRequestPtr &req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+void ServerController::processPowerRequest(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &action)
 {
-    auto actionText = req->getParameter("action");
-    if (actionText == "poweroff") {
+    if (action == Protocol::API::PARAMATER_VALUES::POWER_OFF) {
 #ifdef DEBUG_BUILD_MODE
     COMPLOG_DEBUG("POWEROFF PROCEDURE CALLED");
 #else
     system("systemctl poweroff");
 #endif // DEBUG_BUILD_MODE
-    } else if (actionText == "reboot") {
+    } else if (action == Protocol::API::PARAMATER_VALUES::POWER_REBOOT) {
 #ifdef DEBUG_BUILD_MODE
     COMPLOG_DEBUG("REBOT PROCEDURE CALLED");
 #else

@@ -1,49 +1,19 @@
 #include "utility.hpp"
 
+#include <sstream>
+#include <opencv2/imgcodecs.hpp>
+
 namespace ImageProcessing::Utility
 {
 
-std::vector<uint8_t> serializeMat(const cv::Mat &mat) {
-    int rows = mat.rows;
-    int cols = mat.cols;
-    int type = mat.type();
-    size_t dataSize = mat.total() * mat.elemSize();
-
-    // 2. space for header + data
-    std::vector<uchar> buffer(sizeof(int) * 3 + dataSize);
-    uchar* ptr = buffer.data();
-
-    // 3. header
-    memcpy(ptr, &rows, sizeof(int));
-    ptr += sizeof(int);
-    memcpy(ptr, &cols, sizeof(int));
-    ptr += sizeof(int);
-    memcpy(ptr, &type, sizeof(int));
-    ptr += sizeof(int);
-
-    // 4. pixel data
-    memcpy(ptr, mat.data, dataSize);
-
+std::vector<uint8_t> serializeMat(const cv::Mat& mat) {
+    std::vector<uint8_t> buffer;
+    cv::imencode(".jpg", mat, buffer);
     return buffer;
 }
 
-cv::Mat deserializeMat(const std::vector<uint8_t> &buffer) {
-    // 1. Read header
-    const uchar* ptr = buffer.data();
-    int rows, cols, type;
-    memcpy(&rows, ptr, sizeof(int));
-    ptr += sizeof(int);
-    memcpy(&cols, ptr, sizeof(int));
-    ptr += sizeof(int);
-    memcpy(&type, ptr, sizeof(int));
-    ptr += sizeof(int);
-
-    // 2. Create Mat with header info
-    cv::Mat mat(rows, cols, type);
-    size_t dataSize = mat.total() * mat.elemSize();
-
-    // 3. Copy pixel data
-    memcpy(mat.data, ptr, dataSize);
+cv::Mat deserializeMat(const std::vector<uint8_t>& buffer) {
+    cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
     return mat;
 }
 
@@ -67,6 +37,48 @@ cv::Mat generateColorBarImage(int width, int height) {
     return img;
 }
 
+std::string createSenderPipeline(const CameraPipelineConfig &config) {
+    std::ostringstream pipeline;
 
+    pipeline << "appsrc name=source ! "
+
+                // Image config
+             << "video/x-raw,format=BGR,"
+             << "width=" << config.frameWidth << ",height=" << config.frameHeight
+             << ",framerate=" << config.fps << "/1 ! "
+
+                // Auto video convert
+             << "videoconvert ! "
+
+                // Network configuration
+             << "x264enc bitrate=" << config.bitrate
+             << " tune=zerolatency speed-preset=ultrafast ! "
+             << "h264parse ! rtph264pay config-interval=1 pt=96 ! "
+
+                // Target server info
+             << "rtspclientsink location=rtsp://" << config.serverIp << ":" << config.serverPort << "/" << config.cameraId
+             << " sync=false async=false";
+
+    return pipeline.str();
+}
+
+std::string createReceiverPipeline(const CameraPipelineConfig &config) {
+    std::ostringstream pipeline;
+
+    pipeline << "rtspsrc location=rtsp://" << config.serverIp << ":"
+             << config.serverPort << "/" << config.cameraId
+             << " latency=0 ! "
+             << "rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
+             << "video/x-raw,format=BGR ! appsink name=sink sync=false";
+
+    return pipeline.str();
+
+
+    // // Example pipeline for receiving RTSP stream
+    // std::ostringstream oss;
+    // oss << "uridecodebin uri=rtsp://" << config.serverIp << ":" << config.serverPort
+    //     << "/?camera_id=" << config.cameraId << " ! videoconvert ! appsink name=appsink";
+    // return oss.str();
+}
 
 }
