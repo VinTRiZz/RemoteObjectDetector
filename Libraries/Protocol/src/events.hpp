@@ -6,6 +6,8 @@
 namespace Protocol
 {
 
+// TODO: RENAME
+
 /**
  * @brief The EventType enum    Type of an event on a server or device
  */
