@@ -11,7 +11,7 @@ public:
     explicit ServerListModel(QObject *parent = nullptr);
 
     enum Roles : int {
-        ServerIp = Qt::UserRole + 1,
+        ServerAddress = Qt::UserRole + 1,
     };
 
     // QAbstractTableModel interface

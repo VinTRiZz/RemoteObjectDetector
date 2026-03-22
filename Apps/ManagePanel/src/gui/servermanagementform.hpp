@@ -6,6 +6,7 @@
 #include <QNetworkRequest>
 
 class ServerListModel;
+class ServerManager;
 
 namespace Ui {
 class ServerManagementForm;
@@ -21,17 +22,16 @@ public:
 
     void addServer(const QString& serverName, const QString& serverHost);
 
-private slots:
-    void setServer(const QString& serverName);
-
 private:
     Ui::ServerManagementForm *ui;
 
-    QNetworkAccessManager m_requestManager;
+    // Network
+    ServerManager*   m_pServerManager {nullptr};
 
+    // GUI
     ServerListModel* m_pServerModel {nullptr};
-    QString m_currentServerIp;
 
+    // Status update thing
     unsigned    m_timerUpdateTimeMs {1000};
     bool        m_isUpdatesCalled {false};
 

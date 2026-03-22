@@ -44,7 +44,7 @@ QVariant ServerListModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_servers.size() || index.row() < 0)
         return QVariant();
 
-    if (role == Roles::ServerIp) {
+    if (role == Roles::ServerAddress) {
         auto serverIt = m_servers.begin();
         std::advance(serverIt, index.row());
         return serverIt->second;
