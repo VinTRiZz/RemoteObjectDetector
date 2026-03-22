@@ -24,8 +24,7 @@ void ServerManager::requestStatus()
         auto isOk = response->error() == QNetworkReply::NoError;
         API::Structures::ServerStatus status;
 
-        auto responseBody = response->readAll();
-        auto jsonData = HTTPCommon::parseBody(responseBody);
+        auto jsonData = HTTPCommon::parseBody(response->readAll());
         if (std::holds_alternative<QString>(jsonData)) {
             COMPLOG_WARNING("Status parse error:", std::get<QString>(jsonData).toStdString());
         } else {
@@ -40,8 +39,6 @@ void ServerManager::requestStatus()
             status.storage.spaceTotal       = statusJson["storage"].toObject()["space_total"].toDouble();
             status.storage.spaceAvailable   = statusJson["storage"].toObject()["space_available"].toDouble();
             status.storage.spaceFree        = statusJson["storage"].toObject()["space_free"].toDouble();
-
-            COMPLOG_OK("Parsed status. Body:", responseBody.toStdString());
         }
 
         emit responseStatus(isOk, status);
