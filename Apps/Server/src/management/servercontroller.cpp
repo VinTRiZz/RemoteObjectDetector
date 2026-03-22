@@ -14,14 +14,15 @@ void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, Respo
 {
     // Get status
     nlohmann::json response;
-    response["uptime"] = m_statusManager.getUptimeSec();
-    response["cpu_temp"] = m_statusManager.getCPUCurrentTemperature();
-    response["cpu_load"] = m_statusManager.getCPULoad();
+    response["common"]["uptime"] = m_statusManager.getUptimeSec();
+
+    response["cpu"]["temp"] = m_statusManager.getCPUCurrentTemperature();
+    response["cpu"]["load"] = m_statusManager.getCPULoad();
 
     auto spaceInfo = std::filesystem::space(std::filesystem::current_path());
-    response["space_total"] = spaceInfo.capacity;
-    response["space_available"] = spaceInfo.available;
-    response["space_free"] = spaceInfo.free;
+    response["storage"]["space_total"] = spaceInfo.capacity;
+    response["storage"]["space_available"] = spaceInfo.available;
+    response["storage"]["space_free"] = spaceInfo.free;
 
     // Response
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_APPLICATION_JSON);
