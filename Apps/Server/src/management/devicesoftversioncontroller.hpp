@@ -14,13 +14,17 @@ public:
     DeviceSoftVersionController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);
 
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(DeviceSoftVersionController::processGetSoftVersion,  Protocol::API::DROGON::DETECTOR_APP_VERSION_GET, drogon::Get);
-        ADD_METHOD_TO(DeviceSoftVersionController::processAddVersion,      Protocol::API::DROGON::DETECTOR_APP_VERSION_ADD,   drogon::Post);
-        ADD_METHOD_TO(DeviceSoftVersionController::processSetSoftVersion,  Protocol::API::DROGON::DETECTOR_APP_VERSION_SET, drogon::Put);
-        ADD_METHOD_TO(DeviceSoftVersionController::processRemoveVersion,   Protocol::API::DROGON::DETECTOR_APP_VERSION_REM, drogon::Delete);
+        ADD_METHOD_TO(DeviceSoftVersionController::processGetExistingVersions,  Protocol::API::DROGON::DETECTOR_APP_VERSION_GET_ALL,drogon::Get);
+        ADD_METHOD_TO(DeviceSoftVersionController::processGetSoftVersion,       Protocol::API::DROGON::DETECTOR_APP_VERSION_GET,    drogon::Get);
+        ADD_METHOD_TO(DeviceSoftVersionController::processAddVersion,           Protocol::API::DROGON::DETECTOR_APP_VERSION_ADD,    drogon::Post);
+        ADD_METHOD_TO(DeviceSoftVersionController::processSetSoftVersion,       Protocol::API::DROGON::DETECTOR_APP_VERSION_SET,    drogon::Put);
+        ADD_METHOD_TO(DeviceSoftVersionController::processRemoveVersion,        Protocol::API::DROGON::DETECTOR_APP_VERSION_REM,    drogon::Delete);
     METHOD_LIST_END
 
     using ResponseCallback_t = std::function<void(const drogon::HttpResponsePtr&)>;
+
+    void processGetExistingVersions(const drogon::HttpRequestPtr &req,
+                               ResponseCallback_t &&callback);
 
     void processGetSoftVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
@@ -28,7 +32,6 @@ public:
 
     void processAddVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const std::string& versionUuid,
                         const std::string& versionName);
 
     void processSetSoftVersion(const drogon::HttpRequestPtr &req,

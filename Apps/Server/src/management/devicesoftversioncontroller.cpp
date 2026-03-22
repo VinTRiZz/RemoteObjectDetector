@@ -11,6 +11,12 @@ DeviceSoftVersionController::DeviceSoftVersionController(const std::shared_ptr<D
 
 }
 
+void DeviceSoftVersionController::processGetExistingVersions(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
+{
+    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k501NotImplemented, drogon::CT_NONE);
+    callback(pResponse);
+}
+
 void DeviceSoftVersionController::processGetSoftVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback,
@@ -25,11 +31,10 @@ void DeviceSoftVersionController::processGetSoftVersion(
 void DeviceSoftVersionController::processAddVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback,
-    const std::string &versionUuid,
     const std::string &versionName)
 {
     // 32 -- SHA-256 or MD5 HEX hash byte count
-    if (versionName.empty() || versionUuid.empty() || (versionUuid.size() != 32)) {
+    if (versionName.empty()) {
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::CT_NONE);
         callback(pResponse);
         return;
@@ -63,16 +68,19 @@ void DeviceSoftVersionController::processAddVersion(
         resp->setStatusCode(drogon::k500InternalServerError);
         resp->setBody("Failed to save file");
         callback(resp);
+        return;
     }
-    std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionName + "_" + versionUuid));
-    if (!m_detectorCommandProcessor->registerSoftVersion(versionName, versionUuid)) {
-        std::filesystem::remove(resfilePath / (versionName + "_" + versionUuid));
+    auto fileHash = file.getMd5(); // Used as UUID
+
+    std::filesystem::rename(resfilePath / file.getFileName(), resfilePath / (versionName + "_" + fileHash));
+    if (!m_detectorCommandProcessor->registerSoftVersion(versionName, fileHash)) {
+        std::filesystem::remove(resfilePath / (versionName + "_" + fileHash));
         auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k500InternalServerError, drogon::CT_TEXT_PLAIN);
         COMPLOG_ERROR("Failed to add soft version:", m_detectorCommandProcessor->getLastErrorText());
         callback(pResponse);
         return;
     }
-    COMPLOG_OK("Added version:", versionName, versionUuid);
+    COMPLOG_OK("Added version:", versionName, fileHash);
 
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
     callback(pResponse);
