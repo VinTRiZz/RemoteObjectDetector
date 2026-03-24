@@ -34,7 +34,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
-        <string>Серверы</string>
+        <string>Server list</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -61,159 +61,14 @@
      <item>
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
-        <string>Система</string>
+        <string>System</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,1">
-          <property name="spacing">
-           <number>2</number>
-          </property>
-          <item>
-           <widget class="QSpinBox" name="spinBoxUptime">
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="suffix">
-             <string> д.</string>
-            </property>
-            <property name="prefix">
-             <string>В сети: </string>
-            </property>
-            <property name="maximum">
-             <number>9999</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QTimeEdit" name="timeEditUptime">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="keyboardTracking">
-             <bool>false</bool>
-            </property>
-            <property name="displayFormat">
-             <string>hh:mm:ss</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="spinBoxTempCurrent">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::NoButtons</enum>
-          </property>
-          <property name="suffix">
-           <string> C</string>
-          </property>
-          <property name="prefix">
-           <string>Температура ЦП: </string>
-          </property>
-          <property name="minimum">
-           <number>-300</number>
-          </property>
-          <property name="maximum">
-           <number>1000</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="spinBoxCPUCurrent">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::NoButtons</enum>
-          </property>
-          <property name="suffix">
-           <string> %</string>
-          </property>
-          <property name="prefix">
-           <string>Нагрузка ЦП: </string>
-          </property>
-          <property name="maximum">
-           <number>100</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="spacing">
-           <number>1</number>
-          </property>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceCurrent">
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="prefix">
-             <string>Место на диске: </string>
-            </property>
-            <property name="suffix">
-             <string> Гб</string>
-            </property>
-            <property name="maximum">
-             <double>5000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceTotal">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="prefix">
-             <string>(всего: </string>
-            </property>
-            <property name="suffix">
-             <string> Гб)</string>
-            </property>
-            <property name="maximum">
-             <double>5000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonShutdown">
-          <property name="text">
-           <string>Выключить сервер</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonReboot">
-          <property name="text">
-           <string>Перезагрузить сервер</string>
-          </property>
-         </widget>
+         <widget class="SystemStatusWidget" name="serverStatus" native="true"/>
         </item>
         <item>
          <spacer name="verticalSpacer">
@@ -262,6 +117,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SystemStatusWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/systemstatuswidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

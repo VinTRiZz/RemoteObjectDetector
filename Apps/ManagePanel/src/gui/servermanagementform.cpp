@@ -42,29 +42,19 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
     });
 
     // Power options
-    connect(ui->pushButtonShutdown, &QPushButton::clicked,
+    connect(ui->serverStatus, &SystemStatusWidget::requestedPoweroff,
             m_pServerManager, &ServerManager::requestShutdown);
-    connect(ui->pushButtonReboot, &QPushButton::clicked,
+    connect(ui->serverStatus, &SystemStatusWidget::requestedReboot,
             m_pServerManager, &ServerManager::requestReboot);
 
     // Status
     connect(m_pServerManager, &ServerManager::responseStatus,
             this, [this](bool isOk, const Protocol::Structures::DeviceStatus& serverStatus){
-        // Uptime
-        auto uptimeLeast = serverStatus.common.uptime % 86400;
-        auto uptimeDays = serverStatus.common.uptime / 86400;
-        ui->spinBoxUptime->setValue(uptimeDays);
-        ui->timeEditUptime->setTime( QTime(uptimeLeast / 3600, uptimeLeast % 3600 / 60, uptimeLeast % 3600 % 60) );
-
-        // CPU info
-        ui->spinBoxTempCurrent->setValue(serverStatus.cpu.temperature);
-        ui->spinBoxCPUCurrent->setValue(serverStatus.cpu.loadPercent);
-
-        // Storage info
-        auto totalSpace = serverStatus.storage.spaceTotal / 1024.0 / 1024.0 / 1024.0;
-        auto freeSpace = serverStatus.storage.spaceFree / 1024.0 / 1024.0 / 1024.0;
-        ui->doubleSpinBoxSpaceCurrent->setValue(freeSpace);
-        ui->doubleSpinBoxSpaceTotal->setValue(totalSpace);
+        if (!isOk) {
+            ui->serverStatus->setInvalidState();
+            return;
+        }
+        ui->serverStatus->setDisplayInfo(serverStatus);
     });
 }
 
