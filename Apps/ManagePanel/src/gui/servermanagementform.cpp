@@ -49,7 +49,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
 
     // Status
     connect(m_pServerManager, &ServerManager::responseStatus,
-            this, [this](bool isOk, const API::Structures::ServerStatus& serverStatus){
+            this, [this](bool isOk, const Protocol::Structures::DeviceStatus& serverStatus){
         // Uptime
         auto uptimeLeast = serverStatus.common.uptime % 86400;
         auto uptimeDays = serverStatus.common.uptime / 86400;

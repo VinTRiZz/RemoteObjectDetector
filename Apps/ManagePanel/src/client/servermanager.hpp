@@ -1,7 +1,7 @@
 #pragma once
 
 #include "httpclientbase.hpp"
-#include "apidatastructures.hpp"
+#include <ROD/Protocol.h>
 
 /**
  * @brief The ServerManager class Server manager
@@ -18,7 +18,7 @@ public slots:
     void requestShutdown();
 
 signals:
-    void responseStatus(bool isOk, const API::Structures::ServerStatus& serverStatus);
+    void responseStatus(bool isOk, const Protocol::Structures::DeviceStatus& serverStatus);
     void responseReboot(bool isOk);
     void responseShutdown(bool isOk);
 };

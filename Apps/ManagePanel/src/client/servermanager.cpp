@@ -6,8 +6,6 @@
 
 #include <Components/Logger/Logger.h>
 
-#include "httpcommon.hpp"
-
 ServerManager::ServerManager(QObject *parent)
     : HTTPClientBase{parent}
 {
@@ -22,23 +20,10 @@ void ServerManager::requestStatus()
     connect(response, &QNetworkReply::finished,
             this, [this, response](){
         auto isOk = response->error() == QNetworkReply::NoError;
-        API::Structures::ServerStatus status;
+        Protocol::Structures::DeviceStatus status;
 
-        auto jsonData = HTTPCommon::parseBody(response->readAll());
-        if (std::holds_alternative<QString>(jsonData)) {
-            COMPLOG_WARNING("Status parse error:", std::get<QString>(jsonData).toStdString());
-        } else {
-            auto& statusJson = std::get<QJsonObject>(jsonData);
-
-            status.common.uptime = statusJson["common"].toObject()["uptime"].toInt();
-
-            status.cpu.loadPercent = statusJson["cpu"].toObject()["load"].toDouble();
-            status.cpu.temperature = statusJson["cpu"].toObject()["temp"].toDouble();
-
-            // Funny, that "uintmax_t" in nlohmann::json is double in Qt
-            status.storage.spaceTotal       = statusJson["storage"].toObject()["space_total"].toDouble();
-            status.storage.spaceAvailable   = statusJson["storage"].toObject()["space_available"].toDouble();
-            status.storage.spaceFree        = statusJson["storage"].toObject()["space_free"].toDouble();
+        if (!status.readJson(response->readAll().toStdString())) {
+            COMPLOG_WARNING("Status parse error:", status.getLastErrorString());
         }
 
         emit responseStatus(isOk, status);
