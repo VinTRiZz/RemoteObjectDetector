@@ -2,6 +2,8 @@
 
 #include <Components/Logger/Logger.h>
 
+#include <ROD/Protocol.h>
+
 #include <nlohmann/json.hpp>
 
 ServerController::ServerController() :
@@ -13,21 +15,22 @@ ServerController::ServerController() :
 void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     // Get status
-    nlohmann::json response;
-    response["common"]["uptime"] = m_statusManager.getUptimeSec();
+    Protocol::Structures::DeviceStatus status;
 
-    response["cpu"]["temp"] = m_statusManager.getCPUCurrentTemperature();
-    response["cpu"]["load"] = m_statusManager.getCPULoad();
+    status.common.uptime = m_statusManager.getUptimeSec();
+
+    status.cpu.temperature = m_statusManager.getCPUCurrentTemperature();
+    status.cpu.loadPercent = m_statusManager.getCPULoad();
 
     auto spaceInfo = std::filesystem::space(std::filesystem::current_path());
-    response["storage"]["space_total"] = spaceInfo.capacity;
-    response["storage"]["space_available"] = spaceInfo.available;
-    response["storage"]["space_free"] = spaceInfo.free;
+    status.storage.spaceTotal       = spaceInfo.capacity;
+    status.storage.spaceAvailable   = spaceInfo.available;
+    status.storage.spaceFree        = spaceInfo.free;
 
     // Response
     auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_APPLICATION_JSON);
     pResponse->setStatusCode(drogon::k200OK);
-    pResponse->setBody(response.dump());
+    pResponse->setBody(status.toJson());
     callback(pResponse);
 }
 
