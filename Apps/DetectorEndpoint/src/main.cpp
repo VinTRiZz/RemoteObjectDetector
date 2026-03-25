@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 
     // Get existing settings
     auto& appSettings = Common::ApplicationSettings::getInstance();
-    appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Data) / "config.ini");
+    appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Config) / "config.ini");
 
     const auto CONNECTION_CONFIG_SECTION_NAME = "CONNECTION_CONFIG";
     auto addressSetting = appSettings.getSetting(CONNECTION_CONFIG_SECTION_NAME, "address");
