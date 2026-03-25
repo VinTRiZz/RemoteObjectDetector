@@ -1,0 +1,5 @@
+CREATE TABLE versions.system(
+	id BIGSERIAL PRIMARY KEY NOT NULL,
+	register_date BIGINT NOT NULL,
+	hash TEXT NOT NULL UNIQUE
+);

@@ -1,0 +1,3 @@
+CREATE SCHEMA detector;
+CREATE SCHEMA versions;
+CREATE SCHEMA etc;

@@ -1,0 +1,4 @@
+CREATE TABLE detector.system(
+	id BIGSERIAL PRIMARY KEY NOT NULL,
+	register_date BIGINT NOT NULL
+);
