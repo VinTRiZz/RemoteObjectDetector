@@ -26,7 +26,7 @@ const std::string   SERVER_BASE         {"/api/" + API_VERSION + "/server"};
 const auto          SERVER_STATUS_BASE  {SERVER_BASE + "/status"};
 const auto          SERVER_POWER_BASE   {SERVER_BASE + "/power"};
 const std::string   DETECTOR_BASE       {"/api/" + API_VERSION + "/detector"};
-const auto          DETECTOR_APP_BASE   {DETECTOR_BASE + "/soft"};
+const auto          DETECTOR_APP_BASE   {DETECTOR_BASE + "/software"};
 
 
 // API in Qt side
@@ -35,11 +35,11 @@ namespace QT
 const auto SERVER_STATUS    {SERVER_STATUS_BASE};
 const auto SERVER_POWER     {SERVER_POWER_BASE + "/%1"};
 
-const auto DETECTOR_APP_VERSION_GET_ALL {DETECTOR_APP_BASE + "/software/versions"};
-const auto DETECTOR_APP_VERSION_GET     {DETECTOR_APP_BASE + "/software/%1"};
-const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/software/versions"};
-const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/software/%1?version=%2"};
-const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/software/versions/%1"};
+const auto DETECTOR_APP_VERSION_GET_ALL {DETECTOR_APP_BASE + "/versions"};
+const auto DETECTOR_APP_VERSION_GET     {DETECTOR_APP_BASE + "/%1"};
+const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/versions"};
+const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/%1?version=%2"};
+const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/versions/%1"};
 
 const auto DETECTOR_GET_ID_LIST         {DETECTOR_BASE + "/list"};
 const auto DETECTOR_INFO                {DETECTOR_BASE + "/%1/info"};
@@ -55,11 +55,11 @@ namespace DROGON
 const auto SERVER_STATUS    {SERVER_STATUS_BASE};
 const auto SERVER_POWER     {SERVER_POWER_BASE + "/{action_type}"};
 
-const auto DETECTOR_APP_VERSION_GET_ALL {DETECTOR_APP_BASE + "/software/versions"};
-const auto DETECTOR_APP_VERSION_GET     {DETECTOR_APP_BASE + "/software/{dev_uuid}"};
-const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/software/versions"};
-const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/software/{dev_uuid}?version={version_uuid}"};
-const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/software/versions/{version_uuid}"};
+const auto DETECTOR_APP_VERSION_GET_ALL {DETECTOR_APP_BASE + "/versions"};
+const auto DETECTOR_APP_VERSION_GET     {DETECTOR_APP_BASE + "/{dev_uuid}"};
+const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/versions"};
+const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/{dev_uuid}?version={version_uuid}"};
+const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/versions/{version_uuid}"};
 
 const auto DETECTOR_GET_ID_LIST         {DETECTOR_BASE + "/list"};
 const auto DETECTOR_INFO                {DETECTOR_BASE + "/{dev_uuid}/info"};
