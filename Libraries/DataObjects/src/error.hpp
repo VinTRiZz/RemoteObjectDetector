@@ -3,8 +3,39 @@
 #include <string>
 #include <map>
 
-namespace Protocol::Structures
+namespace DataObjects
 {
+
+/**
+ * @brief The ErrorCodes enum Error codes for internal usage
+ */
+enum ErrorCodes : unsigned
+{
+    NoError = 0,
+
+
+    // 0*** --> System errors
+    SystemUnknown = 1,
+
+
+    // 1*** --> Protocol errors
+    ProtocolUnknown = 1000,
+    ProtocolInvalidVersion,
+    ProtocolNoData,
+    ProtocolInvalidData,
+    ProtocolJsonException,
+
+
+    // 2*** --> Interface errors
+    InterfaceUnknown = 2000,
+    InterfaceInvalidHostname,
+    InterfaceInvalidPort,
+
+
+    // 3*** --> Implementation errors
+    ImplUnknown = 3000,
+    ImplNotImplemented
+};
 
 
 /**
@@ -45,35 +76,5 @@ protected:
     mutable Error m_error;
 };
 
-
-/**
- * @brief The DeviceStatus class Status of a server, detector, etc.
- */
-struct DeviceStatus : public ErrorUser
-{
-    struct CommonInfo
-    {
-        unsigned long   uptime  {};
-    };
-    CommonInfo common {};
-
-    struct CPUInfo
-    {
-        double  temperature  {};
-        double  loadPercent  {};
-    };
-    CPUInfo cpu {};
-
-    struct StorageInfo
-    {
-        unsigned long   spaceTotal      {};
-        unsigned long   spaceAvailable  {};
-        unsigned long   spaceFree       {};
-    };
-    StorageInfo storage {};
-
-    std::string toJson();
-    bool readJson(const std::string& iString);
-};
 
 }

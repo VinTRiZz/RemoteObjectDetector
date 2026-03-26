@@ -3,6 +3,7 @@
 #include <QWidget>
 
 #include <ROD/Protocol.h>
+#include <ROD/DeviceStatus.h>
 
 namespace Ui {
 class SystemStatusWidget;
@@ -17,7 +18,7 @@ public:
     ~SystemStatusWidget();
 
     void setInvalidState();
-    void setDisplayInfo(const Protocol::Structures::DeviceStatus& status);
+    void setDisplayInfo(const DataObjects::DeviceStatus& status);
 
 signals:
     void requestedPoweroff();

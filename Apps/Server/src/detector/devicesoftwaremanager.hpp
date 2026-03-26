@@ -4,6 +4,7 @@
 #include <map>
 
 #include <ROD/Protocol.h>
+#include <ROD/Error.h>
 
 #include "common/servercommon.hpp"
 
@@ -31,7 +32,7 @@ public:
 private:
     void init();
 
-    mutable Protocol::Structures::Error m_error;
+    mutable DataObjects::Error m_error;
     std::map<std::string, std::string>          m_versionPaths;
     std::map<DataObjects::id_t, std::string>   m_versionHashCache;
 };

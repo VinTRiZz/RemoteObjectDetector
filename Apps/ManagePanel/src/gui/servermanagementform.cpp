@@ -49,7 +49,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
 
     // Status
     connect(m_pServerManager, &ServerManager::responseStatus,
-            this, [this](bool isOk, const Protocol::Structures::DeviceStatus& serverStatus){
+            this, [this](bool isOk, const DataObjects::DeviceStatus& serverStatus){
         if (!isOk) {
             ui->serverStatus->setInvalidState();
             return;

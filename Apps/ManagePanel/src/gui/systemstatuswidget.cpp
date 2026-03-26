@@ -26,7 +26,7 @@ void SystemStatusWidget::setInvalidState()
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-void SystemStatusWidget::setDisplayInfo(const Protocol::Structures::DeviceStatus &status)
+void SystemStatusWidget::setDisplayInfo(const DataObjects::DeviceStatus &status)
 {
     ui->stackedWidget->setCurrentIndex(1);
     if (!status.isValid()) {

@@ -20,7 +20,7 @@ void ServerManager::requestStatus()
     connect(response, &QNetworkReply::finished,
             this, [this, response](){
         auto isOk = response->error() == QNetworkReply::NoError;
-        Protocol::Structures::DeviceStatus status;
+        DataObjects::DeviceStatus status;
 
         if (!status.readJson(response->readAll().toStdString())) {
             COMPLOG_WARNING("Status parse error:", status.getLastErrorString());

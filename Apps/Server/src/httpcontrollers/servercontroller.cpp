@@ -3,6 +3,7 @@
 #include <Components/Logger/Logger.h>
 
 #include <ROD/Protocol.h>
+#include <ROD/DeviceStatus.h>
 
 #include <nlohmann/json.hpp>
 
@@ -16,7 +17,7 @@ void ServerController::setServerEventProcessor(const std::shared_ptr<ServerEvent
 void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     // Get status
-    Protocol::Structures::DeviceStatus status;
+    DataObjects::DeviceStatus status;
 
     status.common.uptime = m_statusManager.getUptimeSec();
 
