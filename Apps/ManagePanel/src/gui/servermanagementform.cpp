@@ -1,7 +1,7 @@
 #include "servermanagementform.hpp"
 #include "ui_servermanagementform.h"
 
-#include "serverlistmodel.hpp"
+#include "models/serverlistmodel.hpp"
 #include "client/servermanager.hpp"
 
 #include <Components/Logger/Logger.h>
@@ -39,6 +39,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
         m_pServerManager->setServer(serverAddress);
         m_isUpdatesCalled = true;
         startUpdateTimer();
+        emit serverSelected(serverAddress);
     });
 
     // Power options

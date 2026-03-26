@@ -22,6 +22,9 @@ public:
 
     void addServer(const QString& serverName, const QString& serverHost);
 
+signals:
+    void serverSelected(const QString& serverAddress);
+
 private:
     Ui::ServerManagementForm *ui;
 
