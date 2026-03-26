@@ -16,6 +16,6 @@ docker run \
   -p 10001:5432 \
   -v $1:/var/lib/postgresql \
   -e POSTGRES_PASSWORD=12345678 \
-  -e POSTGRES_USER=testuser \
-  -e POSTGRES_DB=testdb \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_DB=postgres \
   postgres:latest
