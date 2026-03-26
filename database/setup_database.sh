@@ -17,9 +17,13 @@ LOCAL_adminUser=$3
 LOCAL_database=$4
 
 # Execution environment
-LOCAL_psqlEnv="-h $LOCAL_hostname -p $LOCAL_port -U $LOCAL_adminUser"
+LOCAL_psqlEnv="-v ON_ERROR_STOP=1 -h $LOCAL_hostname -p $LOCAL_port -U $LOCAL_adminUser"
 
 psql $LOCAL_psqlEnv -v CONFIGURE_SERVERUSER="server" -v CONFIGURE_DBNAME="$LOCAL_database" -f "0.sql"
+if [ $? != 0 ]; then
+    echo "[ FAIL ] Failed to setup main permissions"
+    exit 1
+fi
 
 # Execute configuration scripts
 LOCAL_scriptDir=$(realpath $(dirname "$0"))
@@ -29,5 +33,10 @@ for envScript in "$LOCAL_scriptDir"/*.sql; do
     fi
 
     echo "Executing script: " $envScript
-    psql $LOCAL_psqlEnv -d "$LOCAL_database" -f "$envScript"
+    psql $LOCAL_psqlEnv -d "$LOCAL_database" -v CONFIGURE_SERVERUSER="server" -v CONFIGURE_DBNAME="$LOCAL_database" -f "$envScript"
+
+    if [ $? != 0 ]; then
+        echo "[ FAIL ] Failed to execute version script"
+        exit 1
+    fi
 done
