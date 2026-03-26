@@ -4,12 +4,15 @@
 
 #include <ROD/Protocol.h>
 
-#include "detector/detectorcommandprocessor.hpp"
+#include "controllerbase.hpp"
+
+#include "eventprocessors/detectorcommandprocessor.hpp"
 
 /**
  * @brief The DevicesController class Контроллер, отвечающий за управление детекторами
  */
-class DevicesController : public drogon::HttpController<DevicesController, false>
+class DevicesController : public drogon::HttpController<DevicesController, false>,
+                          public ControllerBase
 {
 public:
     DevicesController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);

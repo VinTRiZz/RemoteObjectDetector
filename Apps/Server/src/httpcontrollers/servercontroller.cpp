@@ -6,10 +6,17 @@
 
 #include <nlohmann/json.hpp>
 
+#include "eventprocessors/servereventprocessor.hpp"
+
 ServerController::ServerController() :
     drogon::HttpController<ServerController, false>()
 {
 
+}
+
+void ServerController::setServerEventProcessor(const std::shared_ptr<ServerEventProcessor> &pProcessor)
+{
+    m_serverEventProcessor = pProcessor;
 }
 
 void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
@@ -28,32 +35,21 @@ void ServerController::processGetStatus(const drogon::HttpRequestPtr &req, Respo
     status.storage.spaceFree        = spaceInfo.free;
 
     // Response
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_APPLICATION_JSON);
-    pResponse->setStatusCode(drogon::k200OK);
-    pResponse->setBody(status.toJson());
-    callback(pResponse);
+    sendJsonMessage(drogon::k200OK, status.toJson(), std::move(callback));
 }
 
 void ServerController::processPowerRequest(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback, const std::string &action)
 {
     if (action == Protocol::API::PARAMATER_VALUES::POWER_OFF) {
-#ifdef DEBUG_BUILD_MODE
-    COMPLOG_DEBUG("POWEROFF PROCEDURE CALLED");
-#else
-    system("systemctl poweroff");
-#endif // DEBUG_BUILD_MODE
+        sendTextMessage(drogon::k200OK, "Power off started", std::move(callback));
+        m_serverEventProcessor->startPoweroff();
+        return;
+
     } else if (action == Protocol::API::PARAMATER_VALUES::POWER_REBOOT) {
-#ifdef DEBUG_BUILD_MODE
-    COMPLOG_DEBUG("REBOT PROCEDURE CALLED");
-#else
-    system("systemctl reboot");
-#endif // DEBUG_BUILD_MODE
-    } else {
-        auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k400BadRequest, drogon::CT_NONE);
-        callback(pResponse);
+        sendTextMessage(drogon::k200OK, "Reboot started", std::move(callback));
+        m_serverEventProcessor->startReboot();
         return;
     }
 
-    auto pResponse = drogon::HttpResponse::newHttpResponse(drogon::k200OK, drogon::CT_NONE);
-    callback(pResponse);
+    sendTextMessage(drogon::k400BadRequest, "Invalid action type", std::move(callback));
 }

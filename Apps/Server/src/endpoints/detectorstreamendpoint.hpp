@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../endpoint/abstractendpoint.hpp"
+#include "abstractendpoint.hpp"
 
 #include <Components/Network/ServerUDP.h>
 #include <Components/Network/ClientUDP.h>

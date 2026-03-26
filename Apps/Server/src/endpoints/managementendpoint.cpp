@@ -2,9 +2,11 @@
 
 #include <nlohmann/json.hpp>
 
-#include "devicescontroller.hpp"
-#include "servercontroller.hpp"
-#include "devicesoftversioncontroller.hpp"
+#include "eventprocessors/detectorcommandprocessor.hpp"
+
+#include "httpcontrollers/devicescontroller.hpp"
+#include "httpcontrollers/servercontroller.hpp"
+#include "httpcontrollers/devicesoftversioncontroller.hpp"
 
 namespace Management
 {
@@ -29,7 +31,7 @@ void Endpoint::start(uint16_t port)
 
     // Настройка контроллеров
     drogon::app().registerController(std::make_shared<ServerController>());
-    drogon::app().registerController(std::make_shared<DeviceSoftVersionController>(pDetectorCommandProcessor));
+    drogon::app().registerController(std::make_shared<DeviceSoftVersionController>());
     drogon::app().registerController(std::make_shared<DevicesController>(pDetectorCommandProcessor));
 
     // Server info

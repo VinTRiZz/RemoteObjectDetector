@@ -2,8 +2,7 @@
 
 #include <drogon/drogon.h>
 
-#include "endpoint/abstractendpoint.hpp"
-#include "detector/detectorcommandprocessor.hpp"
+#include "abstractendpoint.hpp"
 
 
 #include <Components/SystemProcessing/StatusManager.h>

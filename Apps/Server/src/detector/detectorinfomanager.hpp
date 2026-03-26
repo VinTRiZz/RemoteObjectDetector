@@ -6,17 +6,14 @@
 
 #include <ROD/DetectorConfiguration.h>
 
-class DeviceInfoManager
+class DetectorInfoManager
 {
 public:
-    explicit DeviceInfoManager(Database::SQLiteDatabase& db);
-
-    void init();
+    explicit DetectorInfoManager();
+    ~DetectorInfoManager();
 
     std::optional<DataObjects::DetectorConfiguration> getDevice(const std::string& id);
 
 private:
-    Database::SQLiteDatabase &m_serverDatabase;
-    std::shared_ptr<Database::SQLiteTable> m_devicesTable;
 };
 

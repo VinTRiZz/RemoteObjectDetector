@@ -1,17 +1,22 @@
 #pragma once
 
 #include <drogon/drogon.h>
-#include "detector/detectorcommandprocessor.hpp"
+
+#include "controllerbase.hpp"
+
+#include "eventprocessors/detectorcommandprocessor.hpp"
+#include "common/servercommon.hpp"
 
 #include <ROD/Protocol.h>
 
 /**
  * @brief The DeviceSoftVersionController class Контроллер, отвечающий за версию ПО, установленную на устройствах
  */
-class DeviceSoftVersionController : public drogon::HttpController<DeviceSoftVersionController, false>
+class DeviceSoftVersionController : public drogon::HttpController<DeviceSoftVersionController, false>,
+                                    public ControllerBase
 {
 public:
-    DeviceSoftVersionController(const std::shared_ptr<DetectorCommandProcessor>& detectorCommandProcessor);
+    DeviceSoftVersionController();
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DeviceSoftVersionController::processGetExistingVersions,  Protocol::API::DROGON::DETECTOR_APP_VERSION_GET_ALL,drogon::Get);
@@ -28,22 +33,24 @@ public:
 
     void processGetSoftVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const std::string& deviceUuid);
+                        const ServerCommon::id_t& deviceId);
 
     void processAddVersion(const drogon::HttpRequestPtr &req,
-                        ResponseCallback_t &&callback,
-                        const std::string& versionName);
+                        ResponseCallback_t &&callback);
 
     void processSetSoftVersion(const drogon::HttpRequestPtr &req,
-                        ResponseCallback_t &&callback,
-                        const std::string& deviceUuid,
-                        const std::string& versionUuid);
+                               ResponseCallback_t &&callback,
+                               const ServerCommon::id_t& deviceId,
+                               const ServerCommon::id_t& versionId);
 
     void processRemoveVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const std::string& versionUuid);
+                        const ServerCommon::id_t& versionId);
+
+    std::shared_ptr<DetectorCommandProcessor> getDetectorCommandProcessor() const;
 
 private:
+    DeviceSoftwareManager                       m_deviceSoftwareManager;
     std::shared_ptr<DetectorCommandProcessor>   m_detectorCommandProcessor;
 };
 

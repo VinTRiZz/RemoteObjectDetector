@@ -1,23 +1,22 @@
 #include "serverendpoint.hpp"
 
-#include "servercommon.hpp"
+#include "common/servercommon.hpp"
 
-#include "../detector/detectoreventendpoint.hpp"
-#include "../detector/detectorstreamendpoint.hpp"
-#include "../management/managementendpoint.hpp"
-#include "servereventlogger.hpp"
+#include "detectoreventendpoint.hpp"
+#include "detectorstreamendpoint.hpp"
+#include "managementendpoint.hpp"
 
-#include "servereventprocessor.hpp"
-#include "../detector/detectoreventprocessor.hpp"
-#include "../detector/detectorcommandprocessor.hpp"
+#include "common/servereventlogger.hpp"
+
+#include "eventprocessors/servereventprocessor.hpp"
+#include "eventprocessors/detectoreventprocessor.hpp"
+#include "eventprocessors/detectorcommandprocessor.hpp"
 
 #include <ROD/Protocol.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Filework/Common.h>
 #include <Components/Common/Utils.h>
-
-#include <thread>
 
 struct ServerEndpoint::Impl
 {
@@ -28,7 +27,6 @@ struct ServerEndpoint::Impl
     // Processors for events
     std::shared_ptr<ServerEventProcessor>       serverEventProcessor    { std::make_shared<ServerEventProcessor>() };
     std::shared_ptr<DetectorEventProcessor>     detectorEventProcessor  { std::make_shared<DetectorEventProcessor>() };
-    std::shared_ptr<DetectorCommandProcessor>   commandEventProcessor   { std::make_shared<DetectorCommandProcessor>() };
 
     // Endpoints
     DetectorEventEndpoint       detectorEventEndpoint;

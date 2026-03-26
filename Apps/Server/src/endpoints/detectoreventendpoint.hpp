@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../endpoint/abstractendpoint.hpp"
+#include "abstractendpoint.hpp"
 #include <ROD/Protocol.h>
 
 #include <websocketpp/server.hpp>

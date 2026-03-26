@@ -6,10 +6,17 @@
 
 #include <ROD/Protocol.h>
 
-class ServerController : public drogon::HttpController<ServerController, false>
+#include "controllerbase.hpp"
+
+class ServerEventProcessor;
+
+class ServerController : public drogon::HttpController<ServerController, false>,
+                         public ControllerBase
 {
 public:
     ServerController();
+
+    void setServerEventProcessor(const std::shared_ptr<ServerEventProcessor>& pProcessor);
 
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(ServerController::processGetStatus,       Protocol::API::DROGON::SERVER_STATUS,   drogon::Get);
@@ -26,6 +33,7 @@ public:
                             const std::string& action);
 
 private:
-    SystemProcessing::StatusManager m_statusManager;
+    SystemProcessing::StatusManager         m_statusManager;
+    std::shared_ptr<ServerEventProcessor>   m_serverEventProcessor;
 };
 
