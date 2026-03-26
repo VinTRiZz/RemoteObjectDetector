@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <ROD/Types.h>
+
 namespace DataObjects
 {
 
@@ -10,7 +12,20 @@ namespace DataObjects
  */
 struct DetectorConfiguration
 {
-    std::string id;
+    struct SystemInfo
+    {
+        id_t id {NULL_ID};
+        int64_t registerDateUTC {};
+    };
+    SystemInfo system;
+
+    struct OnlineInfo
+    {
+        int64_t lastOnlineTimeUTC   {};
+        int64_t totalOnlineTime     {};
+    };
+    OnlineInfo online;
+
     std::string token;
     std::string name;
     std::string location;

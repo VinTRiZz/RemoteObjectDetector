@@ -1,10 +1,5 @@
 #include "controllerbase.hpp"
 
-ControllerBase::ControllerBase() {
-
-}
-
-
 void ControllerBase::sendTextMessage(drogon::HttpStatusCode status, const std::string &textMsg, ResponseCallback_t &&cbk) const
 {
     auto pResponse = drogon::HttpResponse::newHttpResponse(status, drogon::CT_TEXT_PLAIN);

@@ -12,11 +12,11 @@ class DetectorInfoController : public drogon::HttpController<DetectorInfoControl
                                public ControllerBase
 {
 public:
-    DetectorInfoController();
-
     METHOD_LIST_BEGIN
-        ADD_METHOD_TO(DetectorInfoController::processGetStatus,   Protocol::API::DROGON::SERVER_STATUS,   drogon::Get);
+        ADD_METHOD_TO(DetectorInfoController::processGetStatus,   Protocol::API::DROGON::DETECTOR_STATUS,   drogon::Get);
     METHOD_LIST_END
+
+    void setRecordManager(const Database::RecordManagerPtr& pManager);
 
     using ResponseCallback_t = std::function<void(const drogon::HttpResponsePtr&)>;
 

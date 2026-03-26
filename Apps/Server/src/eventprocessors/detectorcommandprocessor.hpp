@@ -12,9 +12,9 @@ class DetectorCommandProcessor : public Protocol::EventProcessor
 public:
     DetectorCommandProcessor(DeviceSoftwareManager& deviceSoftManager);
 
-    std::string getCurrentVersion(ServerCommon::id_t deviceId) const;
-    std::optional<bool> setSoftVersion(ServerCommon::id_t deviceId,
-                                       ServerCommon::id_t versionId);
+    std::string getCurrentVersion(DataObjects::id_t deviceId) const;
+    std::optional<bool> setSoftVersion(DataObjects::id_t deviceId,
+                                       DataObjects::id_t versionId);
 
 private:
     DeviceSoftwareManager& m_deviceSoftManager;

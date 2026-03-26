@@ -8,12 +8,6 @@
 
 #include "eventprocessors/servereventprocessor.hpp"
 
-ServerController::ServerController() :
-    drogon::HttpController<ServerController, false>()
-{
-
-}
-
 void ServerController::setServerEventProcessor(const std::shared_ptr<ServerEventProcessor> &pProcessor)
 {
     m_serverEventProcessor = pProcessor;

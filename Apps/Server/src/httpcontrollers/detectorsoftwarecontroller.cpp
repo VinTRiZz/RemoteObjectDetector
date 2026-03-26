@@ -1,17 +1,17 @@
-#include "devicesoftversioncontroller.hpp"
+#include "detectorsoftwarecontroller.hpp"
 
 #include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>
 
 #include <nlohmann/json.hpp>
 
-DeviceSoftVersionController::DeviceSoftVersionController() :
-    drogon::HttpController<DeviceSoftVersionController, false>()
+DetectorSoftwareController::DetectorSoftwareController() :
+    drogon::HttpController<DetectorSoftwareController, false>()
 {
     m_detectorCommandProcessor = std::make_shared<DetectorCommandProcessor>(m_deviceSoftwareManager);
 }
 
-void DeviceSoftVersionController::processGetExistingVersions(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
+void DetectorSoftwareController::processGetExistingVersions(const drogon::HttpRequestPtr &req, ResponseCallback_t &&callback)
 {
     nlohmann::json res;
     for (auto& vers : m_deviceSoftwareManager.getExistingVersions()) {
@@ -20,16 +20,16 @@ void DeviceSoftVersionController::processGetExistingVersions(const drogon::HttpR
     sendJsonMessage(drogon::k200OK, res.dump(), std::move(callback));
 }
 
-void DeviceSoftVersionController::processGetSoftVersion(
+void DetectorSoftwareController::processGetSoftVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback,
-    const ServerCommon::id_t &deviceId)
+    const DataObjects::id_t &deviceId)
 {
     auto version = m_detectorCommandProcessor->getCurrentVersion(deviceId);
     sendTextMessage(drogon::k200OK, version, std::move(callback));
 }
 
-void DeviceSoftVersionController::processAddVersion(
+void DetectorSoftwareController::processAddVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback)
 {
@@ -63,11 +63,11 @@ void DeviceSoftVersionController::processAddVersion(
     sendTextMessage(drogon::k200OK, "File saved", std::move(callback));
 }
 
-void DeviceSoftVersionController::processSetSoftVersion(
+void DetectorSoftwareController::processSetSoftVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback,
-    const ServerCommon::id_t& deviceId,
-    const ServerCommon::id_t& versionId)
+    const DataObjects::id_t& deviceId,
+    const DataObjects::id_t& versionId)
 {
     auto isSucceed = m_detectorCommandProcessor->setSoftVersion(deviceId, versionId);
     if (!isSucceed.has_value()) {
@@ -83,10 +83,10 @@ void DeviceSoftVersionController::processSetSoftVersion(
     sendTextMessage(drogon::k200OK, "Version set", std::move(callback));
 }
 
-void DeviceSoftVersionController::processRemoveVersion(
+void DetectorSoftwareController::processRemoveVersion(
     const drogon::HttpRequestPtr &req,
     ResponseCallback_t &&callback,
-    const ServerCommon::id_t &versionId)
+    const DataObjects::id_t &versionId)
 {
     auto isSucceed = m_deviceSoftwareManager.removeVersion(versionId);
     if (!isSucceed) {
@@ -96,7 +96,7 @@ void DeviceSoftVersionController::processRemoveVersion(
     sendTextMessage(drogon::k200OK, "Version removed", std::move(callback));
 }
 
-std::shared_ptr<DetectorCommandProcessor> DeviceSoftVersionController::getDetectorCommandProcessor() const
+std::shared_ptr<DetectorCommandProcessor> DetectorSoftwareController::getDetectorCommandProcessor() const
 {
     return m_detectorCommandProcessor;
 }

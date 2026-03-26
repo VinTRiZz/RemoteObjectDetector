@@ -18,7 +18,7 @@ DeviceSoftwareManager::~DeviceSoftwareManager()
 
 }
 
-std::string DeviceSoftwareManager::getVersionHash(ServerCommon::id_t versionId) const
+std::string DeviceSoftwareManager::getVersionHash(DataObjects::id_t versionId) const
 {
     auto targetHash = m_versionHashCache.find(versionId);
     if (targetHash == m_versionHashCache.end()) {
@@ -51,7 +51,7 @@ bool DeviceSoftwareManager::addVersionFile(const std::string &localFilepath, con
     return false;
 }
 
-std::string DeviceSoftwareManager::getVersionFile(ServerCommon::id_t versionId) const
+std::string DeviceSoftwareManager::getVersionFile(DataObjects::id_t versionId) const
 {
     return getVersionFile(getVersionHash(versionId));
 }
@@ -69,7 +69,7 @@ std::string DeviceSoftwareManager::getVersionFile(const std::string &versionHash
     return resPath->second;
 }
 
-bool DeviceSoftwareManager::removeVersion(ServerCommon::id_t versionId)
+bool DeviceSoftwareManager::removeVersion(DataObjects::id_t versionId)
 {
     return removeVersion(getVersionHash(versionId));
 }

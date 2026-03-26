@@ -13,13 +13,13 @@ DetectorCommandProcessor::DetectorCommandProcessor(DeviceSoftwareManager &device
     setProcessorName("Detector command processor");
 }
 
-std::string DetectorCommandProcessor::getCurrentVersion(ServerCommon::id_t deviceId) const
+std::string DetectorCommandProcessor::getCurrentVersion(DataObjects::id_t deviceId) const
 {
     // TODO: Get version
     return {};
 }
 
-std::optional<bool> DetectorCommandProcessor::setSoftVersion(ServerCommon::id_t deviceId, ServerCommon::id_t versionId)
+std::optional<bool> DetectorCommandProcessor::setSoftVersion(DataObjects::id_t deviceId, DataObjects::id_t versionId)
 {
     auto versionFilename = m_deviceSoftManager.getVersionFile(versionId);
     if (versionFilename.empty()) {

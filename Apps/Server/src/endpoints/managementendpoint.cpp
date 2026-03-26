@@ -4,9 +4,9 @@
 
 #include "eventprocessors/detectorcommandprocessor.hpp"
 
-#include "httpcontrollers/devicescontroller.hpp"
+#include "httpcontrollers/detectorinfocontroller.hpp"
 #include "httpcontrollers/servercontroller.hpp"
-#include "httpcontrollers/devicesoftversioncontroller.hpp"
+#include "httpcontrollers/detectorsoftwarecontroller.hpp"
 
 namespace Management
 {
@@ -22,6 +22,11 @@ Endpoint::~Endpoint()
 
 }
 
+void Endpoint::setRecordManager(const Database::RecordManagerPtr &pManager)
+{
+    m_pRecordManager = pManager;
+}
+
 void Endpoint::start(uint16_t port)
 {
     // 1 thread for status, 1 for management panel requests
@@ -31,8 +36,11 @@ void Endpoint::start(uint16_t port)
 
     // Настройка контроллеров
     drogon::app().registerController(std::make_shared<ServerController>());
-    drogon::app().registerController(std::make_shared<DeviceSoftVersionController>());
-    drogon::app().registerController(std::make_shared<DevicesController>(pDetectorCommandProcessor));
+    drogon::app().registerController(std::make_shared<DetectorSoftwareController>());
+
+    auto pDetectorInfoController = std::make_shared<DetectorInfoController>();
+    pDetectorInfoController->setRecordManager(m_pRecordManager);
+    drogon::app().registerController(pDetectorInfoController);
 
     // Server info
     drogon::app().setServerHeaderField("Management server");

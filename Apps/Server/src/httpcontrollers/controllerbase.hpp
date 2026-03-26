@@ -5,7 +5,6 @@
 class ControllerBase
 {
 public:
-    ControllerBase();
 
 protected:
     using ResponseCallback_t = std::function<void(const drogon::HttpResponsePtr&)>;

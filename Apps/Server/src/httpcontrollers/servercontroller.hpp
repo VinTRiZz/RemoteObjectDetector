@@ -14,8 +14,6 @@ class ServerController : public drogon::HttpController<ServerController, false>,
                          public ControllerBase
 {
 public:
-    ServerController();
-
     void setServerEventProcessor(const std::shared_ptr<ServerEventProcessor>& pProcessor);
 
     METHOD_LIST_BEGIN

@@ -1,28 +1,26 @@
 #include "serverendpoint.hpp"
 
-#include "common/servercommon.hpp"
-
-#include "detectoreventendpoint.hpp"
-#include "detectorstreamendpoint.hpp"
-#include "managementendpoint.hpp"
-
-#include "common/servereventlogger.hpp"
-
-#include "eventprocessors/servereventprocessor.hpp"
-#include "eventprocessors/detectoreventprocessor.hpp"
-#include "eventprocessors/detectorcommandprocessor.hpp"
-
 #include <ROD/Protocol.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Filework/Common.h>
 #include <Components/Common/Utils.h>
 
+#include "detectoreventendpoint.hpp"
+#include "detectorstreamendpoint.hpp"
+#include "managementendpoint.hpp"
+
+#include "eventprocessors/servereventprocessor.hpp"
+#include "eventprocessors/detectoreventprocessor.hpp"
+
+#include "database/recordmanager.hpp"
+
+#include <Components/Common/DirectoryManager.h>
+
 struct ServerEndpoint::Impl
 {
     // Common
-    Database::SQLiteDatabase db;
-    ServerEventLogger eventLogger {db};
+    Database::RecordManagerPtr recordManager { std::make_shared<Database::RecordManager>("main_server_" + Common::createRandomString(32)) };
 
     // Processors for events
     std::shared_ptr<ServerEventProcessor>       serverEventProcessor    { std::make_shared<ServerEventProcessor>() };
@@ -65,8 +63,8 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d = std::make_unique<Impl>();
 
     auto addEmptyLog = [this](Protocol::EventType evt){
-        d->serverEventProcessor->setEventProcessor(evt, [this, evt](auto&& ev) {
-            d->eventLogger.logEvent(evt, ev.getPayload());
+        d->serverEventProcessor->setEventProcessor(evt, [this, eventTypeString = Protocol::toString(evt)](auto&& ev) {
+            COMPLOG_INFO("SERVER EVENT:", eventTypeString, ev.getPayload());
         });
     };
     addEmptyLog(Protocol::EventType::ServerStarted);
@@ -74,16 +72,11 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     addEmptyLog(Protocol::EventType::ServerRebootCalled);
     addEmptyLog(Protocol::EventType::ServerShutdownCalled);
 
-    auto res = d->db.setDatabase(m_dbPath);
-    if (!res) {
-        COMPLOG_ERROR("DB set failed. Reason:", d->db.getLastError());
-        return;
-    }
-
-    if (!d->eventLogger.init()) {
-        COMPLOG_ERROR("Failed to configure event logging");
-        return;
-    }
+    // TODO: Read from config?
+    d->recordManager->setDatabase("main");
+    d->recordManager->setServer("127.0.0.1", 10001);
+    d->recordManager->setUser("server", "serv_auth_password");
+    d->recordManager->init();
 
     // In other threads
     d->detectorEventEndpoint.setEventProcessor(d->detectorEventProcessor);
@@ -92,6 +85,7 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d->detectorStreamingEndpoint.setEventProcessor(d->detectorEventProcessor);
     d->detectorStreamingEndpoint.start(udpStreamingPort);
 
+    d->managementEndpoint.setRecordManager(d->recordManager);
     d->managementEndpoint.setEventProcessor(d->serverEventProcessor);
 
     d->serverEventProcessor->addServerEvent(Protocol::EventType::ServerStarted,
@@ -102,7 +96,7 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     // In main thread
     d->managementEndpoint.start(httpAPIPort);
 
-    COMPLOG_INFO("RemoteObjectDetector server exited");
+    COMPLOG_INFO("RemoteObjectDetector server exited (SERVERE EVENT!)"); // easter egg (my mistake in event logging)
 }
 
 bool ServerEndpoint::isWorking() const

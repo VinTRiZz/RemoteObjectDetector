@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <ROD/Types.h>
+
 namespace DataObjects
 {
 
@@ -13,6 +15,9 @@ class DetectionObject
 public:
     DetectionObject();
     ~DetectionObject();
+
+    void setId(id_t id);
+    id_t getId() const;
 
     void setName(const std::string& nameString);
     std::string getName() const;
@@ -26,6 +31,8 @@ public:
     std::string getErrorText() const;
 
 private:
+    id_t m_id {NULL_ID};
+
     std::string m_name;
     double m_percent {1};
 
