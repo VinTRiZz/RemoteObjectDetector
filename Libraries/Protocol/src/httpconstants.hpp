@@ -41,9 +41,11 @@ const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/software/versions
 const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/software/%1?version=%2"};
 const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/software/versions/%1"};
 
-const auto DETECTOR_STATUS              {DETECTOR_BASE + "/detector/%1/status"};
-const auto DETECTOR_POWER               {DETECTOR_BASE + "/detector/%1/power/%2"};
-const auto DETECTOR_TOGGLE_STREAMING    {DETECTOR_BASE + "/detector/%1/streaming?enabled=%2"};
+const auto DETECTOR_GET_ID_LIST         {DETECTOR_BASE + "/list"};
+const auto DETECTOR_INFO                {DETECTOR_BASE + "/%1/info"};
+const auto DETECTOR_STATUS              {DETECTOR_BASE + "/%1/status"};
+const auto DETECTOR_POWER               {DETECTOR_BASE + "/%1/power/%2"};
+const auto DETECTOR_TOGGLE_STREAMING    {DETECTOR_BASE + "/%1/streaming?enabled=%2"};
 }
 
 
@@ -59,9 +61,11 @@ const auto DETECTOR_APP_VERSION_ADD     {DETECTOR_APP_BASE + "/software/versions
 const auto DETECTOR_APP_VERSION_SET     {DETECTOR_APP_BASE + "/software/{dev_uuid}?version={version_uuid}"};
 const auto DETECTOR_APP_VERSION_REM     {DETECTOR_APP_BASE + "/software/versions/{version_uuid}"};
 
-const auto DETECTOR_STATUS              {DETECTOR_BASE + "/detector/{dev_uuid}/status"};
-const auto DETECTOR_POWER               {DETECTOR_BASE + "/detector/{dev_uuid}/power/{power_action}"};
-const auto DETECTOR_TOGGLE_STREAMING    {DETECTOR_BASE + "/detector/{dev_uuid}/streaming?enabled={is_enabled}"};
+const auto DETECTOR_GET_ID_LIST         {DETECTOR_BASE + "/list"};
+const auto DETECTOR_INFO                {DETECTOR_BASE + "/{dev_uuid}/info"};
+const auto DETECTOR_STATUS              {DETECTOR_BASE + "/{dev_uuid}/status"};
+const auto DETECTOR_POWER               {DETECTOR_BASE + "/{dev_uuid}/power/{power_action}"};
+const auto DETECTOR_TOGGLE_STREAMING    {DETECTOR_BASE + "/{dev_uuid}/streaming?enabled={is_enabled}"};
 }
 
 }

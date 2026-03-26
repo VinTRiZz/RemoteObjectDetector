@@ -11,8 +11,9 @@ void DetectorInfoManager::setRecordManager(const Database::RecordManagerPtr &pMa
     m_pRecordManager = pManager;
 }
 
-void DetectorInfoManager::init()
+void DetectorInfoManager::updateDetectorsInfo()
 {
+    m_detectors.clear();
     auto idVect = m_pRecordManager->getAvailableRecords("detector.system");
     m_detectors.reserve(idVect.size());
     for (auto id : idVect) {
@@ -21,7 +22,17 @@ void DetectorInfoManager::init()
     COMPLOG_INFO("Loaded info about", m_detectors.size(), "detectors");
 }
 
-std::optional<DataObjects::DetectorConfiguration> DetectorInfoManager::getDevice(const DataObjects::id_t &id)
+std::vector<DataObjects::id_t> DetectorInfoManager::getDetectorList() const
+{
+    std::vector<DataObjects::id_t> res;
+    res.reserve(m_detectors.size());
+    for (auto& [id, info] : m_detectors) {
+        res.push_back(id);
+    }
+    return res;
+}
+
+std::optional<DataObjects::DetectorConfiguration> DetectorInfoManager::getDetectorInfo(const DataObjects::id_t &id)
 {
     auto targetIt = m_detectors.find(id);
     if (targetIt == m_detectors.end()) {

@@ -11,9 +11,10 @@ class DetectorInfoManager
 public:
     void setRecordManager(const Database::RecordManagerPtr& pManager);
 
-    void init();
+    void updateDetectorsInfo();
 
-    std::optional<DataObjects::DetectorConfiguration> getDevice(const DataObjects::id_t& id);
+    std::vector<DataObjects::id_t> getDetectorList() const;
+    std::optional<DataObjects::DetectorConfiguration> getDetectorInfo(const DataObjects::id_t& id);
 
 private:
     Database::RecordManagerPtr m_pRecordManager;
