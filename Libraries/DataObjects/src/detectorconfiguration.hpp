@@ -3,6 +3,8 @@
 #include <string>
 
 #include <ROD/Types.h>
+#include <ROD/Error.h>
+#include "serializableobject.hpp"
 
 namespace DataObjects
 {
@@ -10,8 +12,10 @@ namespace DataObjects
 /**
  * @brief The DetectorConfiguration class   Конфигурация инстанции детектора изображений
  */
-struct DetectorConfiguration
+class DetectorConfiguration: public SerializableObject,
+                             public ErrorUser
 {
+public:
     struct SystemInfo
     {
         id_t id {NULL_ID};
@@ -26,9 +30,22 @@ struct DetectorConfiguration
     };
     OnlineInfo online;
 
-    std::string token;
-    std::string name;
-    std::string location;
+    struct Security
+    {
+        std::string token {};
+    };
+    Security security;
+
+    struct Info
+    {
+        std::string name;
+        std::string location;
+    };
+    Info info;
+
+    // SerializableObject interface
+    std::string toJson() override;
+    bool readJson(const std::string &iString) override;
 };
 
 }

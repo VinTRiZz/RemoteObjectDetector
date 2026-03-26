@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ROD/Error.h>
+#include "serializableobject.hpp"
 
 #include <string>
 
@@ -9,7 +10,8 @@ namespace DataObjects {
 /**
  * @brief The DeviceStatus class Status of a server, detector, etc.
  */
-struct DeviceStatus : public ErrorUser
+struct DeviceStatus : public SerializableObject,
+                      public ErrorUser
 {
     struct CommonInfo
     {
@@ -32,8 +34,9 @@ struct DeviceStatus : public ErrorUser
     };
     StorageInfo storage {};
 
-    std::string toJson();
-    bool readJson(const std::string& iString);
+    // SerializableObject interface
+    std::string toJson() override;
+    bool readJson(const std::string& iString) override;
 };
 
 

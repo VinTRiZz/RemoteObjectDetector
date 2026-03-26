@@ -2,6 +2,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Components/Logger/Logger.h>
+
 namespace DataObjects {
 
 std::string DeviceStatus::toJson()
@@ -37,6 +39,7 @@ bool DeviceStatus::readJson(const std::string &iString)
 
         m_error.setErrorCode(ErrorCodes::NoError);
     } catch (nlohmann::json::exception& ex) {
+        COMPLOG_ERROR("Parse error:", ex.what());
         m_error.setErrorCode(ErrorCodes::ProtocolJsonException);
         return false;
     }
