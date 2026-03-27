@@ -15,8 +15,8 @@ QVariant ServerListModel::headerData(int section, Qt::Orientation orientation, i
     if (role == Qt::DisplayRole) {
         switch (section)
         {
-        case 0: return "Имя сервера";
-        case 1: return "IP адрес";
+        case C_address: return "Server address";
+        case C_name:    return "Server name";
         }
         return {};
     }
@@ -44,21 +44,34 @@ QVariant ServerListModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_servers.size() || index.row() < 0)
         return QVariant();
 
-    if (role == Roles::ServerAddress) {
-        auto serverIt = m_servers.begin();
-        std::advance(serverIt, index.row());
-        return serverIt->second;
-    }
-
     if (role == Qt::DisplayRole) {
         auto serverIt = m_servers.begin();
         std::advance(serverIt, index.row());
         switch (index.column())
         {
-        case 0: return serverIt->first;
-        case 1: return serverIt->second;
+        case C_address: return data(index, R_address);
+        case C_name:    return data(index, R_name);
         }
         return {};
+    }
+
+    if (role == Qt::ToolTipRole) {
+        switch (index.column())
+        {
+        case C_address: return "Server IP address";
+        case C_name:    return "Server custom name";
+        }
+        return {};
+    }
+
+    if (role > Qt::UserRole) {
+        auto serverIt = m_servers.begin();
+        std::advance(serverIt, index.row());
+        switch (role)
+        {
+        case R_address: return serverIt->second;
+        case R_name:    return serverIt->first;
+        }
     }
 
     return QVariant();

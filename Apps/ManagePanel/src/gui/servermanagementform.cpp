@@ -34,7 +34,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
             return;
         }
         stopUpdateTimer();
-        auto serverAddress = selectedIdx.indexes().front().data(ServerListModel::ServerAddress).toString();
+        auto serverAddress = selectedIdx.indexes().front().data(ServerListModel::R_address).toString();
         COMPLOG_INFO("Selected server:", serverAddress.toStdString());
         m_pServerManager->setServer(serverAddress);
         m_isUpdatesCalled = true;

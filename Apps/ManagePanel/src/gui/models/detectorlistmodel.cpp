@@ -50,20 +50,26 @@ QVariant DetectorListModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_detectors.size() || index.row() < 0)
         return QVariant();
 
-    if (role == R_id) {
-
-    }
-
     if (role == Qt::DisplayRole) {
-        auto detectorIt = m_detectors.begin();
-        std::advance(detectorIt, index.row());
         switch (index.column())
         {
-        case C_id:              return QVariant::fromValue(detectorIt->system.id);
-        case C_name:            return QString::fromStdString(detectorIt->info.name);
-        case C_location:        return QString::fromStdString(detectorIt->info.location);
-        case C_register_date:   return QDateTime::fromSecsSinceEpoch(detectorIt->system.registerDateUTC).toString("dd.MM.yyyy hh:mm");
-        case C_last_online:     return QDateTime::fromSecsSinceEpoch(detectorIt->online.totalOnlineTime).toString("dd.MM.yyyy hh:mm");
+        case C_id:              return data(index, R_id);
+        case C_name:            return data(index, R_name);
+        case C_location:        return data(index, R_location);
+        case C_register_date:   return data(index, R_register_date);
+        case C_last_online:     return data(index, R_last_online);
+        }
+        return {};
+    }
+
+    if (role == Qt::ToolTipRole) {
+        switch (index.column())
+        {
+        case C_id:              return "Detector's id";
+        case C_name:            return "Custom name of detector device";
+        case C_location:        return "Detector location";
+        case C_register_date:   return "Detector registration date";
+        case C_last_online:     return "Detector last online date";
         }
         return {};
     }
@@ -72,14 +78,14 @@ QVariant DetectorListModel::data(const QModelIndex &index, int role) const
         auto detectorIt = m_detectors.begin();
         std::advance(detectorIt, index.row());
 
-        return QVariant::fromValue(detectorIt->system.id);
         switch (role)
         {
         case R_id:              return QVariant::fromValue(detectorIt->system.id);
         case R_name:            return QString::fromStdString(detectorIt->info.name);
+        case R_description:     return QString::fromStdString(detectorIt->info.description);
         case R_location:        return QString::fromStdString(detectorIt->info.location);
         case R_register_date:   return QDateTime::fromSecsSinceEpoch(detectorIt->system.registerDateUTC).toString("dd.MM.yyyy hh:mm");
-        case R_last_online:     return QDateTime::fromSecsSinceEpoch(detectorIt->online.totalOnlineTime).toString("dd.MM.yyyy hh:mm");
+        case R_last_online:     return (detectorIt->online.lastOnlineTimeUTC == 0 ? "ONLINE" : QDateTime::fromSecsSinceEpoch(detectorIt->online.lastOnlineTimeUTC).toString("dd.MM.yyyy hh:mm"));
         }
     }
 

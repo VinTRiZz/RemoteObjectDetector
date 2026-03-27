@@ -15,6 +15,9 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent) :
 
     m_pDetectorListModel = new DetectorListModel(this);
     m_pDetectorListModel->setDetectorInfoManager(m_pDetectorInfoManager);
+
+    ui->listViewDetectorList->setModel(m_pDetectorListModel);
+    ui->listViewDetectorList->setModelColumn(DetectorListModel::C_name);
 }
 
 DetectorManagementForm::~DetectorManagementForm()
@@ -24,5 +27,6 @@ DetectorManagementForm::~DetectorManagementForm()
 
 void DetectorManagementForm::setServer(const QString &serverAddress)
 {
-
+    m_pDetectorInfoManager->setServer(serverAddress);
+    m_pDetectorListModel->updateDetectorList();
 }

@@ -23,6 +23,7 @@ public:
     enum Roles : int {
         R_id = Qt::UserRole + 1,
         R_name,
+        R_description,
         R_location,
         R_register_date,
         R_last_online,

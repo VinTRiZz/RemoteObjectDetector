@@ -10,8 +10,14 @@ class ServerListModel : public QAbstractTableModel
 public:
     explicit ServerListModel(QObject *parent = nullptr);
 
+    enum Columns : int {
+        C_address = 0,
+        C_name,
+    };
+
     enum Roles : int {
-        ServerAddress = Qt::UserRole + 1,
+        R_address = Qt::UserRole + 1,
+        R_name
     };
 
     // QAbstractTableModel interface
