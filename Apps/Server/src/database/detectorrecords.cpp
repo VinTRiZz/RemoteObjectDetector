@@ -1,5 +1,7 @@
 #include "detectorrecords.hpp"
 
+#include <Components/Encryption/Encoding.h>
+
 namespace Database
 {
 
@@ -74,6 +76,110 @@ void DetectorOnlineRecord::setTotalOnline(int64_t val)
 int64_t DetectorOnlineRecord::getTotalOnline() const
 {
     return m_totalOnline;
+}
+
+
+
+
+DetectorSoftwareRecord::DetectorSoftwareRecord() :
+    RecordBase("detector.software", "detector_id")
+{
+
+}
+
+record_t DetectorSoftwareRecord::toRecord() const
+{
+    auto res = RecordBase::toRecord();
+    res["version_id"]   = m_versionId;
+    res["update_time_utc"]     = m_updateTimeUTC;
+    return res;
+}
+
+void DetectorSoftwareRecord::initFromRecord(const record_t &iRecord)
+{
+    RecordBase::initFromRecord(iRecord);
+    try {
+        m_versionId = std::get<int64_t>(iRecord.at("version_id"));
+        m_updateTimeUTC = std::get<int64_t>(iRecord.at("update_time_utc"));
+    } catch (const std::bad_variant_access& ex) {
+        m_versionId = DataObjects::NULL_ID;
+        m_updateTimeUTC = {};
+    }
+}
+
+void DetectorSoftwareRecord::setVersionId(DataObjects::id_t id)
+{
+    m_versionId = id;
+}
+
+DataObjects::id_t DetectorSoftwareRecord::getVersionId() const
+{
+    return m_versionId;
+}
+
+void DetectorSoftwareRecord::setUpdateTime(int64_t uTimeUTC)
+{
+    m_updateTimeUTC = uTimeUTC;
+}
+
+int64_t DetectorSoftwareRecord::getUpdateTime() const
+{
+    return m_updateTimeUTC;
+}
+
+
+
+DetectorInfoRecord::DetectorInfoRecord() :
+    RecordBase("detector.info", "detector_id")
+{
+    
+}
+
+record_t DetectorInfoRecord::toRecord() const
+{
+    auto res = RecordBase::toRecord();
+    res["display_name"] = Encryption::encodeHex(m_displayName);
+    res["description"]  = Encryption::encodeHex(m_description);
+    res["location"]     = Encryption::encodeHex(m_location);
+    return res;
+}
+
+void DetectorInfoRecord::initFromRecord(const record_t &iRecord)
+{
+    RecordBase::initFromRecord(iRecord);
+    m_displayName   = Encryption::decodeHex(std::get<std::string>(iRecord.at("display_name")));
+    m_description   = Encryption::decodeHex(std::get<std::string>(iRecord.at("description")));
+    m_location      = Encryption::decodeHex(std::get<std::string>(iRecord.at("location")));
+}
+
+void DetectorInfoRecord::setDisplayName(const std::string &name)
+{
+    m_displayName = name;
+}
+
+std::string DetectorInfoRecord::getDisplayName() const
+{
+    return m_displayName;
+}
+
+void DetectorInfoRecord::setDescription(const std::string &descr)
+{
+    m_description = descr;
+}
+
+std::string DetectorInfoRecord::getDescription() const
+{
+    return m_description;
+}
+
+void DetectorInfoRecord::setLocation(const std::string &location)
+{
+    m_location = location;
+}
+
+std::string DetectorInfoRecord::getLocation() const
+{
+    return m_location;
 }
 
 }

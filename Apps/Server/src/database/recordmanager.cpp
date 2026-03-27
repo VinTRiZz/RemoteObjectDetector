@@ -40,16 +40,29 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
             }
 
             // Deduce type
+            auto strVal = row[i].as<std::string>();
             try {
-                record[execResult.columnName(i)] = row[i].as<int64_t>();
+                std::size_t convEndPos {0};
+                auto convRes = std::stol(strVal, &convEndPos);
+                if (convEndPos != strVal.length()) {
+                    throw std::invalid_argument("len end not reached");
+                }
+                record[execResult.columnName(i)] = convRes;
                 columnTypes[i] = 1;
+
             } catch (const std::invalid_argument& ex) {
                 try {
-                    record[execResult.columnName(i)] = row[i].as<double>();
+                    std::size_t convEndPos {0};
+                    auto doubleV = std::stod(strVal, &convEndPos);
+                    if (convEndPos != strVal.length()) {
+                        throw std::invalid_argument("len end not reached");
+                    }
+                    record[execResult.columnName(i)] = doubleV;
+                    columnTypes[i] = 2;
+
+                } catch (const std::invalid_argument& ex) {
+                    record[execResult.columnName(i)] = strVal;
                     columnTypes[i] = 3;
-                } catch (...) {
-                    record[execResult.columnName(i)] = row[i].as<std::string>();
-                    columnTypes[i] = 4;
                 }
             }
         }
@@ -196,6 +209,9 @@ std::string RecordManager::cellDataToString(const recordValue_t &val) const
             return v;
         } else
             if constexpr (std::is_same_v<valueType_t, DataObjects::id_t>) {
+                if (v == DataObjects::NULL_ID) {
+                    return "NULL";
+                }
                 return std::to_string(v);
             } else
                 if constexpr (std::is_same_v<valueType_t, double>) {

@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include <Components/Logger/Logger.h>
+#include <Components/Encryption/Encoding.h>
 
 namespace DataObjects
 {
@@ -23,8 +24,9 @@ std::string DetectorConfiguration::toJson()
     res["security"]["token"] = security.token;
 
     // Сериализация Info
-    res["info"]["name"] = info.name;
-    res["info"]["location"] = info.location;
+    res["info"]["name"]         = Encryption::encodeHex(info.name);
+    res["info"]["description"]  = Encryption::encodeHex(info.description);
+    res["info"]["location"]     = Encryption::encodeHex(info.location);
 
     return res.dump();
 }
@@ -43,8 +45,10 @@ bool DetectorConfiguration::readJson(const std::string &iString)
 
         security.token = iJson["security"]["token"].get<std::string>();
 
-        info.name       = iJson["info"]["name"].get<std::string>();
-        info.location   = iJson["info"]["location"].get<std::string>();
+        info.name       = Encryption::decodeHex(iJson["info"]["name"].get<std::string>());
+        info.description= Encryption::decodeHex(iJson["info"]["description"].get<std::string>());
+        info.location   = Encryption::decodeHex(iJson["info"]["location"].get<std::string>());
+
         m_error.setErrorCode(ErrorCodes::NoError);
         return true;
     } catch (const std::exception& e) {

@@ -39,6 +39,7 @@ public:
     struct Info
     {
         std::string name;
+        std::string description;
         std::string location;
     };
     Info info;

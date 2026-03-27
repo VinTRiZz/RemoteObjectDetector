@@ -55,6 +55,15 @@ DataObjects::DetectorConfiguration DetectorInfoManager::readById(DataObjects::id
     res.online.totalOnlineTime      = onlineInfo.getTotalOnline();
     res.online.lastOnlineTimeUTC    = onlineInfo.getLastOnlie();
 
+    // Software data
+    auto softwareInfo = m_pRecordManager->getRecord<true, Database::DetectorSoftwareRecord>(id);
+
+    // Info (display) data
+    auto displayInfo = m_pRecordManager->getRecord<true, Database::DetectorInfoRecord>(id);
+    res.info.name           = displayInfo.getDisplayName();
+    res.info.description    = displayInfo.getDescription();
+    res.info.location       = displayInfo.getLocation();
+
     return res;
 }
 
