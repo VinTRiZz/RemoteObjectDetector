@@ -2,6 +2,8 @@
 
 #include "recordobjects.hpp"
 
+#include <ROD/DetectorConfiguration.h>
+
 namespace Database
 {
 
@@ -103,5 +105,16 @@ private:
     std::string m_description;
     std::string m_location;
 };
+
+
+using DetectorConfigRecords_t = std::tuple<
+    Database::DetectorSystemRecord,
+    Database::DetectorOnlineRecord,
+    Database::DetectorSoftwareRecord,
+    Database::DetectorInfoRecord
+    >;
+
+DetectorConfigRecords_t toRecords(const DataObjects::DetectorConfiguration& detConf);
+DataObjects::DetectorConfiguration fromRecords(const DetectorConfigRecords_t& detRecords);
 
 }

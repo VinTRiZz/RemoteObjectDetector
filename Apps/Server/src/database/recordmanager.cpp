@@ -104,73 +104,78 @@ void RecordManager::setUser(const std::string &username, const std::string &pass
     m_password = password;
 }
 
-int RecordManager::removeRecord(const std::string& tableName, const std::string& whereCondition)
-{
-    std::string query = "DELETE FROM " + tableName + (whereCondition.empty() ? "" : std::string(" WHERE ") + whereCondition);
-
-    try {
-        m_pClient->execSqlSync(query);
-    } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
-        return false;
-    }
-    return true;
-}
-
-std::vector<DataObjects::id_t> RecordManager::getAvailableRecords(const std::string& tableName, const std::string &recordIdColumn) const
+std::vector<DataObjects::id_t> RecordManager::getAvailableRecords(const std::string_view& tableName, const std::string_view &recordIdColumn) const
 {
     std::vector<DataObjects::id_t> res;
     try {
-        auto execRes = m_pClient->execSqlSync(std::string("SELECT ") + recordIdColumn + " FROM " + tableName);
+        auto execRes = m_pClient->execSqlSync(std::string("SELECT ") + recordIdColumn.data() + " FROM " + tableName.data());
         auto rows = resultToRecords(execRes);
         for (auto& r : rows) {
-            res.push_back(std::get<int64_t>(r.at(recordIdColumn)));
+            res.push_back(std::get<int64_t>(r.at(recordIdColumn.data())));
         }
     } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+        COMPLOG_ERROR("[RecordManager] Record get exist exec error:", ex.base().what());
         return {};
     }
     return res;
 }
 
-bool RecordManager::addRecord(bool isSync, const std::string &tableName, const std::map<std::string, recordValue_t> &valueMap) const
+DataObjects::id_t RecordManager::addRecord(bool isSync, const std::string_view &tableName, const std::map<std::string, recordValue_t> &valueMap, const std::string_view &idColumnName) const
 {
     if (isSync) {
         try {
-            m_pClient->execSqlSync(createInsertQuery(tableName, valueMap));
+            auto execRes = m_pClient->execSqlSync(createInsertQuery(tableName, valueMap, idColumnName));
+            if (execRes.empty()) {
+                return DataObjects::NULL_ID;
+            }
+            auto recordInfo = resultToRecords(execRes);
+            return std::get<int64_t>(recordInfo[0].at(idColumnName.data()));
         } catch (const drogon::orm::DrogonDbException& ex) {
-            COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
-            return false;
+            COMPLOG_ERROR("[RecordManager] Record add exec error:", ex.base().what());
+            return DataObjects::NULL_ID;
         }
     } else {
-        m_pClient->execSqlAsync(createInsertQuery(tableName, valueMap), [](const drogon::orm::Result& res){
+        m_pClient->execSqlAsync(createInsertQuery(tableName, valueMap, idColumnName), [](const drogon::orm::Result& res){
             // TODO: Process?
         }, [](const drogon::orm::DrogonDbException& ex){
-                                    COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+                                    COMPLOG_ERROR("[RecordManager] ASYNC Record add exec error:", ex.base().what());
                                 });
-        return true;
+        return DataObjects::NULL_ID;
     }
-    return false;
+    return DataObjects::NULL_ID;
 }
 
-bool RecordManager::updateRecord(bool isSync, const std::string& tableName, const std::string& whereCondition, const std::map<std::string, recordValue_t>& valueMap)
+bool RecordManager::updateRecord(bool isSync, const std::string_view& tableName, const std::string& whereCondition, const std::map<std::string, recordValue_t>& valueMap)
 {
     if (isSync) {
         try {
             m_pClient->execSqlSync(createUpdateQuery(tableName, whereCondition, valueMap));
         } catch (const drogon::orm::DrogonDbException& ex) {
-            COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+            COMPLOG_ERROR("[RecordManager] Record update exec error:", ex.base().what());
             return false;
         }
     } else {
         m_pClient->execSqlAsync(createUpdateQuery(tableName, whereCondition, valueMap), [](const drogon::orm::Result& res){
             // TODO: Process?
         }, [](const drogon::orm::DrogonDbException& ex){
-                                    COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+                                    COMPLOG_ERROR("[RecordManager] ASYNC Record update exec error:", ex.base().what());
                                 });
         return true;
     }
     return false;
+}
+
+bool RecordManager::removeRecord(bool isSync, const std::string_view &tableName, const std::string &whereCondition)
+{
+    std::string query = std::string("DELETE FROM ") + tableName.data() + " WHERE " + whereCondition;
+    try {
+        auto res = m_pClient->execSqlSync(query);
+        return (res.affectedRows() > 0);
+    } catch (const drogon::orm::DrogonDbException& ex) {
+        COMPLOG_ERROR("[RecordManager] Record remove exec error:", ex.base().what());
+        return {};
+    }
+    return {};
 }
 
 std::map<std::string, recordValue_t> RecordManager::getRecord(bool isSync, const std::string_view &tableName, const std::string_view &idColumnName, DataObjects::id_t recordId) const
@@ -184,7 +189,7 @@ std::map<std::string, recordValue_t> RecordManager::getRecord(bool isSync, const
             return records.front();
         }
     } catch (const drogon::orm::DrogonDbException& ex) {
-        COMPLOG_ERROR("[RecordManager] ASYNC Record exec error:", ex.base().what());
+        COMPLOG_ERROR("[RecordManager] Record get exec error:", ex.base().what());
         return {};
     }
     return {};
@@ -221,7 +226,7 @@ std::string RecordManager::cellDataToString(const recordValue_t &val) const
     }, val);
 }
 
-std::string RecordManager::createInsertQuery(const std::string_view &tableName, const std::map<std::string, recordValue_t> &valueMap) const
+std::string RecordManager::createInsertQuery(const std::string_view &tableName, const std::map<std::string, recordValue_t> &valueMap, const std::string_view& idColumnName) const
 {
     std::string colsQuery;
     std::string valuesQuery;
@@ -232,7 +237,7 @@ std::string RecordManager::createInsertQuery(const std::string_view &tableName, 
     colsQuery.pop_back();
     valuesQuery.pop_back();
 
-    return std::string("INSERT INTO ") + tableName.data() + " (" + colsQuery + ") VALUES (" + valuesQuery + ")";
+    return std::string("INSERT INTO ") + tableName.data() + " (" + colsQuery + ") VALUES (" + valuesQuery + ") RETURNING " + idColumnName.data();
 }
 
 std::string RecordManager::createUpdateQuery(const std::string_view &tableName, const std::string_view &whereCondition, const std::map<std::string, recordValue_t> &valueMap) const

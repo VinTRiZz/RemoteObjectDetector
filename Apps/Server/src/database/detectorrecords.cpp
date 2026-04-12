@@ -182,4 +182,52 @@ std::string DetectorInfoRecord::getLocation() const
     return m_location;
 }
 
+DetectorConfigRecords_t toRecords(const DataObjects::DetectorConfiguration &detConf) {
+    DetectorSystemRecord      recordSys;
+    recordSys.setId(detConf.system.id);
+    recordSys.setRegisterDate(detConf.system.registerDateUTC);
+
+    DetectorOnlineRecord      recordOnline;
+    recordOnline.setTotalOnline(detConf.online.totalOnlineTime);
+    recordOnline.setLastOnline(detConf.online.lastOnlineTimeUTC);
+
+    DetectorSoftwareRecord    recordSoftware;
+    recordSoftware.setVersionId(detConf.software.versionId);
+    recordSoftware.setUpdateTime(detConf.software.updateTimeUTC);
+
+    DetectorInfoRecord        recordInfo;
+    recordInfo.setDisplayName(detConf.info.name);
+    recordInfo.setDescription(detConf.info.description);
+    recordInfo.setLocation(detConf.info.location);
+
+    return std::make_tuple(recordSys, recordOnline, recordSoftware, recordInfo);
+}
+
+DataObjects::DetectorConfiguration fromRecords(const DetectorConfigRecords_t &detRecords) {
+    DataObjects::DetectorConfiguration res;
+
+    // System data
+    auto& systemInfo = std::get<Database::DetectorSystemRecord>(detRecords);
+    res.system.id               = systemInfo.getId();
+    res.system.registerDateUTC  = systemInfo.getRegisterDate();
+
+    // Online data
+    auto& onlineInfo = std::get<Database::DetectorOnlineRecord>(detRecords);
+    res.online.totalOnlineTime      = onlineInfo.getTotalOnline();
+    res.online.lastOnlineTimeUTC    = onlineInfo.getLastOnlie();
+
+    // Software data
+    auto& softwareInfo = std::get<Database::DetectorSoftwareRecord>(detRecords);
+    res.software.versionId      = softwareInfo.getVersionId();
+    res.software.updateTimeUTC  = softwareInfo.getUpdateTime();
+
+    // Info (display) data
+    auto& displayInfo = std::get<Database::DetectorInfoRecord>(detRecords);
+    res.info.name           = displayInfo.getDisplayName();
+    res.info.description    = displayInfo.getDescription();
+    res.info.location       = displayInfo.getLocation();
+
+    return res;
+}
+
 }

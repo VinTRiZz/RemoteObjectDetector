@@ -14,10 +14,11 @@ void DetectorInfoManager::setRecordManager(const Database::RecordManagerPtr &pMa
 void DetectorInfoManager::updateDetectorsInfo()
 {
     m_detectors.clear();
-    auto idVect = m_pRecordManager->getAvailableRecords("detector.system");
+    Database::DetectorSystemRecord tmpr;
+    auto idVect = m_pRecordManager->getAvailableRecords(tmpr.getTable(), tmpr.getIdColumn());
     m_detectors.reserve(idVect.size());
     for (auto id : idVect) {
-        m_detectors.emplace(id, readById(id));
+        m_detectors.emplace(id, getRecord(id));
     }
     COMPLOG_INFO("Loaded info about", m_detectors.size(), "detectors");
 }
@@ -41,33 +42,68 @@ std::optional<DataObjects::DetectorConfiguration> DetectorInfoManager::getDetect
     return targetIt->second;
 }
 
-DataObjects::DetectorConfiguration DetectorInfoManager::readById(DataObjects::id_t id)
+bool DetectorInfoManager::updateDetectorData(const DataObjects::DetectorConfiguration &detectorConfig)
 {
-    DataObjects::DetectorConfiguration res;
+    auto targetIt = m_detectors.find(detectorConfig.system.id);
+    if (targetIt == m_detectors.end()) {
+        return false;
+    }
 
-    // System data
-    auto systemInfo = m_pRecordManager->getRecord<true, Database::DetectorSystemRecord>(id);
-    res.system.id               = systemInfo.getId();
-    res.system.registerDateUTC  = systemInfo.getRegisterDate();
+    bool isSucceed = false;
+    auto updateRecord = [&isSucceed, this](auto& rec){
+        if (!isSucceed) {
+            return;
+        }
+        isSucceed = m_pRecordManager->updateRecord(rec);
+    };
+    auto updateConfig = [updateRecord = std::move(updateRecord)](auto&&... records) -> void {
+        (updateRecord(records), ...);
+    };
 
-    // Online data
-    auto onlineInfo = m_pRecordManager->getRecord<true, Database::DetectorOnlineRecord>(id);
-    res.online.totalOnlineTime      = onlineInfo.getTotalOnline();
-    res.online.lastOnlineTimeUTC    = onlineInfo.getLastOnlie();
-
-    // Software data
-    auto softwareInfo = m_pRecordManager->getRecord<true, Database::DetectorSoftwareRecord>(id);
-
-    // Info (display) data
-    auto displayInfo = m_pRecordManager->getRecord<true, Database::DetectorInfoRecord>(id);
-    res.info.name           = displayInfo.getDisplayName();
-    res.info.description    = displayInfo.getDescription();
-    res.info.location       = displayInfo.getLocation();
-
-    return res;
+    auto detectorInfo = Database::toRecords(detectorConfig);
+    std::apply(updateConfig, detectorInfo);
+    if (isSucceed) {
+        targetIt->second = detectorConfig;
+    }
+    return isSucceed;
 }
 
-bool DetectorInfoManager::save(const DataObjects::DetectorConfiguration &configData)
+bool DetectorInfoManager::removeDetectorData(DataObjects::id_t id)
 {
-    return false;
+    auto remRes = m_pRecordManager->removeRecord<Database::DetectorSystemRecord>(id);
+    if (remRes) {
+        m_detectors.erase(id);
+    }
+    return remRes;
+}
+
+DataObjects::DetectorConfiguration DetectorInfoManager::getRecord(DataObjects::id_t id) const
+{
+    return Database::fromRecords(std::make_tuple(
+        m_pRecordManager->getRecord<true, Database::DetectorSystemRecord>(id),
+        m_pRecordManager->getRecord<true, Database::DetectorOnlineRecord>(id),
+        m_pRecordManager->getRecord<true, Database::DetectorSoftwareRecord>(id),
+        m_pRecordManager->getRecord<true, Database::DetectorInfoRecord>(id)
+        ));
+}
+
+bool DetectorInfoManager::save(const DataObjects::DetectorConfiguration &detectorConfig)
+{
+    bool isSucceed = false;
+    auto saveRecord = [&isSucceed, this](auto& rec){
+        if (!isSucceed) {
+            return;
+        }
+        isSucceed = m_pRecordManager->addRecord(rec);
+    };
+    auto saveConfig = [updateRecord = std::move(saveRecord)](auto&&... records) -> void {
+        (updateRecord(records), ...);
+    };
+
+    auto detectorInfo = Database::toRecords(detectorConfig);
+    std::apply(saveConfig, detectorInfo);
+    if (isSucceed) {
+        m_detectors[detectorConfig.system.id] = detectorConfig;
+    }
+    return isSucceed;
 }
