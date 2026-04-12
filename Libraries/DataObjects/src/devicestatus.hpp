@@ -35,7 +35,7 @@ struct DeviceStatus : public SerializableObject,
     StorageInfo storage {};
 
     // SerializableObject interface
-    std::string toJson() override;
+    std::string toJson() const override;
     bool readJson(const std::string& iString) override;
 };
 

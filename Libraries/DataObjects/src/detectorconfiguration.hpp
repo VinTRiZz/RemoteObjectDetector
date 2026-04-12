@@ -44,8 +44,15 @@ public:
     };
     Info info;
 
+    struct Software
+    {
+        DataObjects::id_t   versionId {NULL_ID};
+        int64_t             updateTimeUTC {};
+    };
+    Software software;
+
     // SerializableObject interface
-    std::string toJson() override;
+    std::string toJson() const override;
     bool readJson(const std::string &iString) override;
 };
 

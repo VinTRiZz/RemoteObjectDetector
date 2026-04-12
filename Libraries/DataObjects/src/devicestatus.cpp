@@ -6,7 +6,7 @@
 
 namespace DataObjects {
 
-std::string DeviceStatus::toJson()
+std::string DeviceStatus::toJson() const
 {
     nlohmann::json res;
     res["common"]["uptime"] = common.uptime;

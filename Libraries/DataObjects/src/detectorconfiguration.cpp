@@ -8,7 +8,7 @@
 namespace DataObjects
 {
 
-std::string DetectorConfiguration::toJson()
+std::string DetectorConfiguration::toJson() const
 {
     nlohmann::json res;
 
