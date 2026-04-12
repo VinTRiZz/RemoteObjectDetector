@@ -1,13 +1,17 @@
 #pragma once
 
 #include <string>
-#include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
+#include <vector>
+
+namespace cv {
+class Mat;
+}
 
 namespace ImageProcessing::Utility
 {
 
 cv::Mat generateColorBarImage(int width, int height);
+std::vector<uint8_t> generateTestImageBytes(int width, int height);
 
 std::vector<uint8_t>    serializeMat(const cv::Mat& mat);
 cv::Mat                 deserializeMat(const std::vector<uint8_t>& buffer);

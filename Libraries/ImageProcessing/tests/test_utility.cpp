@@ -2,6 +2,9 @@
 
 #include "utility.hpp"
 
+#include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
+
 bool equalBitwise(const cv::Mat& a, const cv::Mat& b) {
     if (a.size() != b.size() || a.type() != b.type())
         return false;

@@ -1,20 +1,18 @@
 #include "utility.hpp"
 
+#include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
+
 #include <sstream>
 #include <opencv2/imgcodecs.hpp>
 
 namespace ImageProcessing::Utility
 {
 
-std::vector<uint8_t> serializeMat(const cv::Mat& mat) {
-    std::vector<uint8_t> buffer;
-    cv::imencode(".jpg", mat, buffer);
-    return buffer;
-}
-
-cv::Mat deserializeMat(const std::vector<uint8_t>& buffer) {
-    cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
-    return mat;
+std::vector<uint8_t> generateTestImageBytes(int width, int height)
+{
+    auto testImage = generateColorBarImage(width, height);
+    return serializeMat(testImage);
 }
 
 cv::Mat generateColorBarImage(int width, int height) {
@@ -35,6 +33,17 @@ cv::Mat generateColorBarImage(int width, int height) {
         img(roi) = colors[i];
     }
     return img;
+}
+
+std::vector<uint8_t> serializeMat(const cv::Mat& mat) {
+    std::vector<uint8_t> buffer;
+    cv::imencode(".jpg", mat, buffer);
+    return buffer;
+}
+
+cv::Mat deserializeMat(const std::vector<uint8_t>& buffer) {
+    cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
+    return mat;
 }
 
 std::string createSenderPipeline(const CameraPipelineConfig &config) {
