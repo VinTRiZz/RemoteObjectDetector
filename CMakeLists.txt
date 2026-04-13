@@ -29,9 +29,9 @@ endif()
 add_subdirectory(ComponentsSystem)
 
 # Build options (for making on target device)
-option (ROD_BUILD_MANAGE_PANEL OFF)
+option (ROD_BUILD_MANAGE_PANEL ON)
 option (ROD_BUILD_DETECTOR ON)
-option (ROD_BUILD_SERVER OFF)
+option (ROD_BUILD_SERVER ON)
 
 COMPONENTS_CCR_FIND_LIBRARY(boost_system)
 COMPONENTS_CCR_FIND_LIBRARY(boost_thread)
