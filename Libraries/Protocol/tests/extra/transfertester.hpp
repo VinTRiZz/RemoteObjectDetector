@@ -5,48 +5,54 @@
 #include <algorithm>
 #include <random>
 
-template <typename PacketHandleT, typename ContainerT>
+template <
+        typename PacketHandleT,
+        typename ContainerT>
 class TransferTester
 {
 public:
-    void testInvalidRegular(PacketHandleT input) {
-        ASSERT_TRUE(false);
+    // Args -- source object and changed packets
+    using CheckerFuncT = std::function<bool(ContainerT&&)>;
+
+    using ContainerGetfuncT = std::function<ContainerT(const PacketHandleT&)>;
+
+    void setChecker(CheckerFuncT&& iFunc) {
+        m_checkFunc = std::move(iFunc);
     }
 
-    void testRegular(PacketHandleT input) {
-        ASSERT_TRUE(false);
+    void setPacketGetter(ContainerGetfuncT&& iFunc) {
+        m_packetGetter = std::move(iFunc);
     }
 
-    template <typename ContainerGetfuncT>
-    void testDropFirst(PacketHandleT& iPacket, ContainerGetfuncT&& packetDataGetter) {
-        ASSERT_TRUE(impl_testDropFirst(packetDataGetter(iPacket)));
+    void testInvalidRegular(PacketHandleT iObject) {
+        ASSERT_FALSE(m_checkFunc({}));
     }
 
-    template <typename ContainerGetfuncT>
-    void testDropMiddle(PacketHandleT& iPacket, ContainerGetfuncT&& packetDataGetter) {
-        ASSERT_TRUE(impl_testDropMiddle(packetDataGetter(iPacket)));
+    void testRegular(PacketHandleT iObject) {
+        ASSERT_TRUE(m_checkFunc(m_packetGetter(iObject)));
     }
 
-    template <typename ContainerGetfuncT>
-    void testDropLast(PacketHandleT& iPacket, ContainerGetfuncT&& packetDataGetter) {
-        ASSERT_TRUE(impl_testDropLast(packetDataGetter(iPacket)));
+    void testDropFirst(PacketHandleT& iObject) {
+        auto packets = m_packetGetter(iObject);
+        packets.erase(packets.begin());
+        ASSERT_TRUE(!m_checkFunc(std::move(packets)));
+    }
+
+    void testDropMiddle(PacketHandleT& iObject) {
+        auto packets = m_packetGetter(iObject);
+        std::mt19937 randomGen;
+        std::uniform_int_distribution<std::size_t> gen(0, packets.size() / 3);
+        packets.erase(packets.begin() + gen(randomGen) + packets.size() / 3);
+        ASSERT_TRUE(!m_checkFunc(std::move(packets)));
+    }
+
+    void testDropLast(PacketHandleT& iObject) {
+        auto packets = m_packetGetter(iObject);
+        packets.erase(std::prev(packets.end()));
+        ASSERT_TRUE(!m_checkFunc(std::move(packets)));
     }
 
 private:
-    bool impl_testDropFirst(ContainerT&& iPacket) {
-        iPacket.erase(iPacket.begin());
-        return false;
-    }
-
-    bool impl_testDropMiddle(ContainerT&& iPacket) {
-        std::mt19937 randomGen;
-        std::uniform_int_distribution<std::size_t> gen(0, iPacket.size() / 3);
-        iPacket.erase(iPacket.begin() + gen(randomGen) + iPacket.size() / 3);
-        return false;
-    }
-
-    bool impl_testDropLast(ContainerT&& iPacket) {
-        iPacket.erase(std::prev(iPacket.end()));
-        return false;
-    }
+    CheckerFuncT m_checkFunc;
+    ContainerGetfuncT m_packetGetter;
 };

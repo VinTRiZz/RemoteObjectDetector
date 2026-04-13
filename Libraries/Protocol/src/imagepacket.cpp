@@ -1,5 +1,7 @@
 #include "imagepacket.hpp"
 
+using namespace ImageProcessing;
+
 /*
 
 TOTAL SIZE: 1400 (Ethernet MTU)
@@ -56,22 +58,22 @@ uint64_t ImagePacket::getFragmentStart() const
     return m_fragmentStartByte;
 }
 
-void ImagePacket::setPayload(std::vector<uint8_t> &&payload)
+void ImagePacket::setPayload(ImageData_t &&payload)
 {
     m_payload = std::move(payload);
 }
 
-const std::vector<uint8_t> &ImagePacket::getPayload() const
+const ImageData_t &ImagePacket::getPayload() const
 {
     return m_payload;
 }
 
-bool ImagePacket::initFromPacketPart(const std::vector<uint8_t> &iData)
+bool ImagePacket::initFromPacketPart(const ImageData_t &iData)
 {
     return false;
 }
 
-std::vector<uint8_t> ImagePacket::convertToPacketPart() const
+ImageData_t ImagePacket::convertToPacketPart() const
 {
     return {};
 }

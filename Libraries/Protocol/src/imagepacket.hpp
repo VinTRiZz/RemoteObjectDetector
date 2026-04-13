@@ -3,6 +3,8 @@
 #include <vector>
 #include <stdint.h>
 
+#include <ROD/ImageProcessing/Common.h>
+
 namespace Protocol {
 
 /**
@@ -19,11 +21,11 @@ public:
     void setFragmentStart(uint64_t startByte);
     uint64_t getFragmentStart() const;
 
-    void setPayload(std::vector<uint8_t>&& payload);
-    const std::vector<uint8_t>& getPayload() const;
+    void setPayload(ImageProcessing::ImageData_t&& payload);
+    const ImageProcessing::ImageData_t& getPayload() const;
 
-    bool initFromPacketPart(const std::vector<uint8_t>& iData);
-    std::vector<uint8_t> convertToPacketPart() const;
+    bool initFromPacketPart(const ImageProcessing::ImageData_t& iData);
+    ImageProcessing::ImageData_t convertToPacketPart() const;
 
     bool operator <(const ImagePacket& _oPacket) const;
 
@@ -31,7 +33,7 @@ private:
     uint64_t                m_shotId {};
     uint64_t                m_totalSize {};
     uint64_t                m_fragmentStartByte {};
-    std::vector<uint8_t>    m_payload {};
+    ImageProcessing::ImageData_t m_payload {};
 };
 
 } // namespace Protocol

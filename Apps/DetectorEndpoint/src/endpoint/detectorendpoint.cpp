@@ -1,9 +1,9 @@
 #include "detectorendpoint.hpp"
 
-#include <ROD/CameraAdaptor.h>
+#include <ROD/ImageProcessing/CameraAdaptor.h>
 #include "eventendpoint.hpp"
 
-#include <ROD/ImageProcessing.h>
+#include <ROD/ImageProcessing/ImageProcessor.h>
 
 #include <Components/Logger/Logger.h>
 

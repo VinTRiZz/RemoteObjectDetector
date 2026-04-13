@@ -9,7 +9,7 @@
 namespace ImageProcessing::Utility
 {
 
-std::vector<uint8_t> generateTestImageBytes(int width, int height)
+ImageData_t generateTestImageBytes(int width, int height)
 {
     auto testImage = generateColorBarImage(width, height);
     return serializeMat(testImage);
@@ -35,13 +35,13 @@ cv::Mat generateColorBarImage(int width, int height) {
     return img;
 }
 
-std::vector<uint8_t> serializeMat(const cv::Mat& mat) {
-    std::vector<uint8_t> buffer;
+ImageData_t serializeMat(const cv::Mat& mat) {
+    ImageData_t buffer;
     cv::imencode(".jpg", mat, buffer);
     return buffer;
 }
 
-cv::Mat deserializeMat(const std::vector<uint8_t>& buffer) {
+cv::Mat deserializeMat(const ImageData_t& buffer) {
     cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
     return mat;
 }

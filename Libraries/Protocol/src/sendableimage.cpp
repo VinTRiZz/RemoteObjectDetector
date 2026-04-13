@@ -7,23 +7,25 @@
 
 namespace Protocol {
 
+using namespace ImageProcessing;
+
 bool SendableImage::isValid() const
 {
     return m_isValid;
 }
 
-void SendableImage::setImage(uint64_t imageId, std::vector<uint8_t> &&imgData)
+void SendableImage::setImage(uint64_t imageId, ImageData_t &&imgData)
 {
     m_cachedPackets.clear();
     m_imageBytes = std::move(imgData);
 }
 
-std::vector<uint8_t> &SendableImage::getImage()
+ImageData_t &SendableImage::getImage()
 {
     return m_imageBytes;
 }
 
-bool SendableImage::initFromPackets(std::vector<std::vector<uint8_t> > &&iPackets)
+bool SendableImage::initFromPackets(std::vector<ImageData_t > &&iPackets)
 {
     std::set<ImagePacket> readPackets;
 
@@ -46,7 +48,7 @@ bool SendableImage::initFromPackets(std::vector<std::vector<uint8_t> > &&iPacket
     return true;
 }
 
-std::vector<std::vector<uint8_t> > SendableImage::convertToPackets() const
+std::vector<ImageData_t > SendableImage::convertToPackets() const
 {
     if (!m_cachedPackets.empty()) {
         return m_cachedPackets;

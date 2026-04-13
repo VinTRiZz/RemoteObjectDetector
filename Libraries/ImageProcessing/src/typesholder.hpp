@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.hpp"
+#include "old_common.hpp"
 
 // Types to work easier
 typedef std::vector<cv::Point>  ContourType;

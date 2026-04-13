@@ -5,6 +5,9 @@
 #include <vector>
 #include <stdint.h>
 
+#include <ROD/ImageProcessing/Common.h>
+
+
 namespace ImageProcessing
 {
 
@@ -44,7 +47,7 @@ public:
      * @brief shot  Запросить снимок с камеры в буффер
      * @return      Пустой vector при ошибке
      */
-    std::vector<uint8_t> shot();
+    ImageData_t shot();
 
     /**
      * @brief initStreaming     Подготовить стриминг данных с камеры, используя GStreamer

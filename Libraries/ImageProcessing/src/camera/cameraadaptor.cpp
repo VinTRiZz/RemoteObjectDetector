@@ -77,7 +77,7 @@ bool CameraAdaptor::shot(const std::string &outputFile)
     return true;
 }
 
-std::vector<uint8_t> CameraAdaptor::shot()
+ImageData_t CameraAdaptor::shot()
 {
     auto img = d->shot();
     if (img.empty()) {

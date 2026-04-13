@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "common.hpp"
+
 namespace cv {
 class Mat;
 }
@@ -11,10 +13,10 @@ namespace ImageProcessing::Utility
 {
 
 cv::Mat generateColorBarImage(int width, int height);
-std::vector<uint8_t> generateTestImageBytes(int width, int height);
+ImageData_t generateTestImageBytes(int width, int height);
 
-std::vector<uint8_t>    serializeMat(const cv::Mat& mat);
-cv::Mat                 deserializeMat(const std::vector<uint8_t>& buffer);
+ImageData_t    serializeMat(const cv::Mat& mat);
+cv::Mat                 deserializeMat(const ImageData_t& buffer);
 
 
 /**

@@ -31,7 +31,7 @@ void Processor::setImageCallback(std::function<void (const std::string &, const 
     d->detectionCallback = std::move(cbk);
 }
 
-void Processor::addImage(const std::string &analyseId, std::vector<uint8_t> &&imageData)
+void Processor::addImage(const std::string &analyseId, ImageData_t &&imageData)
 {
     d->taskArena.execute([] {
         tbb::task_group tg;

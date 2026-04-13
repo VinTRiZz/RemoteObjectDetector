@@ -8,6 +8,8 @@
 
 #include <ROD/DetectionObject.h>
 
+#include "common.hpp"
+
 namespace ImageProcessing
 {
 
@@ -32,7 +34,7 @@ public:
      * @param analyseId ID анализа для последующей обработки результата
      * @param imageData Данные изображения (сырые байты)
      */
-    void addImage(const std::string& analyseId, std::vector<uint8_t>&& imageData);
+    void addImage(const std::string& analyseId, ImageData_t&& imageData);
 
     void start();
     bool isWorking() const;

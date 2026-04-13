@@ -3,24 +3,42 @@
 #include "extra/transfertester.cpp"
 
 #include <ROD/Protocol.h>
-#include <ROD/ImageProcessingUtility.h>
+#include <ROD/ImageProcessing/Utility.h>
 
-Protocol::SendableImage genPacket(int w, int h) {
+
+using checkpair_t = std::pair<Protocol::SendableImage, ImageProcessing::ImageData_t >;
+checkpair_t genPacket(int w, int h) {
     Protocol::SendableImage res;
-    res.setImage(123, ImageProcessing::Utility::generateTestImageBytes(w, h));
-    return res;
+    auto sourceImg = ImageProcessing::Utility::generateTestImageBytes(w, h);
+    auto imgCopy = sourceImg;
+    res.setImage(123, std::move(imgCopy));
+    return std::make_pair(res, sourceImg);
+}
+
+using ImageTester_t = TransferTester<Protocol::SendableImage, std::vector< ImageProcessing::ImageData_t > >;
+ImageTester_t createTester(ImageProcessing::ImageData_t& sourceImage) {
+    ImageTester_t transferTester;
+    transferTester.setPacketGetter([](auto& p){ return p.convertToPackets(); });
+    transferTester.setChecker([sourceImage](auto&& updatedPackets) -> bool {
+        Protocol::SendableImage sImage;
+        if (!sImage.initFromPackets(std::move(updatedPackets))) {
+            return false;
+        }
+        return sImage.getImage() == sourceImage;
+    });
+    return transferTester;
 }
 
 void testImage(int w, int h) {
-    TransferTester<Protocol::SendableImage, std::vector< std::vector<uint8_t> > > transferTester;
     auto p = genPacket(w, h);
-    transferTester.testRegular(p);
+    auto transferTester = createTester(p.second);
+    transferTester.testRegular(p.first);
 }
 
 TEST(ProtocolUDP, InvalidImage) {
-    TransferTester<Protocol::SendableImage, std::vector< std::vector<uint8_t> > > transferTester;
-    Protocol::SendableImage p;
-    transferTester.testInvalidRegular(p);
+    checkpair_t p;
+    auto transferTester = createTester(p.second);
+    transferTester.testInvalidRegular(p.first);
 }
 
 TEST(ProtocolUDP, SmallImage) {
@@ -36,22 +54,22 @@ TEST(ProtocolUDP, LargeImage) {
 }
 
 TEST(ProtocolUDP, DropFirst) {
-    TransferTester<Protocol::SendableImage, std::vector< std::vector<uint8_t> > > transferTester;
     auto p = genPacket(500, 500);
-    transferTester.testRegular(p);
-    transferTester.testDropFirst(p,  [](auto& p){ return p.convertToPackets(); });
+    auto transferTester = createTester(p.second);
+    transferTester.testRegular(p.first);
+    transferTester.testDropFirst(p.first);
 }
 
 TEST(ProtocolUDP, DropMiddle) {
-    TransferTester<Protocol::SendableImage, std::vector< std::vector<uint8_t> > > transferTester;
     auto p = genPacket(500, 500);
-    transferTester.testRegular(p);
-    transferTester.testDropMiddle(p, [](auto& p){ return p.convertToPackets(); });
+    auto transferTester = createTester(p.second);
+    transferTester.testRegular(p.first);
+    transferTester.testDropMiddle(p.first);
 }
 
 TEST(ProtocolUDP, DropLast) {
-    TransferTester<Protocol::SendableImage, std::vector< std::vector<uint8_t> > > transferTester;
     auto p = genPacket(500, 500);
-    transferTester.testRegular(p);
-    transferTester.testDropLast(p,   [](auto& p){ return p.convertToPackets(); });
+    auto transferTester = createTester(p.second);
+    transferTester.testRegular(p.first);
+    transferTester.testDropLast(p.first);
 }
