@@ -13,6 +13,9 @@ COMPONENTS_CCR_CONFIGURE_LIBRARY(ImageProcessing ${CMAKE_CURRENT_LIST_DIR}
     opencv_objdetect
     opencv_flann
     opencv_features2d
+
+    # Image hash calculation
+    xxhash
 )
 
 # GStreamer linking

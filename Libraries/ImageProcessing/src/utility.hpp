@@ -35,4 +35,6 @@ struct CameraPipelineConfig {
 std::string createSenderPipeline(const CameraPipelineConfig& config);
 std::string createReceiverPipeline(const CameraPipelineConfig& config);
 
+std::vector<uint8_t> calculateImageHash(const ImageData_t& data);
+
 } // namespace ImageProcessing

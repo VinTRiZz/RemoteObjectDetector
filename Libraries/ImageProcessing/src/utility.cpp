@@ -4,6 +4,10 @@
 #include <opencv2/videoio.hpp>
 
 #include <sstream>
+#include <xxhash.h>
+#include <cstdint>
+#include <cstring>
+
 #include <opencv2/imgcodecs.hpp>
 
 namespace ImageProcessing::Utility
@@ -88,6 +92,13 @@ std::string createReceiverPipeline(const CameraPipelineConfig &config) {
     // oss << "uridecodebin uri=rtsp://" << config.serverIp << ":" << config.serverPort
     //     << "/?camera_id=" << config.cameraId << " ! videoconvert ! appsink name=appsink";
     // return oss.str();
+}
+
+std::vector<uint8_t> calculateImageHash(const ImageData_t &data) {
+    XXH64_hash_t hash = XXH3_64bits(data.data(), data.size());
+    std::vector<uint8_t> result(sizeof(XXH64_hash_t));
+    std::memcpy(result.data(), &hash, sizeof(hash));
+    return result;
 }
 
 }
