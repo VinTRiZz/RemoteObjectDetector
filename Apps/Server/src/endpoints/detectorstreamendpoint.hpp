@@ -5,7 +5,7 @@
 #include <Components/Network/ServerUDP.h>
 #include <Components/Network/ClientUDP.h>
 
-#include <ROD/ImageProcessing.h>
+#include <ROD/ImageProcessing/ImageProcessor.h>
 
 /**
  * @brief The DetectorStreamEndpoint class  Server instance, processing video streaming and retranslation
