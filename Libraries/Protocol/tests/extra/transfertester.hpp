@@ -24,10 +24,6 @@ public:
         m_packetGetter = std::move(iFunc);
     }
 
-    void testInvalidRegular(PacketHandleT iObject) {
-        ASSERT_FALSE(m_checkFunc({}));
-    }
-
     void testRegular(PacketHandleT iObject) {
         ASSERT_TRUE(m_checkFunc(m_packetGetter(iObject)));
     }

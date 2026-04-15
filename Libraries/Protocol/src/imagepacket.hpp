@@ -20,7 +20,6 @@ public:
     static void setLoggingEnabled(bool isLoggingEnabled);
 
     bool isValid() const;
-    bool isFirstPacket() const;
 
     void setId(uint64_t id);
     uint64_t getId() const;
@@ -55,10 +54,11 @@ private:
     void serialize(Archive& ar, const unsigned int version) {
         ar & m_shotId;
         ar & m_fragmentStartByte;
-        if (m_fragmentStartByte == 0) { // First part of image
-            ar & m_imageHash;
-            ar & m_totalImageSize;
-        }
+
+        // TODO: Separate fields if good solution
+        ar & m_imageHash;
+        ar & m_totalImageSize;
+
         ar & m_payload;
     }
     friend class boost::serialization::access;
@@ -67,15 +67,11 @@ public:
     // UDP Minimal Transporting Unit sizes
     // TODO: Move to constants?
     static constexpr auto MTU_SIZE {1400};
-    static constexpr auto MTU_PAYLOAD_FIRST {MTU_SIZE
+    static constexpr auto MTU_PAYLOAD_SIZE {MTU_SIZE // TODO: Add processing for first packet (no sense in extra fields)
         - sizeof(m_shotId)
         - sizeof(m_fragmentStartByte)
         - sizeof(m_totalImageSize)
         - sizeof(m_imageHash)
-    };
-    static constexpr auto MTU_PAYLOAD_MIDDLE {MTU_SIZE
-        - sizeof(m_shotId)
-        - sizeof(m_fragmentStartByte)
     };
 };
 

@@ -12,9 +12,6 @@
 
 #include <ROD/ImageProcessing/Utility.h>
 
-#include <iomanip>
-#include <sstream>
-
 using namespace ImageProcessing;
 
 /*
@@ -25,8 +22,6 @@ PAYLOAD: Calculates using other parts of a packet
 Shot ID 0 is reserved for invalid shots
 
 
-==========> FIRST PACKET:
-
 Field name          |  Size (byte)  |    Example    |   Description
 --------------------------------------------------------------------------------------------------------------------
 Shot ID             |       8       |  00000000001  |   Sequential, from 1 to N, increments every time shot created
@@ -35,14 +30,6 @@ Shot hash           |      64       |  a5317f9123e  |   XXH3 hash
 Total size          |       8       |  00000000001  |   Image bytes total count
 Payload             |   Calculated  |  ...........  |   Image bytes
 
-
-==========> MIDDLE AND LAST PACKET:
-
-Field name          |  Size (byte)  |    Example    |   Description
---------------------------------------------------------------------------------------------------------------------
-Shot ID             |       8       |  00000000001  |   Sequential, from 1 to N, increments every time shot created
-Fragment start      |       8       |  00000000001  |   Byte offset of a fragment, also identify first packet
-Payload             |   Calculated  |  ...........  |   Image bytes
 
 */
 
@@ -93,11 +80,6 @@ bool ImagePacket::isValid() const
     return (m_shotId == 0);
 }
 
-bool ImagePacket::isFirstPacket() const
-{
-    return (m_fragmentStartByte == 0);
-}
-
 void ImagePacket::setId(uint64_t id)
 {
     m_shotId = id;
@@ -146,8 +128,7 @@ const std::vector<uint8_t> &ImagePacket::getImageHash() const
 
 void ImagePacket::setPayload(ImageData_t &&payload)
 {
-    if ((isFirstPacket() && payload.size() >= MTU_PAYLOAD_FIRST) ||
-        (!isFirstPacket() && payload.size() >= MTU_PAYLOAD_MIDDLE)) {
+    if (payload.size() > MTU_PAYLOAD_SIZE) {
         throw std::invalid_argument("Payload size is more, than allowed");
     }
     m_payload = std::move(payload);
@@ -168,8 +149,7 @@ bool ImagePacket::initFromPacketPart(const ImageData_t &iData)
         boost::archive::binary_iarchive ia(is);
         ia >> *this;
 
-        if ((isFirstPacket() && m_payload.size() >= MTU_PAYLOAD_FIRST) ||
-            (!isFirstPacket() && m_payload.size() >= MTU_PAYLOAD_MIDDLE)) {
+        if (m_payload.size() > MTU_PAYLOAD_SIZE) {
             throw std::invalid_argument("Serialized payload size is more, than allowed");
         }
 

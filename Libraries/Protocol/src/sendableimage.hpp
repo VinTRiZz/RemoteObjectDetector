@@ -27,7 +27,9 @@ private:
     ImageProcessing::ImageData_t    m_imageBytes;
     uint64_t                        m_imageId {};
 
-    std::vector<ImageProcessing::ImageData_t > m_cachedPackets;
+    // Cache
+    mutable bool m_imageChanged {true};
+    mutable std::vector<ImageProcessing::ImageData_t> m_cachedPackets;
 };
 
 } // namespace Protocol

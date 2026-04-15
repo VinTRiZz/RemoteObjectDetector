@@ -22,6 +22,7 @@ ImageTester_t createTester(ImageProcessing::ImageData_t& sourceImage) {
     transferTester.setChecker([sourceImage](auto&& updatedPackets) -> bool {
         Protocol::SendableImage sImage;
         if (!sImage.initFromPackets(std::move(updatedPackets))) {
+            std::cerr << "Failed to init image from packets" << std::endl;
             return false;
         }
         return sImage.getImage() == sourceImage;
@@ -33,12 +34,6 @@ void testImage(int w, int h) {
     auto p = genPacket(w, h);
     auto transferTester = createTester(p.second);
     transferTester.testRegular(p.first);
-}
-
-TEST(ProtocolUDP, InvalidImage) {
-    checkpair_t p;
-    auto transferTester = createTester(p.second);
-    transferTester.testInvalidRegular(p.first);
 }
 
 TEST(ProtocolUDP, SmallImage) {

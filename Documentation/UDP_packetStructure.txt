@@ -4,21 +4,10 @@ PAYLOAD: Calculates using other parts of a packet
 Shot ID 0 is reserved for invalid shots
 
 
-==========> FIRST PACKET:
-
 Field name          |  Size (byte)  |    Example    |   Description
 --------------------------------------------------------------------------------------------------------------------
 Shot ID             |       8       |  00000000001  |   Sequential, from 1 to N, increments every time shot created
 Fragment start      |       8       |  00000000000  |   Always zero (conversion issue)
 Shot hash           |      64       |  a5317f9123e  |   XXH3 hash
 Total size          |       8       |  00000000001  |   Image bytes total count
-Payload             |   Calculated  |  ...........  |   Image bytes
-
-
-==========> MIDDLE AND LAST PACKET:
-
-Field name          |  Size (byte)  |    Example    |   Description
---------------------------------------------------------------------------------------------------------------------
-Shot ID             |       8       |  00000000001  |   Sequential, from 1 to N, increments every time shot created
-Fragment start      |       8       |  00000000001  |   Byte offset of a fragment, also identify first packet
 Payload             |   Calculated  |  ...........  |   Image bytes
