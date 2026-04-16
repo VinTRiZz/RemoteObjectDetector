@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translation_test.mp4</file>
+    </qresource>
+</RCC>
