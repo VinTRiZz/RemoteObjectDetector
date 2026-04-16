@@ -7,6 +7,7 @@
 #include <xxhash.h>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 
 #include <opencv2/imgcodecs.hpp>
 
@@ -48,6 +49,12 @@ ImageData_t serializeMat(const cv::Mat& mat) {
 cv::Mat deserializeMat(const ImageData_t& buffer) {
     cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
     return mat;
+}
+
+bool saveImage(const ImageData_t &img, const std::string &filePath)
+{
+    auto imgDeser = deserializeMat(img);
+    return cv::imwrite(filePath, imgDeser);
 }
 
 std::string createSenderPipeline(const CameraPipelineConfig &config) {

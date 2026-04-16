@@ -15,8 +15,10 @@ namespace ImageProcessing::Utility
 cv::Mat generateColorBarImage(int width, int height);
 ImageData_t generateTestImageBytes(int width, int height);
 
-ImageData_t    serializeMat(const cv::Mat& mat);
-cv::Mat                 deserializeMat(const ImageData_t& buffer);
+ImageData_t serializeMat(const cv::Mat& mat);
+cv::Mat     deserializeMat(const ImageData_t& buffer);
+
+bool saveImage(const ImageData_t& img, const std::string& filePath);
 
 
 /**
