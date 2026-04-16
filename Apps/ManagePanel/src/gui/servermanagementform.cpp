@@ -34,12 +34,17 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
             return;
         }
         stopUpdateTimer();
-        auto serverAddress = selectedIdx.indexes().front().data(ServerListModel::R_address).toString();
-        COMPLOG_INFO("Selected server:", serverAddress.toStdString());
-        m_pServerManager->setServer(serverAddress);
+
+        auto serverRow = selectedIdx.indexes().front().row();
+        auto serverConf = m_pServerModel->getServer(serverRow)->get(); // Server must exist here
+        auto serverAddr = serverConf.getAddress();
+        m_pServerManager->setServer(QString("%0:%1").arg(serverAddr.first, serverAddr.second));
+        COMPLOG_INFO("Selected server:", serverConf.getName().toStdString());
+
         m_isUpdatesCalled = true;
         startUpdateTimer();
-        emit serverSelected(serverAddress);
+
+        emit serverSelected(serverConf);
     });
 
     // Power options
@@ -64,9 +69,9 @@ ServerManagementForm::~ServerManagementForm()
     delete ui;
 }
 
-void ServerManagementForm::addServer(const QString &serverName, const QString &serverHost)
+void ServerManagementForm::addServer(const ServerConfiguration& conf)
 {
-    m_pServerModel->addServer(serverName, serverHost);
+    m_pServerModel->addServer(conf);
 }
 
 void ServerManagementForm::startUpdateTimer()

@@ -2,6 +2,8 @@
 
 #include <QWidget>
 
+#include "common/serverconfiguration.hpp"
+
 namespace Ui {
 class DetectorManagementForm;
 }
@@ -19,7 +21,7 @@ public:
 
 
 public slots:
-    void setServer(const QString& serverAddress);
+    void setServer(const ServerConfiguration &conf);
 
 private:
     Ui::DetectorManagementForm *ui;

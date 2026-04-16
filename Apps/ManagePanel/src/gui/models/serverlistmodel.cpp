@@ -69,36 +69,37 @@ QVariant ServerListModel::data(const QModelIndex &index, int role) const
         std::advance(serverIt, index.row());
         switch (role)
         {
-        case R_address: return serverIt->second;
-        case R_name:    return serverIt->first;
+        case R_address: return serverIt->getAddress().first;
+        case R_name:    return serverIt->getName();
         }
     }
 
     return QVariant();
 }
 
-void ServerListModel::addServer(const QString &serverName, const QString &serverAddress)
+bool ServerListModel::addServer(const ServerConfiguration& conf)
 {
-    auto replaceIt = m_servers.find(serverName);
-    if (replaceIt != m_servers.end()) {
-        replaceIt->second = serverAddress;
-        auto indxRow = std::distance(m_servers.begin(), replaceIt);
-        emit dataChanged(index(indxRow, 0), index(indxRow, columnCount()), {Qt::DisplayRole});
-        return;
+    auto replaceIt = std::lower_bound(m_servers.begin(), m_servers.end(), conf.getHash(), [&conf](auto& sConf, auto v){
+        return (sConf.getHash() == v);
+    });
+    if (replaceIt != m_servers.end() &&
+        replaceIt->getHash() == conf.getHash()) {
+        return false;
     }
 
-    replaceIt = m_servers.lower_bound(serverName);
     auto indxRow = std::distance(m_servers.begin(), replaceIt);
     beginInsertRows({}, indxRow, indxRow);
-    m_servers[serverName] = serverAddress;
+    m_servers.insert(conf);
     endInsertRows();
+    return true;
 }
 
-QString ServerListModel::getIp(const QString &serverName) const
+std::optional<std::reference_wrapper<const ServerConfiguration> > ServerListModel::getServer(int serverRow) const
 {
-    auto targetIt = m_servers.find(serverName);
-    if (targetIt != m_servers.end()) {
-        return targetIt->second;
+    if (serverRow >= m_servers.size()) {
+        return {};
     }
-    return {};
+    auto sPos = m_servers.begin();
+    std::advance(sPos, serverRow);
+    return *sPos;
 }

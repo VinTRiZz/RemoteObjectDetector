@@ -1,6 +1,8 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
+#include "common/serverconfiguration.hpp"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -11,7 +13,10 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->detectorManagementForm, &DetectorManagementForm::setServer);
 
     // DEBUG
-    ui->serverManagementForm->addServer("Локальный", "127.0.0.1:9001");
+    ServerConfiguration conf;
+    conf.setName("Локальный");
+    conf.setAddress("127.0.0.1", 9001);
+    ui->serverManagementForm->addServer(conf);
 }
 
 MainWindow::~MainWindow()

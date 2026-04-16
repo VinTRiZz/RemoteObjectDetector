@@ -40,6 +40,9 @@
         <set>Qt::AlignCenter</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="spacing">
+         <number>1</number>
+        </property>
         <property name="leftMargin">
          <number>3</number>
         </property>
@@ -54,6 +57,27 @@
         </property>
         <item>
          <widget class="QListView" name="listViewServers"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="pushButtonAddServer">
+            <property name="text">
+             <string>+</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonRemoveServer">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

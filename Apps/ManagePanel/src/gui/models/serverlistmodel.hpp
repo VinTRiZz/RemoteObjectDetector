@@ -2,7 +2,10 @@
 
 #include <QAbstractTableModel>
 
-#include <map>
+#include "common/serverconfiguration.hpp"
+
+#include <set>
+#include <optional>
 
 class ServerListModel : public QAbstractTableModel
 {
@@ -26,10 +29,10 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void addServer(const QString& serverName, const QString& serverAddress);
-    QString getIp(const QString& serverName) const;
+    bool addServer(const ServerConfiguration &conf);
+    std::optional<std::reference_wrapper<const ServerConfiguration> > getServer(int serverRow) const;
 
 private:
-    std::map<QString, QString> m_servers;
+    std::set<ServerConfiguration> m_servers;
 };
 

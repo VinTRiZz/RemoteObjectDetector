@@ -7,6 +7,7 @@
 
 class ServerListModel;
 class ServerManager;
+class ServerConfiguration;
 
 namespace Ui {
 class ServerManagementForm;
@@ -20,10 +21,10 @@ public:
     explicit ServerManagementForm(QWidget *parent = nullptr);
     ~ServerManagementForm();
 
-    void addServer(const QString& serverName, const QString& serverHost);
+    void addServer(const ServerConfiguration &conf);
 
 signals:
-    void serverSelected(const QString& serverAddress);
+    void serverSelected(const ServerConfiguration& conf);
 
 private:
     Ui::ServerManagementForm *ui;

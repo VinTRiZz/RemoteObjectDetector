@@ -25,8 +25,9 @@ DetectorManagementForm::~DetectorManagementForm()
     delete ui;
 }
 
-void DetectorManagementForm::setServer(const QString &serverAddress)
+void DetectorManagementForm::setServer(const ServerConfiguration &conf)
 {
-    m_pDetectorInfoManager->setServer(serverAddress);
+    auto addr = conf.getAddress();
+    m_pDetectorInfoManager->setServer(QString("%0:%1").arg(addr.first, addr.second));
     m_pDetectorListModel->updateDetectorList();
 }
