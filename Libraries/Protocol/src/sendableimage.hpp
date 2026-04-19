@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <stdint.h>
-#include <string>
+#include <set>
 
 #include <ROD/ImageProcessing/Common.h>
 #include "imagepacket.hpp"
@@ -24,6 +24,7 @@ public:
     ImageProcessing::ImageData_t& getImage();
 
     bool initFromPackets(std::vector<ImageProcessing::ImageData_t >&& iPackets);
+    bool initFromPackets(std::set<ImagePacket>&& iPackets);
     std::vector<ImageProcessing::ImageData_t > convertToPackets() const;
 
 private:

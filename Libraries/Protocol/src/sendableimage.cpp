@@ -33,6 +33,47 @@ void SendableImage::setImage(uint64_t imageId, ImageData_t &&imgData)
     m_imageChanged = true;
 }
 
+bool SendableImage::initFromPackets(std::set<ImagePacket> &&iPackets)
+{
+    m_imageId = {};
+    m_senderId = {};
+    if (iPackets.empty()) {
+        return false;
+    }
+
+    // Check packets
+    uint64_t imgId {};
+    uint64_t senderId {};
+    uint64_t prevPacketEndbyte {};
+    for (auto& rp : iPackets) {
+        if (prevPacketEndbyte != rp.getFragmentStart()) {
+            // Invalid packet no
+            return false;
+        }
+        auto& rpPayload = rp.getPayload();
+        prevPacketEndbyte = rp.getFragmentStart() + rpPayload.size();
+
+        if (imgId == 0) {
+            imgId = rp.getId();
+            senderId = rp.getSenderId();
+        } else if (imgId != rp.getId() || senderId != rp.getSenderId()) { // Invalid part of image
+            return false;
+        }
+    }
+
+    // Init from packets data
+    m_imageBytes.reserve(iPackets.begin()->getTotalImageSize());
+    for (auto& rp : iPackets) {
+        auto& rpPayload = rp.getPayload();
+        std::copy(rpPayload.begin(), rpPayload.end(), std::back_inserter(m_imageBytes));
+    }
+    m_imageId = imgId;
+    m_senderId = senderId;
+
+    m_imageChanged = true;
+    return true;
+}
+
 ImageData_t &SendableImage::getImage()
 {
     return m_imageBytes;
@@ -41,41 +82,17 @@ ImageData_t &SendableImage::getImage()
 bool SendableImage::initFromPackets(std::vector<ImageData_t > &&iPackets)
 {
     m_imageId = {};
+    m_senderId = {};
 
     std::set<ImagePacket> readPackets;
-
-    uint64_t maxPacketSize {};
-    uint64_t imgId {};
-    uint64_t senderId {};
     for (auto& ip : iPackets) {
         ImagePacket imgPart;
         if (!imgPart.initFromPacketPart(ip)) {
             return false;
         }
-
-        if (imgId == 0) {
-            imgId = imgPart.getId();
-            senderId = imgPart.getSenderId();
-        } else if (imgId != imgPart.getId() || senderId != imgPart.getSenderId()) { // Invalid part of image
-            return false;
-        }
-
-        maxPacketSize = std::max(maxPacketSize, imgPart.getPayload().size());
         readPackets.emplace(std::move(imgPart));
     }
-
-    m_imageBytes.reserve(readPackets.size() * maxPacketSize);
-    for (auto& rp : readPackets) {
-        auto& rpPayload = rp.getPayload();
-        std::copy(rpPayload.begin(), rpPayload.end(), std::back_inserter(m_imageBytes));
-    }
-    m_imageBytes.shrink_to_fit();
-
-    m_imageId = imgId;
-    m_senderId = senderId;
-
-    m_imageChanged = true;
-    return true;
+    return initFromPackets(std::move(readPackets));
 }
 
 std::vector<ImageData_t > SendableImage::convertToPackets() const

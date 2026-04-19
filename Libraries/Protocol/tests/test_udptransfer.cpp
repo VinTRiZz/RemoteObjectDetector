@@ -26,6 +26,12 @@ ImageTester_t createTester(ImageProcessing::ImageData_t& sourceImage, uint64_t e
             std::cerr << "Failed to init image from packets" << std::endl;
             return false;
         }
+
+        if (sImage.isValid() && !sImage.getImage().empty()) {
+            std::cerr << "Image like valid, but the internal image is NULL" << std::endl;
+            return false;
+        }
+
         return (sImage.getImage() == sourceImage) && (sImage.getSenderId() == expectedId);
     });
     return transferTester;
