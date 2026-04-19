@@ -45,10 +45,6 @@ void Endpoint::start(uint16_t port)
     // Server info
     drogon::app().setServerHeaderField("Management server");
 
-    // Handle Drogon needs in document root path
-    std::filesystem::create_directory("dummy");
-    drogon::app().setDocumentRoot("dummy");
-
     drogon::app().addListener("0.0.0.0", port);
     drogon::app().run();
 }

@@ -11,11 +11,17 @@
 
 namespace bpo = boost::program_options;
 
+#define APP_EXITCODE_OK                   0
+#define APP_EXITCODE_CONFIGURATION_ERROR  1
+#define APP_EXITCODE_FAILURE              2
+#define APP_EXITCODE_EXCEPTION            3
+#define APP_EXITCODE_UNKNOWN_EXCEPTION    4
+
 int main(int argc, char* argv[]) {
 
     // Common setings
-    uint16_t wsPort {9001};
-    uint16_t httpAPIPort {9002};
+    uint16_t httpAPIPort {9001};
+    uint16_t wsPort {9002};
     uint16_t streamingUDPPort {9003};
     std::string updatesDir {"."};
 
@@ -37,13 +43,13 @@ int main(int argc, char* argv[]) {
         std::cerr << er.what() << std::endl;
         desc.print(std::cerr);
         std::cerr << std::endl;
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     // Check-up
     if (!std::filesystem::exists(updatesDir)) {
         std::cerr << "Invalid updates directory path: " << updatesDir << std::endl;
-        return 1;
+        return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     // Setup root of application and logging
@@ -58,6 +64,26 @@ int main(int argc, char* argv[]) {
 
     // Start server
     ServerEndpoint server(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Data) / "local.db");
-    server.start(wsPort, httpAPIPort, streamingUDPPort);
-    return 0;
+    try {
+        server.start(wsPort, httpAPIPort, streamingUDPPort);
+    } catch (const std::exception& ex) {
+        try {
+            server.stop();
+        } catch (...) {
+            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
+            return APP_EXITCODE_FAILURE;
+        }
+        std::cerr << "CRITICAL: EXCEPTION: " << ex.what() << std::endl;
+        return APP_EXITCODE_EXCEPTION;
+    } catch (...) {
+        try {
+            server.stop();
+        } catch (...) {
+            std::cerr << "CRITICAL: FAILED TO STOP APP AFTER FAILURE" << std::endl;
+            return APP_EXITCODE_FAILURE;
+        }
+        std::cerr << "CRITICAL: UNKNOWN EXCEPTION" << std::endl;
+        return APP_EXITCODE_UNKNOWN_EXCEPTION;
+    }
+    return APP_EXITCODE_OK;
 }

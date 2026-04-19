@@ -18,6 +18,8 @@ struct EventEndpoint::Impl
     websocketpp::lib::asio::io_service  ioService;
     ConnectionHdl                       eventConnection;
     std::atomic<bool>                   connected {false};
+
+    std::string uri;
 };
 
 
@@ -70,23 +72,32 @@ EventEndpoint::~EventEndpoint()
     disconnect();
 }
 
-void EventEndpoint::setToken(const std::string &token)
+void EventEndpoint::setDeviceId(long long devId)
 {
-    m_token = token;
+    m_deviceId = devId;
 }
 
-void EventEndpoint::connect(const std::string &serverHost, uint16_t eventPort)
+void EventEndpoint::setServer(const std::string &serverHost, uint16_t eventPort)
 {
-    std::string uri = "ws://" + serverHost + ":" + std::to_string(eventPort) + "/?dev=" + m_token;
-    COMPLOG_SYNC_DEBUG(uri);
+    d->uri = "ws://" + serverHost + ":" + std::to_string(eventPort) + "/?dev=";
+}
+
+void EventEndpoint::connect()
+{
+    auto url = d->uri + std::to_string(m_deviceId);
+    COMPLOG_INFO("Connecting to:", url);
     websocketpp::lib::error_code ec;
-    auto con = d->eventClient.get_connection(uri, ec);
+    auto con = d->eventClient.get_connection(url, ec);
     if (ec) {
         COMPLOG_ERROR("[WS] Connection:", ec.message());
         return;
     }
     d->eventClient.connect(con);
-    d->eventClient.run();
+
+    // Event listen thread
+    std::thread([this](){
+        d->eventClient.run();
+    }).detach();
 }
 
 bool EventEndpoint::isConnected() const

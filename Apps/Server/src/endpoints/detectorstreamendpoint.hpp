@@ -7,6 +7,9 @@
 
 #include <ROD/ImageProcessing/ImageProcessor.h>
 
+#include <map>
+#include <set>
+
 /**
  * @brief The DetectorStreamEndpoint class  Server instance, processing video streaming and retranslation
  */
@@ -21,10 +24,28 @@ public:
     bool isWorking() const override;
     void stop() override;
 
+    /**
+     * @brief setImageReceivedCallback When image received, this callback will be called once in some thread
+     * @param imgCallback
+     */
+    void setImageReceivedCallback(std::function<void(Protocol::SendableImage&&)>&& imgCallback);
+
+    /**
+     * @brief The ImageInfo class Detector sent image parts
+     */
+    struct ImageInfo
+    {
+        std::mutex addMx;
+        uint64_t id {};
+        std::set<Protocol::ImagePacket> parts;
+    };
+
 private:
     UDP::Server m_streamingServer;      // Receiver inserting images into processor to proceed
     UDP::Client m_streamingDataSender;  // Retranslator
 
-    ImageProcessing::Processor imgProcessor {std::thread::hardware_concurrency()};
+    std::mutex m_imageMx;
+    std::map<uint64_t, ImageInfo>                   m_imageParts;
+    std::function<void(Protocol::SendableImage&&)>  m_receivedCallback;
 };
 

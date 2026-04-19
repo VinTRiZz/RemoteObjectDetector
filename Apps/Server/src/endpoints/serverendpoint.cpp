@@ -1,10 +1,12 @@
 #include "serverendpoint.hpp"
 
 #include <ROD/Protocol.h>
+#include <ROD/ImageProcessing/Utility.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Filework/Common.h>
 #include <Components/Common/Utils.h>
+#include <Components/Common/DirectoryManager.h>
 
 #include "detectoreventendpoint.hpp"
 #include "detectorstreamendpoint.hpp"
@@ -14,8 +16,6 @@
 #include "eventprocessors/detectoreventprocessor.hpp"
 
 #include "database/recordmanager.hpp"
-
-#include <Components/Common/DirectoryManager.h>
 
 struct ServerEndpoint::Impl
 {
@@ -82,7 +82,15 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d->detectorEventEndpoint.setEventProcessor(d->detectorEventProcessor);
     d->detectorEventEndpoint.start(wsEventPort);
 
-    d->detectorStreamingEndpoint.setEventProcessor(d->detectorEventProcessor);
+    // Image stream processor
+    d->detectorStreamingEndpoint.setImageReceivedCallback([](auto&& receivedImage) -> void {
+        COMPLOG_DEBUG("Received image from:", receivedImage.getSenderId(), "with id:", receivedImage.getId());
+
+        auto& dirManager = Common::DirectoryManager::getInstance();
+        auto dataDir = dirManager.getDirectory(Common::DirectoryManager::Data);
+        auto saveFile = dataDir / (std::to_string(receivedImage.getId()) + ".png");
+        ImageProcessing::Utility::saveImage(receivedImage.getImage(), saveFile);
+    });
     d->detectorStreamingEndpoint.start(udpStreamingPort);
 
     d->managementEndpoint.setRecordManager(d->recordManager);

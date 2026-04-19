@@ -9,16 +9,18 @@ public:
     EventEndpoint();
     ~EventEndpoint();
 
-    void setToken(const std::string& token);
+    void setDeviceId(long long devId);
 
-    void connect(const std::string& serverHost, uint16_t eventPort);
+    void setServer(const std::string& serverHost, uint16_t eventPort);
+
+    void connect();
     bool isConnected() const;
     void disconnect();
 
     ServerCommandProcessor& getEventProcessor();
 
 private:
-    std::string m_token;
+    long long m_deviceId {};
     ServerCommandProcessor m_eventProcessor;
 
     struct Impl;

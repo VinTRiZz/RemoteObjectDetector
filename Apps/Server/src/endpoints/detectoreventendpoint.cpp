@@ -118,20 +118,20 @@ void DetectorEventEndpoint::initConnectionCallbacks()
         auto remote = con->get_remote_endpoint();
 
         auto parameters = con->get_resource();
-        std::regex devnameRegexp("\\/[?&]dev=([a-f0-9]{64})");
+        std::regex devnameRegexp("\\/\\?dev=([1-9][0-9]{0,})");
         std::smatch devnameMatch;
         if (!std::regex_match(parameters, devnameMatch, devnameRegexp)) {
             COMPLOG_WARNING("[INVALID PROTOCOL] Rejected connection from:", remote);
             return false;
         }
 
-        auto deviceName = devnameMatch[1].str();
-        if (!isDevValid(deviceName)) {
+        auto deviceId = devnameMatch[1].str();
+        if (!isDevValid(deviceId)) {
             COMPLOG_WARNING("[INVALID DEVNAME] Rejected connection from:", remote);
             return false;
         }
         m_connectionMx.lock();
-        m_connections.emplace(hdl, deviceName);
+        m_connections.emplace(hdl, deviceId);
         m_connectionMx.unlock();
 
         COMPLOG_OK("[WS] Client connected:", remote);
@@ -189,10 +189,8 @@ void DetectorEventEndpoint::initConnectionCallbacks()
 
 bool DetectorEventEndpoint::isDevValid(const std::string &devname) const
 {
-    if ((devname.empty() ||
-        devname.size() != 64) && // Device hash (token)
-        (devname != "MANAGER")) {
-            return false;
+    if (devname.empty() && (devname != "MANAGER")) {
+        return false;
     }
 
     if (devname == "MANAGER") {
@@ -202,7 +200,7 @@ bool DetectorEventEndpoint::isDevValid(const std::string &devname) const
         }
     } else {
         // TODO: Check devices id DB
-        COMPLOG_WARNING("DEVICE TOKEN CHECK IGNORED");
+        COMPLOG_WARNING("DEVICE ID CHECK IGNORED");
     }
     return true;
 }

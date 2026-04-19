@@ -12,7 +12,13 @@ public:
     DetectorEndpoint();
     ~DetectorEndpoint();
 
-    void setToken(const std::string& tokenString);
+    /**
+     * @brief setDebugMode  In this mode, endpoint sends images from debug video to server
+     * @param isDebug
+     */
+    void setDebugMode(bool isDebug);
+
+    void setDeviceId(long long deviceId);
 
     bool start(const std::string &host, uint16_t streamPort, uint16_t eventPort);
     void stop();
@@ -20,5 +26,8 @@ public:
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
+
+    void prepareShot();
+    void sendShot();
 };
 
