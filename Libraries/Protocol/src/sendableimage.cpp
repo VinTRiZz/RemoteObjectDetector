@@ -27,21 +27,20 @@ uint64_t SendableImage::getSenderId() const
     return m_senderId;
 }
 
+uint64_t SendableImage::getId() const
+{
+    return m_imageId;
+}
+
 void SendableImage::setImage(uint64_t imageId, ImageData_t &&imgData)
 {
+    m_imageId = imageId;
     m_imageBytes = std::move(imgData);
     m_imageChanged = true;
 }
 
-bool SendableImage::initFromPackets(std::set<ImagePacket> &&iPackets)
+bool SendableImage::canInitFrom(const std::set<ImagePacket> &iPackets) const
 {
-    m_imageId = {};
-    m_senderId = {};
-    if (iPackets.empty()) {
-        return false;
-    }
-
-    // Check packets
     uint64_t imgId {};
     uint64_t senderId {};
     uint64_t prevPacketEndbyte {};
@@ -60,6 +59,39 @@ bool SendableImage::initFromPackets(std::set<ImagePacket> &&iPackets)
             return false;
         }
     }
+    return true;
+}
+
+bool SendableImage::initFromPackets(std::set<ImagePacket> &&iPackets)
+{
+    m_imageId = {};
+    m_senderId = {};
+    if (iPackets.empty()) {
+        m_lastErrorText = "Empty input";
+        return false;
+    }
+
+    // Check packets
+    uint64_t imgId {};
+    uint64_t senderId {};
+    uint64_t prevPacketEndbyte {};
+    for (auto& rp : iPackets) {
+        if (prevPacketEndbyte != rp.getFragmentStart()) {
+            // Invalid packet no
+            m_lastErrorText = "Invalid packet fragment start";
+            return false;
+        }
+        auto& rpPayload = rp.getPayload();
+        prevPacketEndbyte = rp.getFragmentStart() + rpPayload.size();
+
+        if (imgId == 0) {
+            imgId = rp.getId();
+            senderId = rp.getSenderId();
+        } else if (imgId != rp.getId() || senderId != rp.getSenderId()) { // Invalid part of image
+            m_lastErrorText = "Invalid id of image or sender id";
+            return false;
+        }
+    }
 
     // Init from packets data
     m_imageBytes.reserve(iPackets.begin()->getTotalImageSize());
@@ -72,6 +104,11 @@ bool SendableImage::initFromPackets(std::set<ImagePacket> &&iPackets)
 
     m_imageChanged = true;
     return true;
+}
+
+std::string_view SendableImage::getLastErrorText() const
+{
+    return m_lastErrorText;
 }
 
 ImageData_t &SendableImage::getImage()
@@ -88,6 +125,7 @@ bool SendableImage::initFromPackets(std::vector<ImageData_t > &&iPackets)
     for (auto& ip : iPackets) {
         ImagePacket imgPart;
         if (!imgPart.initFromPacketPart(ip)) {
+            m_lastErrorText = "Failed to init image part packet from raw bytes";
             return false;
         }
         readPackets.emplace(std::move(imgPart));

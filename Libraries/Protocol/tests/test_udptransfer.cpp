@@ -23,12 +23,12 @@ ImageTester_t createTester(ImageProcessing::ImageData_t& sourceImage, uint64_t e
     transferTester.setChecker([sourceImage, expectedId](auto&& updatedPackets) -> bool {
         Protocol::SendableImage sImage;
         if (!sImage.initFromPackets(std::move(updatedPackets))) {
-            std::cerr << "Failed to init image from packets" << std::endl;
+            std::cerr << "Failed to init image from packets: " << sImage.getLastErrorText() << std::endl;
             return false;
         }
 
-        if (sImage.isValid() && !sImage.getImage().empty()) {
-            std::cerr << "Image like valid, but the internal image is NULL" << std::endl;
+        if (sImage.isValid() && sImage.getImage().empty()) {
+            std::cerr << "Image like valid, but the internal image is NULL. Last error: " << sImage.getLastErrorText() << std::endl;
             return false;
         }
 

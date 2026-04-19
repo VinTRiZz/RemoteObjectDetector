@@ -39,8 +39,8 @@ public:
     void setPayload(ImageProcessing::ImageData_t&& payload);
     const ImageProcessing::ImageData_t& getPayload() const;
 
-    bool initFromPacketPart(const ImageProcessing::ImageData_t& iData);
-    ImageProcessing::ImageData_t convertToPacketPart() const;
+    bool initFromPacketPart(const std::vector<uint8_t>& iData);
+    std::vector<uint8_t> convertToPacketPart() const;
 
     bool operator <(const ImagePacket& _oPacket) const;
     bool operator ==(const ImagePacket& _oPacket) const;

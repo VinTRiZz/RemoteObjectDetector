@@ -149,7 +149,7 @@ const ImageData_t &ImagePacket::getPayload() const
     return m_payload;
 }
 
-bool ImagePacket::initFromPacketPart(const ImageData_t &iData)
+bool ImagePacket::initFromPacketPart(const std::vector<uint8_t> &iData)
 {
     if (iData.empty()) return false;
 
@@ -177,9 +177,9 @@ bool ImagePacket::initFromPacketPart(const ImageData_t &iData)
     return false;
 }
 
-ImageData_t ImagePacket::convertToPacketPart() const
+std::vector<uint8_t> ImagePacket::convertToPacketPart() const
 {
-    ImageData_t oData;
+    std::vector<uint8_t> oData;
     oData.reserve(MTU_SIZE);
     vector_ostreambuf os(oData);
     try {
