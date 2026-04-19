@@ -24,6 +24,9 @@ public:
     void setId(uint64_t id);
     uint64_t getId() const;
 
+    void setSenderId(uint64_t sId);
+    uint64_t getSenderId() const;
+
     void setTotalImageSize(uint64_t totalSize);
     uint64_t getTotalImageSize() const;
 
@@ -44,6 +47,7 @@ public:
     bool operator !=(const ImagePacket& _oPacket) const;
 
 private:
+    uint64_t                        m_senderId {};
     uint64_t                        m_shotId {};
     uint64_t                        m_totalImageSize {};
     uint64_t                        m_fragmentStartByte {};
@@ -52,6 +56,7 @@ private:
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version) {
+        ar & m_senderId;
         ar & m_shotId;
         ar & m_fragmentStartByte;
 

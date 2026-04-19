@@ -5,6 +5,7 @@
 #include <string>
 
 #include <ROD/ImageProcessing/Common.h>
+#include "imagepacket.hpp"
 
 namespace Protocol {
 
@@ -16,6 +17,9 @@ class SendableImage
 public:
     bool isValid() const;
 
+    void setSenderId(uint64_t sId);
+    uint64_t getSenderId() const;
+
     void setImage(uint64_t imageId, ImageProcessing::ImageData_t&& imgData);
     ImageProcessing::ImageData_t& getImage();
 
@@ -23,9 +27,9 @@ public:
     std::vector<ImageProcessing::ImageData_t > convertToPackets() const;
 
 private:
-    bool                            m_isValid {false};
     ImageProcessing::ImageData_t    m_imageBytes;
     uint64_t                        m_imageId {};
+    uint64_t                        m_senderId {};
 
     // Cache
     mutable bool m_imageChanged {true};

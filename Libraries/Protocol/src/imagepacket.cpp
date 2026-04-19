@@ -90,6 +90,16 @@ uint64_t ImagePacket::getId() const
     return m_shotId;
 }
 
+void ImagePacket::setSenderId(uint64_t sId)
+{
+    m_senderId = sId;
+}
+
+uint64_t ImagePacket::getSenderId() const
+{
+    return m_senderId;
+}
+
 void ImagePacket::setTotalImageSize(uint64_t totalSize)
 {
     if (m_fragmentStartByte > totalSize) {
@@ -194,11 +204,12 @@ bool ImagePacket::operator <(const ImagePacket& _oPacket) const {
 
 bool ImagePacket::operator ==(const ImagePacket& _oPacket) const {
     return
-        m_shotId == _oPacket.m_shotId &&
-        m_totalImageSize == _oPacket.m_totalImageSize &&
+        m_senderId          == _oPacket.m_senderId &&
+        m_shotId            == _oPacket.m_shotId &&
+        m_totalImageSize    == _oPacket.m_totalImageSize &&
         m_fragmentStartByte == _oPacket.m_fragmentStartByte &&
-        m_imageHash == _oPacket.m_imageHash &&
-        m_payload == _oPacket.m_payload;
+        m_imageHash         == _oPacket.m_imageHash &&
+        m_payload           == _oPacket.m_payload;
 }
 
 bool ImagePacket::operator !=(const ImagePacket& _oPacket) const {
