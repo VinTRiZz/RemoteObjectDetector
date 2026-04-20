@@ -7,6 +7,9 @@
 #include "gui/models/servertreemodel.hpp"
 #include "gui/models/detectortreemodel.hpp"
 
+#include "gui/servers/servermanagementform.hpp"
+#include "gui/detectors/detectormanagementform.hpp"
+
 #include <Components/Logger/Logger.h>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -56,13 +59,14 @@ void MainWindow::init()
 void MainWindow::setupCosmetics()
 {
     ui->stackedWidget->setCurrentIndex(0); // Placeholder
+
+    ui->pushButtonManageDetectors->setEnabled(false);
 }
 
 void MainWindow::setupSignals()
 {
     connect(ui->treeViewServers->selectionModel(), &QItemSelectionModel::selectionChanged,
             m_pDetectorsModel, [this](const QItemSelection &selected, const QItemSelection &deselected){
-                COMPLOG_DEBUG("CALLED");
                 if (selected.empty()) {
                     m_pDetectorsModel->setServer({});
                     ui->stackedWidget->setCurrentIndex(0); // Placeholder
@@ -71,5 +75,29 @@ void MainWindow::setupSignals()
                 auto serverHdl = m_pServersModel->getServer(selected.indexes().front().row());
                 m_pDetectorsModel->setServer(serverHdl);
                 ui->stackedWidget->setCurrentIndex(serverHdl.isValid() ? 1 : 0);
+                ui->pushButtonManageDetectors->setEnabled(serverHdl.isValid());
+            });
+
+    connect(ui->pushButtonManageServers, &QPushButton::clicked,
+            this, [this](){
+                if (m_pServerManagementForm == nullptr) {
+                    m_pServerManagementForm = new ServerManagementForm(this);
+                    m_pServerManagementForm->setSourceServerModel(m_pServersModel);
+                    m_pServerManagementForm->setWindowFlags(m_pServerManagementForm->windowFlags() | Qt::Window);
+                }
+
+                if (m_pServerManagementForm->isVisible()) {
+                    m_pServerManagementForm->setFocus(Qt::ActiveWindowFocusReason);
+                } else {
+                    m_pServerManagementForm->show();
+                }
+            });
+    connect(ui->pushButtonManageDetectors, &QPushButton::clicked,
+            this, [this](){
+                auto pDetectorForm = new DetectorManagementForm(this);
+                auto serverHdl = m_pServersModel->getServer(ui->treeViewServers->currentIndex().row());
+                pDetectorForm->setServer(serverHdl);
+                pDetectorForm->setWindowFlags(pDetectorForm->windowFlags() | Qt::Window);
+                pDetectorForm->show();
             });
 }

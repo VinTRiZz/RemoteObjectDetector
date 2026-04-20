@@ -29,6 +29,7 @@ public:
         R_location,
         R_register_date,
         R_last_online,
+        R_is_online,
     };
 
     // QAbstractTableModel interface

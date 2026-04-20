@@ -1,6 +1,7 @@
 #include "detectortreemodel.hpp"
 
 #include <QDateTime>
+#include <QColor>
 
 #include <Components/Logger/Logger.h>
 
@@ -22,8 +23,11 @@ QVariant DetectorTreeModel::headerData(int section, Qt::Orientation orientation,
     if (role == Qt::DisplayRole) {
         switch (section)
         {
-        case C_id:      return "ID";
-        case C_name:    return "Название";
+        case C_id:              return "ID";
+        case C_name:            return "Name";
+        case C_location:        return "Location";
+        case C_register_date:   return "Register date";
+        case C_last_online:     return "Last online time";
         }
         return {};
     }
@@ -75,6 +79,11 @@ QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
         return {};
     }
 
+    if (role == Qt::DecorationRole) {
+        auto isOnline = data(index, R_is_online).toBool();
+        return (isOnline ? QColor(130, 240, 190) : QColor(240, 120, 150));
+    }
+
     if (role > Qt::UserRole) {
         auto detectorIt = m_detectorsCache.begin();
         std::advance(detectorIt, index.row());
@@ -91,6 +100,7 @@ QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
         case R_location:        return QString::fromStdString(detectorConf.info.location);
         case R_register_date:   return QDateTime::fromSecsSinceEpoch(detectorConf.system.registerDateUTC).toString("dd.MM.yyyy hh:mm");
         case R_last_online:     return (detectorConf.online.lastOnlineTimeUTC == 0 ? "ONLINE" : QDateTime::fromSecsSinceEpoch(detectorConf.online.lastOnlineTimeUTC).toString("dd.MM.yyyy hh:mm"));
+        case R_is_online:       return detectorConf.online.lastOnlineTimeUTC == 0;
         }
     }
 

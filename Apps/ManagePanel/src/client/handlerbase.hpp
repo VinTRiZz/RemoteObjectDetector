@@ -38,7 +38,7 @@ public:
     bool operator<(const HandlerBase& _ohdl) const;
 
 private:
-    std::shared_ptr<bool> m_isValid;
+    std::shared_ptr<bool> m_isValid { std::make_shared<bool>(false) };
     PointerT* m_pTarget {nullptr}; // Pointer for synchronization
 
 protected:
@@ -95,9 +95,6 @@ inline bool HandlerBase<PointerT>::operator<(const HandlerBase &_ohdl) const {
 
 template<typename PointerT>
 inline void HandlerBase<PointerT>::setPointer(PointerT *pTarget) {
-    if (!m_isValid) {
-        m_isValid = std::make_shared<bool>(false);
-    }
     // TODO: Set pointer is not thread-safe... Think about it
     *m_isValid = false;
     m_pTarget = pTarget;

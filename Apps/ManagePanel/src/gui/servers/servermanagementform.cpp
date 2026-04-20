@@ -40,6 +40,7 @@ ServerManagementForm::~ServerManagementForm()
 void ServerManagementForm::setSourceServerModel(ServerTreeModel *pSourceModel)
 {
     m_pServerTreeIdentityModel->setSourceModel(pSourceModel);
+    m_pServerTreeModel = pSourceModel;
 
     if (m_pCurrentServerRegistry) {
         // TODO: Disconnect everything
@@ -48,6 +49,7 @@ void ServerManagementForm::setSourceServerModel(ServerTreeModel *pSourceModel)
     if (m_pCurrentServerRegistry) {
         // TODO: Connect everything
     }
+    processSelectedServer({});
 }
 
 void ServerManagementForm::processSelectedServer(const Web::ServerHandler &serv)

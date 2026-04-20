@@ -9,6 +9,9 @@ class MainWindow;
 class ServerTreeModel;
 class DetectorTreeModel;
 
+class ServerManagementForm;
+
+
 namespace Web {
 class ServerRegistry;
 }
@@ -30,6 +33,9 @@ private:
 
     ServerTreeModel*    m_pServersModel {nullptr};
     DetectorTreeModel*  m_pDetectorsModel {nullptr};
+
+    // Must be one instance only
+    ServerManagementForm* m_pServerManagementForm {nullptr};
 
     void setupCosmetics();
     void setupSignals();
