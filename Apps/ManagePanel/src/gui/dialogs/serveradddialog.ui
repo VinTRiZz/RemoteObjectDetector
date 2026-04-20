@@ -15,10 +15,18 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLineEdit" name="lineEditServerName"/>
+    <widget class="QLineEdit" name="lineEditServerName">
+     <property name="placeholderText">
+      <string>Enter server name...</string>
+     </property>
+    </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="lineEditServerAddress"/>
+    <widget class="QLineEdit" name="lineEditServerAddress">
+     <property name="placeholderText">
+      <string>Enter server IP or DNS address and port...</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

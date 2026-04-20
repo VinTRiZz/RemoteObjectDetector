@@ -2,6 +2,8 @@
 
 #include <QDialog>
 
+#include "common/serverconfiguration.hpp"
+
 namespace Ui {
 class ServerAddDialog;
 }
@@ -13,6 +15,8 @@ class ServerAddDialog : public QDialog
 public:
     explicit ServerAddDialog(QWidget *parent = nullptr);
     ~ServerAddDialog();
+
+    ServerConfiguration getConfig();
 
 private:
     Ui::ServerAddDialog *ui;

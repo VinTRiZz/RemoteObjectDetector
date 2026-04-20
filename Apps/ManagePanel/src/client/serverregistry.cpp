@@ -14,6 +14,8 @@ struct ServerRegistry::Impl
     std::unique_ptr<Database::SQLiteTable> serversDb;
 
     std::set<ServerHandler> servers;
+
+    QString lastErrorText;
 };
 
 ServerRegistry::ServerRegistry(QObject *parent)
@@ -46,6 +48,7 @@ bool ServerRegistry::addServer(const ServerConfiguration &conf)
     auto pServer = new Server(this);
     if (!pServer->setConfiguration(conf)) {
         pServer->deleteLater();
+        d->lastErrorText = "Invalid server configuration";
         return false;
     }
 
@@ -78,6 +81,11 @@ void ServerRegistry::removeServer(const ServerConfiguration &conf)
 std::set<ServerHandler> ServerRegistry::getServers() const
 {
     return d->servers;
+}
+
+QString ServerRegistry::getLastErrorText() const
+{
+    return d->lastErrorText;
 }
 
 } // namespace Web

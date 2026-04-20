@@ -60,6 +60,15 @@
           <property name="verticalScrollMode">
            <enum>QAbstractItemView::ScrollPerPixel</enum>
           </property>
+          <property name="animated">
+           <bool>true</bool>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="headerHidden">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>

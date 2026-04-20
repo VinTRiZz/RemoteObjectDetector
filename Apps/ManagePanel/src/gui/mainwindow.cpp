@@ -60,6 +60,7 @@ void MainWindow::setupCosmetics()
 {
     ui->stackedWidget->setCurrentIndex(0); // Placeholder
 
+    ui->treeViewServers->header()->setSectionResizeMode(QHeaderView::Stretch);
     ui->pushButtonManageDetectors->setEnabled(false);
 }
 

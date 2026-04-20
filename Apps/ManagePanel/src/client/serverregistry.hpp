@@ -29,6 +29,8 @@ public:
 
     std::set<ServerHandler> getServers() const;
 
+    QString getLastErrorText() const;
+
 signals:
     void serverAdded(const ServerHandler& hdl);
     void serverAboutToRemove(const ServerHandler& hdl);
