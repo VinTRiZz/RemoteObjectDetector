@@ -68,7 +68,11 @@ void ServerRegistry::removeServer(const ServerConfiguration &conf)
     auto serverHdl = *targetIt;
     emit serverAboutToRemove(serverHdl);
     d->servers.erase(targetIt);
-    serverHdl->deleteLater();
+
+    // Delete safely
+    auto pServ = serverHdl.get();
+    serverHdl.invalidate();
+    pServ->deleteLater();
 }
 
 std::set<ServerHandler> ServerRegistry::getServers() const

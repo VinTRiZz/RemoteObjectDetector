@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <stdexcept>
 
 namespace Web {
@@ -18,9 +19,9 @@ class HandlerBase
     struct is_compareAvailable<T, std::void_t<decltype(std::declval<T>().operator<(T{}))>> : std::true_type {};
 
 public:
-    HandlerBase();
+    HandlerBase() = default;
     explicit HandlerBase(PointerT* pTarget);
-    ~HandlerBase();
+    ~HandlerBase() = default;
 
     // Pointer access operators
     PointerT* operator->() noexcept(false);
@@ -37,24 +38,20 @@ public:
     bool operator<(const HandlerBase& _ohdl) const;
 
 private:
-    PointerT* m_pTarget {nullptr};
+    std::shared_ptr<bool> m_isValid;
+    PointerT* m_pTarget {nullptr}; // Pointer for synchronization
 
 protected:
     // Add space for reimplement
     virtual void setPointer(PointerT* pTarget);
+    void invalidate();
 };
 
 
 // =============================== IMPLEMENTATION ===================================== //
 
 template<typename PointerT>
-inline HandlerBase<PointerT>::HandlerBase() = default;
-
-template<typename PointerT>
 inline HandlerBase<PointerT>::HandlerBase(PointerT *pTarget) { setPointer(pTarget); }
-
-template<typename PointerT>
-inline HandlerBase<PointerT>::~HandlerBase() = default;
 
 template<typename PointerT>
 inline PointerT *HandlerBase<PointerT>::operator->() noexcept(false) {
@@ -82,7 +79,7 @@ template<typename PointerT>
 inline HandlerBase<PointerT>::operator bool() const { return isValid(); }
 
 template<typename PointerT>
-inline bool HandlerBase<PointerT>::isValid() const noexcept { return (nullptr != m_pTarget); }
+inline bool HandlerBase<PointerT>::isValid() const noexcept { return *m_isValid; }
 
 template<typename PointerT>
 inline bool HandlerBase<PointerT>::operator<(const HandlerBase &_ohdl) const {
@@ -98,7 +95,19 @@ inline bool HandlerBase<PointerT>::operator<(const HandlerBase &_ohdl) const {
 
 template<typename PointerT>
 inline void HandlerBase<PointerT>::setPointer(PointerT *pTarget) {
+    if (!m_isValid) {
+        m_isValid = std::make_shared<bool>(false);
+    }
+    // TODO: Set pointer is not thread-safe... Think about it
+    *m_isValid = false;
     m_pTarget = pTarget;
+    *m_isValid = (m_pTarget != nullptr);
+}
+
+template<typename PointerT>
+inline void HandlerBase<PointerT>::invalidate()
+{
+    *m_isValid = false;
 }
 
 } // namespace Web

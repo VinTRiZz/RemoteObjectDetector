@@ -72,7 +72,11 @@ void Server::removeDetector(const DataObjects::DetectorConfiguration &conf)
     auto detHdl = *targetIt;
     emit detectorAboutToRemove(detHdl);
     d->detectors.erase(targetIt);
-    detHdl->deleteLater();
+
+    // Delete safely
+    auto pDet = detHdl.get();
+    detHdl.invalidate();
+    pDet->deleteLater();
 }
 
 std::set<DetectorHandler> Server::getDetectors() const
