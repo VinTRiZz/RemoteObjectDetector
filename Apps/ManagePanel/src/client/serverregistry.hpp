@@ -32,6 +32,7 @@ public:
     QString getLastErrorText() const;
 
 signals:
+    void initSucceed();
     void serverAdded(const ServerHandler& hdl);
     void serverAboutToRemove(const ServerHandler& hdl);
 

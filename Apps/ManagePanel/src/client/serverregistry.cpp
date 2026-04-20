@@ -6,16 +6,71 @@
 #include <Components/Common/DirectoryManager.h>
 #include <Components/Database/SQlite.h>
 
+#include <QApplication>
+
 namespace Web {
 
 struct ServerRegistry::Impl
 {
     Database::SQLiteDatabase db;
-    std::unique_ptr<Database::SQLiteTable> serversDb;
+    std::unique_ptr<Database::SQLiteTable> serversTable;
 
     std::set<ServerHandler> servers;
 
     QString lastErrorText;
+
+    bool createTable() {
+        serversTable = std::make_unique<Database::SQLiteTable>(db);
+        serversTable->setTable("servers");
+        if (serversTable->isTableExist()) {
+            return true;
+        }
+
+        std::list<Database::SQLiteTable::ColumnInfo> cols;
+
+        Database::SQLiteTable::ColumnInfo col;
+        col.name = "id";
+        col.defaultValue = {};
+        col.canBeNull = false;
+        col.isPrimaryKey = true;
+        col.type = Database::CT_INTEGER;
+        cols.push_back(col);
+
+        col = {};
+        col.name = "host";
+        col.defaultValue = {};
+        col.canBeNull = false;
+        col.type = Database::CT_TEXT;
+        cols.push_back(col);
+
+        col = {};
+        col.name = "name";
+        col.defaultValue = {};
+        col.canBeNull = false;
+        col.type = Database::CT_TEXT;
+        cols.push_back(col);
+
+        col = {};
+        col.name = "port";
+        col.defaultValue = {};
+        col.canBeNull = false;
+        col.type = Database::CT_INTEGER;
+        cols.push_back(col);
+
+        return serversTable->create(cols);
+    }
+
+    void registerServer(const ServerConfiguration& conf) {
+        std::map<std::string, Database::DBCell> rowData;
+        rowData["host"]     = conf.getHost().toStdString();
+        rowData["port"]     = static_cast<Database::DBCellInteger>(conf.getPort());
+        rowData["name"]     = conf.getName().toStdString();
+        if (!serversTable->addRow(std::move(rowData))) {
+            COMPLOG_WARNING("Failed to register server:", conf.getName().toStdString());
+        }
+
+        COMPLOG_DEBUG("Registered server:", conf.getName().toStdString());
+    }
 };
 
 ServerRegistry::ServerRegistry(QObject *parent)
@@ -36,10 +91,30 @@ void ServerRegistry::init()
 
     auto dataDir = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::Data);
     d->db.setDatabase(dataDir / "local.db");
-    d->serversDb = std::make_unique<Database::SQLiteTable>(d->db);
+    if (!d->createTable()) {
+        COMPLOG_ERROR("ServerRegistry: failed to create servers table");
+        qApp->quit(); // Bad, but required (app must not work with this trouble)
+        return;
+    }
 
-    // TODO: Init server list
+    auto records = d->serversTable->getRows({"id", "host", "port", "name"}, {}, "id ASC");
+    for (auto& serverRec : records) {
+        ServerConfiguration conf;
+        conf.setHost(std::get<Database::DBCellString>(serverRec[1]).value().c_str());
+        conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]).value());
+        conf.setName(std::get<Database::DBCellString>(serverRec[3]).value().c_str());
 
+        auto pServer = new Server(this);
+        if (!pServer->setConfiguration(conf)) {
+            COMPLOG_ERROR("ServerRegistry: invalid config! Failed to configure server:", conf.getName().toStdString());
+            qApp->quit();
+            return;
+        }
+        ServerHandler serv(pServer);
+        d->servers.insert(serv);
+    }
+
+    emit initSucceed();
     COMPLOG_OK("ServerRegistry inited");
 }
 
@@ -52,7 +127,7 @@ bool ServerRegistry::addServer(const ServerConfiguration &conf)
         return false;
     }
 
-    // TODO: Register server in local DB
+    d->registerServer(conf);
 
     ServerHandler serv(pServer);
     d->servers.insert(serv);

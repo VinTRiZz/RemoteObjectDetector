@@ -119,12 +119,17 @@ bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, i
             return {};
         }
         auto pServer = *serverIt;
+        bool isDataChanged = false;
         switch (role)
         {
-        case R_host:    return pServer->setHost(value.toString());
-        case R_port:    return pServer->setPort(value.toInt());
-        case R_name:    return pServer->setName(value.toString());
+        case R_host:    isDataChanged = pServer->setHost(value.toString()); break;
+        case R_port:    isDataChanged = pServer->setPort(value.toInt());    break;
+        case R_name:    isDataChanged = pServer->setName(value.toString()); break;
         }
+        if (isDataChanged) {
+            emit dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(columnCount() - 1), { Qt::DisplayRole });
+        }
+        return isDataChanged;
     }
     return false;
 }
@@ -142,6 +147,12 @@ void ServerTreeModel::setServerRegistry(Web::ServerRegistry *pRegistry)
     }
     m_pServerRegistry = pRegistry;
     if (m_pServerRegistry) {
+        connect(m_pServerRegistry, &Web::ServerRegistry::initSucceed,
+            this, [this](){
+            beginResetModel();
+            m_serversCache = m_pServerRegistry->getServers();
+            endResetModel();
+        });
         connect(m_pServerRegistry, &Web::ServerRegistry::serverAdded,
                 this, [this](const auto& serverHdl){
                     // TODO: soft update, obviously

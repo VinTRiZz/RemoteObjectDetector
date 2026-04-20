@@ -34,15 +34,15 @@ MainWindow::MainWindow(QWidget *parent) :
     setupSignals();
     setupCosmetics();
 
-    // TODO: Move init to other method for init awaiting
+    // TODO: Move init to other method for init awaiting?
     init();
 
-    // TODO: REMOVE AFTER IMPLEMENT ServerRegistry LOCAL DATA SAVING
-    ServerConfiguration conf;
-    conf.setName("Локальный");
-    conf.setHost("127.0.0.1");
-    conf.setPort(9001);
-    m_pServerRegistry->addServer(conf);
+    // For debug needs
+    // ServerConfiguration conf;
+    // conf.setName("Локальный");
+    // conf.setHost("127.0.0.1");
+    // conf.setPort(9001);
+    // m_pServerRegistry->addServer(conf);
 }
 
 MainWindow::~MainWindow()
