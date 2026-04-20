@@ -1,0 +1,23 @@
+if (NOT ROD_BUILD_SERVER)
+    message(STATUS "Data server build disabled")
+    return()
+endif()
+
+set(APP_TARGET_NAME ROD-DataServer)
+
+COMPONENTS_CCR_FIND_LIBRARY(OpenCV)
+
+COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
+    boost_system
+    boost_program_options
+    crypto
+    ssl
+    drogon
+)
+
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Logger)
+COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Common)
+
+set(ROD_LIBRARIES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../Libraries)
+COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} DataObjects ${ROD_LIBRARIES_ROOT}/DataObjects)
+COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} Protocol ${ROD_LIBRARIES_ROOT}/Protocol)
