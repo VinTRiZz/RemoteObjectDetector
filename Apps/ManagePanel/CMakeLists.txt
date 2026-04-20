@@ -13,13 +13,14 @@ set(CMAKE_AUTORCC ON)
 
 set(MPANEL_TARGET_NAME ROD-ManagePanel)
 
+COMPONENTS_CCR_FIND_LIBRARY(OpenCV)
 COMPONENTS_CCR_CONFIGURE_APP(${MPANEL_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     Qt5::Widgets
     Qt5::Network
 
+    opencv_core
     opencv_imgcodecs
     opencv_imgproc
-    opencv_core
 )
 
 COMPONENTS_LINK_COMPONENT(${MPANEL_TARGET_NAME} Logger)

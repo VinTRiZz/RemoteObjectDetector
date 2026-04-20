@@ -1,57 +1,18 @@
+set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM TRUE)
+
 
 if (ROD_BUILD_SERVER OR ROD_BUILD_DETECTOR)
-
-    # Setup of OneTBB
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--undefined-version")
     set( TBB_TEST OFF CACHE BOOL "Extra 3rdparty function" FORCE )
     set( BUILD_SHARED_LIBS ON CACHE BOOL "Extra 3rdparty function" FORCE )
     add_subdirectory(oneTBB)
     message(STATUS "3rdparty: OneTBB added")
 
-    set( BUILD_EXAMPLES         OFF CACHE BOOL "Extra 3rdparty function" FORCE)
+    set( BUILD_EXAMPLES OFF CACHE BOOL "Extra 3rdparty function" FORCE)
     add_subdirectory(websocketpp)
     message(STATUS "3rdparty: websocketpp added")
-
-#    set( BUILD_opencv_apps                      OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_calib3d                   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_core                      ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_dnn                       OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_features2d                ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_flann                     ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_gapi                      OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_highgui                   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_imgcodecs                 ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_imgproc                   ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_java_bindings_generator   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_js                        OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_js_bindings_generator     OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_ml                        OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_objc_bindings_generator   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_objdetect                 ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_photo                     ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_python3                   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_python_bindings_generator OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_python_tests              OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_stitching                 OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_ts                        OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_video                     ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_videoio                   ON  CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( BUILD_opencv_world                     OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-
-#    set( OPENCV_DNN_CUDA            OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_DNN_OPENCL          OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_DNN_OPENVINO        OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_DNN_PERF_CAFFE      OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_DNN_PERF_CLCAFFE    OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_DNN_TFLITE          OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_TEST_DNN_CANN       OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_TEST_DNN_OPENVINO   OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_TEST_DNN_TFLITE     OFF CACHE BOOL "Extra 3rdparty function" FORCE)
-#    set( OPENCV_FORCE_3RDPARTY_BUILD            ON CACHE BOOL "Extra 3rdparty function" FORCE)
-
-    # TODO: Настроить и добавить как компонент
-    # add_subdirectory(opencv)
 endif()
+
 
 if (ROD_BUILD_SERVER)
     set( BUILD_BROTLI           OFF CACHE BOOL "Extra 3rdparty function" FORCE)
