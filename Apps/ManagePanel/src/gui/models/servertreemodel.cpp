@@ -17,8 +17,9 @@ QVariant ServerTreeModel::headerData(int section, Qt::Orientation orientation, i
     if (role == Qt::DisplayRole) {
         switch (section)
         {
-        case C_address: return "Server address";
-        case C_name:    return "Server name";
+        case C_name:    return "Name";
+        case C_host:    return "Host";
+        case C_port:    return "Port";
         }
         return {};
     }
@@ -46,7 +47,7 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_serversCache.size() || index.row() < 0)
         return QVariant();
 
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
         auto serverIt = m_serversCache.begin();
         std::advance(serverIt, index.row());
         if (!serverIt->isValid()) {
@@ -54,8 +55,9 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
         }
         switch (index.column())
         {
-        case C_address: return data(index, R_address);
+        case C_host:    return data(index, R_host);
         case C_name:    return data(index, R_name);
+        case C_port:    return data(index, R_port);
         }
         return {};
     }
@@ -63,8 +65,9 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
     if (role == Qt::ToolTipRole) {
         switch (index.column())
         {
-        case C_address: return "Server IP address";
         case C_name:    return "Server custom name";
+        case C_host:    return "Server IP address";
+        case C_port:    return "Server connection listen port";
         }
         return {};
     }
@@ -78,12 +81,57 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
         auto& serverConf = (*serverIt)->getConfiguration();
         switch (role)
         {
-        case R_address: return serverConf.getAddress();
+        case R_host:    return serverConf.getHost();
         case R_name:    return serverConf.getName();
+        case R_port:    return serverConf.getPort();
         }
     }
 
     return QVariant();
+}
+
+bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (!index.isValid() || index.row() >= m_serversCache.size() || index.row() < 0)
+        return false;
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        auto serverIt = m_serversCache.begin();
+        std::advance(serverIt, index.row());
+        if (!serverIt->isValid()) {
+            return false;
+        }
+        auto pServer = *serverIt;
+
+        switch (index.column())
+        {
+        case C_host:    return setData(index, value, R_host);
+        case C_name:    return setData(index, value, R_name);
+        case C_port:    return setData(index, value, R_port);
+        }
+        return false;
+    }
+
+    if (role > Qt::UserRole) {
+        auto serverIt = m_serversCache.begin();
+        std::advance(serverIt, index.row());
+        if (!serverIt->isValid()) {
+            return {};
+        }
+        auto pServer = *serverIt;
+        switch (role)
+        {
+        case R_host:    return pServer->setHost(value.toString());
+        case R_port:    return pServer->setPort(value.toInt());
+        case R_name:    return pServer->setName(value.toString());
+        }
+    }
+    return false;
+}
+
+Qt::ItemFlags ServerTreeModel::flags(const QModelIndex &index) const
+{
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
 
 void ServerTreeModel::setServerRegistry(Web::ServerRegistry *pRegistry)

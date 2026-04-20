@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // TODO: REMOVE AFTER IMPLEMENT ServerRegistry LOCAL DATA SAVING
     ServerConfiguration conf;
     conf.setName("Локальный");
-    conf.setAddress("127.0.0.1");
+    conf.setHost("127.0.0.1");
     conf.setPort(9001);
     m_pServerRegistry->addServer(conf);
 }

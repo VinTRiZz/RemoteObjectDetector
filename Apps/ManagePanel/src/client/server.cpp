@@ -25,6 +25,27 @@ Server::~Server()
     // TODO: Disconnect if need
 }
 
+bool Server::setHost(const QString &hostname)
+{
+    d->configuration.setHost(hostname);
+    // TODO: Update configuration
+    return true;
+}
+
+bool Server::setPort(const uint16_t &port)
+{
+    d->configuration.setPort(port);
+    // TODO: Update configuration
+    return true;
+}
+
+bool Server::setName(const QString &name)
+{
+    d->configuration.setName(name);
+    // TODO: Save changes
+    return true;
+}
+
 void Server::requestPoweroff() const
 {
     // TODO: Implement

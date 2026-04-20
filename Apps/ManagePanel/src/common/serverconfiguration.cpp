@@ -11,14 +11,14 @@ QString ServerConfiguration::getName() const
     return m_name;
 }
 
-void ServerConfiguration::setAddress(const QString &name)
+void ServerConfiguration::setHost(const QString &hostname)
 {
-    m_address = name;
+    m_host = hostname;
 }
 
-QString ServerConfiguration::getAddress() const
+QString ServerConfiguration::getHost() const
 {
-    return m_address;
+    return m_host;
 }
 
 void ServerConfiguration::setPort(uint16_t port)
@@ -40,5 +40,5 @@ bool ServerConfiguration::operator ==(const ServerConfiguration &sconf) const
     return
         m_name == sconf.m_name &&
         m_port == sconf.m_port &&
-        m_address == sconf.m_address;
+        m_host == sconf.m_host;
 }

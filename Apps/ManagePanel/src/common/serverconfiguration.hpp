@@ -12,8 +12,8 @@ public:
     void setName(const QString& name);
     QString getName() const;
 
-    void setAddress(const QString& name);
-    QString getAddress() const;
+    void setHost(const QString& hostname);
+    QString getHost() const;
 
     void setPort(uint16_t port);
     uint16_t getPort() const;
@@ -23,6 +23,6 @@ public:
 
 private:
     QString  m_name;
-    QString  m_address;
+    QString  m_host;
     uint16_t m_port {};
 };

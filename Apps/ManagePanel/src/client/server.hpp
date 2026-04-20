@@ -25,6 +25,10 @@ public:
     explicit Server(ServerRegistry *parent = nullptr);
     ~Server();
 
+    bool setHost(const QString& hostname);
+    bool setPort(const uint16_t& port);
+    bool setName(const QString& name);
+
     void requestPoweroff() const;
     void requestReboot() const;
     void requestStatus() const;

@@ -22,7 +22,7 @@ ServerConfiguration ServerAddDialog::getConfig()
     auto addr = ui->lineEditServerAddress->text();
     auto addrParts = addr.split(":");
 
-    res.setAddress(addrParts.front()); // Must be anytime
+    res.setHost(addrParts.front()); // Must be anytime
     if (addrParts.size() > 1) {
         res.setPort(addrParts[1].toInt());
     }

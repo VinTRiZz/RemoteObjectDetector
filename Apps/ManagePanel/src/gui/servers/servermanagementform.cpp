@@ -60,7 +60,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
         auto userResp = QMessageBox::question(
             this,
             "Removing server",
-            QString("Are you sure removing this server?\n%0 (%1:%2)").arg(conf.getName(), conf.getAddress(), QString::number(conf.getPort())),
+            QString("Are you sure removing this server?\n%0 (%1:%2)").arg(conf.getName(), conf.getHost(), QString::number(conf.getPort())),
             QMessageBox::StandardButton::Yes, QMessageBox::StandardButton::No);
         if (userResp == QMessageBox::StandardButton::Yes) {
             m_pCurrentServerRegistry->removeServer(conf);
