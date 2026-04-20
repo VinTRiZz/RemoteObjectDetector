@@ -58,5 +58,18 @@ bool DetectorConfiguration::readJson(const std::string &iString)
     return false;
 }
 
+bool DetectorConfiguration::operator ==(const DetectorConfiguration &sconf) const
+{
+    return system.id                == sconf.system.id &&
+           system.registerDateUTC   == sconf.system.registerDateUTC &&
+           online.lastOnlineTimeUTC == sconf.online.lastOnlineTimeUTC &&
+           online.totalOnlineTime   == sconf.online.totalOnlineTime &&
+           security.token           == sconf.security.token &&
+           info.name                == sconf.info.name &&
+           info.description         == sconf.info.description &&
+           info.location            == sconf.info.location &&
+           software.versionId       == sconf.software.versionId &&
+           software.updateTimeUTC   == sconf.software.updateTimeUTC;
+}
 
 }

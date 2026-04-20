@@ -1,15 +1,9 @@
 #include "serverconfiguration.hpp"
 
 
-uint ServerConfiguration::getHash() const
-{
-    return m_hashCache;
-}
-
 void ServerConfiguration::setName(const QString &name)
 {
     m_name = name;
-    updateHash();
 }
 
 QString ServerConfiguration::getName() const
@@ -17,25 +11,34 @@ QString ServerConfiguration::getName() const
     return m_name;
 }
 
-void ServerConfiguration::setAddress(const QString &name, uint16_t port)
+void ServerConfiguration::setAddress(const QString &name)
 {
     m_address = name;
-    m_port = port;
-    updateHash();
 }
 
-std::pair<QString, uint16_t> ServerConfiguration::getAddress() const
+QString ServerConfiguration::getAddress() const
 {
-    return std::make_pair(m_address, m_port);
+    return m_address;
+}
+
+void ServerConfiguration::setPort(uint16_t port)
+{
+    m_port = port;
+}
+
+uint16_t ServerConfiguration::getPort() const
+{
+    return m_port;
 }
 
 bool ServerConfiguration::operator <(const ServerConfiguration& sconf) const {
-    return (m_name < sconf.m_name);
+    return m_name < sconf.m_name;
 }
 
-void ServerConfiguration::updateHash()
+bool ServerConfiguration::operator ==(const ServerConfiguration &sconf) const
 {
-    m_hashCache =   qHash(m_name) >> 2 |
-                    qHash(m_address) >> 1 |
-                    qHash(m_port);
+    return
+        m_name == sconf.m_name &&
+        m_port == sconf.m_port &&
+        m_address == sconf.m_address;
 }

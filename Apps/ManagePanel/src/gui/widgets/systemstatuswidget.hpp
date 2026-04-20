@@ -2,7 +2,6 @@
 
 #include <QWidget>
 
-#include <ROD/Protocol.h>
 #include <ROD/DeviceStatus.h>
 
 namespace Ui {
@@ -17,13 +16,23 @@ public:
     explicit SystemStatusWidget(QWidget *parent = nullptr);
     ~SystemStatusWidget();
 
-    void setInvalidState();
-    void setDisplayInfo(const DataObjects::DeviceStatus& status);
+    void setStatus(const DataObjects::DeviceStatus& status);
 
 signals:
+    void requestUpdateInfo(); // For timed status updates
+
     void requestedPoweroff();
     void requestedReboot();
 
 private:
     Ui::SystemStatusWidget *ui;
+
+    // Status update
+    unsigned    m_timerUpdateTimeMs {1000};
+    bool        m_isUpdatesCalled {false};
+
+    void restartUpdateTimer();
+
+protected:
+    void showEvent(QShowEvent* e) override;
 };

@@ -2,16 +2,15 @@
 
 #include <QAbstractTableModel>
 
-#include "common/serverconfiguration.hpp"
+#include "client/serverregistry.hpp"
 
 #include <set>
-#include <optional>
 
-class ServerListModel : public QAbstractTableModel
+class ServerTreeModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit ServerListModel(QObject *parent = nullptr);
+    explicit ServerTreeModel(QObject *parent = nullptr);
 
     enum Columns : int {
         C_address = 0,
@@ -29,10 +28,13 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    bool addServer(const ServerConfiguration &conf);
-    std::optional<std::reference_wrapper<const ServerConfiguration> > getServer(int serverRow) const;
+    void setServerRegistry(Web::ServerRegistry* pRegistry);
+    Web::ServerRegistry* getServerRegistry() const;
+
+    Web::ServerHandler getServer(int serverRow) const;
 
 private:
-    std::set<ServerConfiguration> m_servers;
+    std::set<Web::ServerHandler>    m_serversCache;
+    Web::ServerRegistry*            m_pServerRegistry {nullptr};
 };
 

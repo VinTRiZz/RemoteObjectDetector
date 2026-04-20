@@ -2,15 +2,17 @@
 
 #include <QAbstractTableModel>
 
-#include <ROD/DetectorConfiguration.h>
+#include "client/handlers.hpp"
+
+#include <set>
 
 class DetectorInfoManager;
 
-class DetectorListModel : public QAbstractTableModel
+class DetectorTreeModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit DetectorListModel(QObject *parent = nullptr);
+    explicit DetectorTreeModel(QObject *parent = nullptr);
 
     enum Columns : int {
         C_id = 0,
@@ -35,13 +37,10 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void setDetectorInfoManager(DetectorInfoManager* pManager);
-    void updateDetectorList();
+    void setServer(const Web::ServerHandler& serv);
 
 private:
-    DetectorInfoManager* m_pDetectorInfoManager {nullptr};
-    std::vector<DataObjects::DetectorConfiguration> m_detectors;
-
-    void addDetector(DataObjects::id_t detectorId);
+    std::set<Web::DetectorHandler>  m_detectorsCache;
+    Web::ServerHandler              m_currentServer;
 };
 

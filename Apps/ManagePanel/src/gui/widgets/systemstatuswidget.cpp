@@ -2,6 +2,7 @@
 #include "ui_systemstatuswidget.h"
 
 #include <QTime>
+#include <QTimer>
 
 SystemStatusWidget::SystemStatusWidget(QWidget *parent)
     : QWidget(parent)
@@ -21,18 +22,13 @@ SystemStatusWidget::~SystemStatusWidget()
     delete ui;
 }
 
-void SystemStatusWidget::setInvalidState()
+void SystemStatusWidget::setStatus(const DataObjects::DeviceStatus &status)
 {
-    ui->stackedWidget->setCurrentIndex(0);
-}
-
-void SystemStatusWidget::setDisplayInfo(const DataObjects::DeviceStatus &status)
-{
-    ui->stackedWidget->setCurrentIndex(1);
     if (!status.isValid()) {
-        setInvalidState();
+        ui->stackedWidget->setCurrentIndex(0);
         return;
     }
+    ui->stackedWidget->setCurrentIndex(1);
 
     // Uptime
     auto uptimeLeast = status.common.uptime % 86400;
@@ -53,4 +49,24 @@ void SystemStatusWidget::setDisplayInfo(const DataObjects::DeviceStatus &status)
     auto freeSpace = status.storage.spaceFree / 1024.0 / 1024.0 / 1024.0;
     ui->doubleSpinBoxSpaceFree->setValue(freeSpace);
     ui->doubleSpinBoxSpaceTotal->setValue(totalSpace);
+
+    // Visual data optimisation
+    if (this->isVisible()) {
+        restartUpdateTimer();
+    }
+}
+
+void SystemStatusWidget::restartUpdateTimer()
+{
+    // TODO: Could be better somehow? If required
+    QTimer::singleShot(m_timerUpdateTimeMs,
+                       this, &SystemStatusWidget::requestUpdateInfo);
+}
+
+void SystemStatusWidget::showEvent(QShowEvent *e)
+{
+    if (ui->stackedWidget->currentIndex() != 0) { // 0 is placeholder
+        restartUpdateTimer();
+    }
+    QWidget::showEvent(e);
 }

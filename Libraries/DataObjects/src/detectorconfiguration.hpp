@@ -54,6 +54,8 @@ public:
     // SerializableObject interface
     std::string toJson() const override;
     bool readJson(const std::string &iString) override;
+
+    bool operator ==(const DetectorConfiguration& sconf) const;
 };
 
 }
