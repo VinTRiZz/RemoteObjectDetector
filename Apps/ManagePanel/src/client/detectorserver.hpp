@@ -17,6 +17,8 @@ public:
     void removeDetector(const DataObjects::DetectorConfiguration& conf);
     std::vector<DetectorHandler> getDetectors() const;
 
+    QString getLastErrorText() const;
+
 signals:
     void detectorAdded(const DetectorHandler& hdl);
     void detectorAboutToRemove(const DetectorHandler& hdl);

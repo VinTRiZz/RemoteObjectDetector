@@ -3,7 +3,9 @@
 
 #include "client/server.hpp"
 #include "client/detector.hpp"
+#include "client/detectorserver.hpp"
 #include "common/serverconfiguration.hpp"
+#include "detectoradddialog.hpp"
 
 #include "gui/models/detectortreemodel.hpp"
 
@@ -44,6 +46,19 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
             return;
         }
         pDet->setConfiguration(ui->detectorHandleForm->readConfiguration());
+    });
+
+    connect(ui->pushButtonAddDetector, &QPushButton::clicked,
+            this, [this](){
+        if (!m_server) {
+            return;
+        }
+        DetectorAddDialog dial;
+        auto execRes = dial.exec();
+        auto pDetServer = m_server.cast<Web::DetectorServer>();
+        if (execRes == QDialog::Accepted && !pDetServer->addDetector(dial.readConfiguration())) {
+            QMessageBox::critical(this, "Detector add error", pDetServer->getLastErrorText());
+        }
     });
 }
 

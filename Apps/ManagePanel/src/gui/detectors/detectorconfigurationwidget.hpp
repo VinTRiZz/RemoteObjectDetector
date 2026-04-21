@@ -16,6 +16,8 @@ public:
     explicit DetectorConfigurationWidget(QWidget *parent = nullptr);
     ~DetectorConfigurationWidget();
 
+    void setOnlineVisible(bool isOnlineVisible);
+
     void showConfiguration(const DataObjects::DetectorConfiguration& conf);
     DataObjects::DetectorConfiguration readConfiguration() const;
 

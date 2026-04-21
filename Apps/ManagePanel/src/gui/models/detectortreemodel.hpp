@@ -44,5 +44,7 @@ public:
 private:
     std::vector<Web::DetectorHandler>   m_detectorsCache; // Sorted by server handler on getting
     Web::ServerHandler                  m_currentServer;
+
+    QModelIndex indexOfDetector(const Web::DetectorHandler& detHdl) const;
 };
 

@@ -18,13 +18,14 @@ Detector::Detector(Server *parent)
 
 Detector::~Detector()
 {
-    // TODO: Disconnect if need
+
 }
 
 void Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
 {
     d->detectorConfig = conf;
     emit configurationChanged();
+    emit visibleDataChanged();
 }
 
 const DataObjects::DetectorConfiguration &Detector::getConfiguration() const

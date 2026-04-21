@@ -7,7 +7,7 @@
 #include <QMessageBox>
 
 #include "gui/models/servertreemodel.hpp"
-#include "gui/dialogs/serveradddialog.hpp"
+#include "serveradddialog.hpp"
 
 #include "client/serverregistry.hpp"
 #include "client/server.hpp"

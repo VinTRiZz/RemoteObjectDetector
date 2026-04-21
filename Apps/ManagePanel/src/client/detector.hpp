@@ -22,6 +22,8 @@ public:
 
     bool operator<(const Detector& det) const;
 signals:
+    void visibleDataChanged();
+
     void configurationChanged();
 
 private:

@@ -18,6 +18,8 @@ struct DetectorServer::Impl
     bool                isOperationPending {false}; // For info downloading
     DetectorInfoManager detectorInfoInterface;
     std::vector<DetectorHandler>   detectors;
+
+    QString lastErrorText;
 };
 
 DetectorServer::DetectorServer(int64_t serverId, ServerRegistry *parent)
@@ -99,6 +101,11 @@ std::vector<DetectorHandler> DetectorServer::getDetectors() const
 
     loop.exec();
     return d->detectors;
+}
+
+QString DetectorServer::getLastErrorText() const
+{
+    return d->lastErrorText;
 }
 
 void DetectorServer::updateServerAddress()

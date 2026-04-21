@@ -117,7 +117,15 @@ void DetectorTreeModel::setServer(const Web::ServerHandler &serv)
     if (serv) {
         disconnect(serv.get(), nullptr, this, nullptr);
     }
+
+    // Remove detectors
+    for (auto& det : m_detectorsCache) {
+        if (det.isValid()) {
+            disconnect(det.get(), nullptr, this, nullptr);
+        }
+    }
     m_detectorsCache.clear();
+
     if (serv) {
         auto pDetServer = serv.cast_dynamic<Web::DetectorServer>();
         if (!pDetServer) {
@@ -126,10 +134,31 @@ void DetectorTreeModel::setServer(const Web::ServerHandler &serv)
             return;
         }
         m_detectorsCache = pDetServer->getDetectors();
+        for (auto& det : m_detectorsCache) {
+            connect(det.get(), &Web::Detector::visibleDataChanged,
+                    this, [this, det](){
+                        auto idx = indexOfDetector(det);
+                        if (idx.isValid()) {
+                            emit dataChanged(idx.siblingAtColumn(0), idx.siblingAtColumn(MODEL_COLUMN_COUNT - 1),
+                                             { Qt::DisplayRole, Qt::BackgroundRole, Qt::DecorationRole });
+                        }
+                    });
+        }
+
         connect(pDetServer, &Web::DetectorServer::detectorAdded,
                 this, [this](const auto& detectorHdl){
                     // TODO: soft update, obviously
                     beginResetModel();
+
+                    connect(detectorHdl.get(), &Web::Detector::visibleDataChanged,
+                            this, [this, detectorHdl](){
+                        auto idx = indexOfDetector(detectorHdl);
+                        if (idx.isValid()) {
+                            emit dataChanged(idx.siblingAtColumn(0), idx.siblingAtColumn(MODEL_COLUMN_COUNT - 1),
+                                             { Qt::DisplayRole, Qt::BackgroundRole, Qt::DecorationRole });
+                        }
+                    });
+
                     m_detectorsCache.push_back(detectorHdl);
                     std::sort(m_detectorsCache.begin(), m_detectorsCache.end());
                     endResetModel();
@@ -139,6 +168,9 @@ void DetectorTreeModel::setServer(const Web::ServerHandler &serv)
                 this, [this](const auto& detectorHdl){
                     // TODO: soft update, obviously
                     beginResetModel();
+                    if (detectorHdl.isValid()) {
+                        disconnect(detectorHdl.get(), nullptr, this, nullptr);
+                    }
                     auto targetIt = std::find(m_detectorsCache.begin(), m_detectorsCache.end(), detectorHdl);
                     m_detectorsCache.erase(targetIt);
                     endResetModel();
@@ -156,4 +188,13 @@ Web::DetectorHandler DetectorTreeModel::getDetector(const QModelIndex &idx) cons
     auto detectorIt = m_detectorsCache.begin();
     std::advance(detectorIt, idx.row());
     return *detectorIt;
+}
+
+QModelIndex DetectorTreeModel::indexOfDetector(const Web::DetectorHandler &detHdl) const
+{
+    auto targetIt = std::find(m_detectorsCache.begin(), m_detectorsCache.end(), detHdl);
+    if (targetIt == m_detectorsCache.end()) {
+        return {};
+    }
+    return createIndex(std::distance(m_detectorsCache.begin(), targetIt), 0, nullptr);
 }

@@ -13,6 +13,11 @@ DetectorConfigurationWidget::~DetectorConfigurationWidget()
     delete ui;
 }
 
+void DetectorConfigurationWidget::setOnlineVisible(bool isOnlineVisible)
+{
+    ui->groupBoxOnline->setVisible(isOnlineVisible);
+}
+
 void DetectorConfigurationWidget::showConfiguration(const DataObjects::DetectorConfiguration &conf)
 {
     ui->lineEditName->setText(conf.info.name.c_str());
