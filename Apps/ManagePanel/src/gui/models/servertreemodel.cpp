@@ -127,13 +127,15 @@ bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, i
             return {};
         }
         bool isDataChanged = false;
+        auto configCopy = pServer->getConfiguration();
         switch (role)
         {
-        case R_host:    pServer->setHost(value.toString()); isDataChanged = true; break;
-        case R_port:    pServer->setPort(value.toInt());    isDataChanged = true; break;
-        case R_name:    pServer->setName(value.toString()); isDataChanged = true; break;
+        case R_host:    configCopy.setHost(value.toString()); isDataChanged = true; break;
+        case R_port:    configCopy.setPort(value.toInt());    isDataChanged = true; break;
+        case R_name:    configCopy.setName(value.toString()); isDataChanged = true; break;
         }
         if (isDataChanged) {
+            pServer->setConfiguration(configCopy);
             emit dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(columnCount() - 1), { Qt::DisplayRole });
         }
         return isDataChanged;

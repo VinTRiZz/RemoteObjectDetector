@@ -8,6 +8,8 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <Components/Logger/Logger.h>
+
 #include "httpcommon.hpp"
 
 namespace Web::Implementation

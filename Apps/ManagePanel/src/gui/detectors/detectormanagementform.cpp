@@ -45,7 +45,9 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
             QMessageBox::warning(this, "Detector data error", "Detector invalidated, failed to save changes");
             return;
         }
-        pDet->setConfiguration(ui->detectorHandleForm->readConfiguration());
+        auto conf = ui->detectorHandleForm->readConfiguration();
+        conf.system.id = pDet->getConfiguration().system.id;
+        pDet->setConfiguration(conf);
     });
 
     connect(ui->pushButtonAddDetector, &QPushButton::clicked,

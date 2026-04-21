@@ -6,7 +6,7 @@ namespace Web {
 
 struct Detector::Impl
 {
-    DataObjects::DetectorConfiguration detectorConfig;
+    CommitableObject<DataObjects::DetectorConfiguration> config;
 };
 
 Detector::Detector(Server *parent)
@@ -23,23 +23,39 @@ Detector::~Detector()
 
 void Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
 {
-    d->detectorConfig = conf;
+    d->config = conf;
     emit configurationChanged();
-    emit visibleDataChanged();
 }
 
 const DataObjects::DetectorConfiguration &Detector::getConfiguration() const
 {
-    return d->detectorConfig;
+    return d->config.source();
 }
 
 bool Detector::operator<(const Detector &det) const
 {
-    if (d->detectorConfig.info.name.empty() ||
-        d->detectorConfig.info.name == det.d->detectorConfig.info.name) {
-        return d->detectorConfig.system.id < det.d->detectorConfig.system.id;
+    if (d->config->info.name.empty() ||
+        d->config->info.name == det.d->config->info.name) {
+        return d->config->system.id < det.d->config->system.id;
     }
-    return d->detectorConfig.info.name < det.d->detectorConfig.info.name;
+    return d->config->info.name < det.d->config->info.name;
+}
+
+void Detector::replaceConfiguration(const DataObjects::DetectorConfiguration &conf)
+{
+    d->config = conf;
+    d->config.commit();
+    emit visibleDataChanged();
+}
+
+CommitableObject<DataObjects::DetectorConfiguration> Detector::getPendingConfiguration() const
+{
+    return d->config;
+}
+
+void Detector::commitConfigurationUpdate()
+{
+    d->config.commit();
 }
 
 } // namespace Web

@@ -2,11 +2,13 @@
 
 #include <QObject>
 #include <memory>
+#include <optional>
 
 #include <ROD/DetectorConfiguration.h>
 #include <ROD/DeviceStatus.h>
 
 #include "handlers.hpp"
+#include "common/commitableobject.hpp"
 
 class ServerConfiguration;
 
@@ -24,14 +26,12 @@ public:
     Server(int64_t serverId, ServerRegistry *parent = nullptr);
     ~Server();
 
+    bool isServerListening(const QString &host, quint16 port) const;
+
     int64_t getId() const;
 
     void ping();
     bool isServerAvailable() const; // Returns last ping result
-
-    void setHost(const QString& hostname);
-    void setPort(const uint16_t& port);
-    void setName(const QString& name);
 
     void requestPoweroff() const;
     void requestReboot() const;
@@ -42,16 +42,19 @@ public:
 
     bool operator<(const Server& s) const;
 signals:
-    void gotStatus(const DataObjects::DeviceStatus& devStatus);
+    void visibleDataChanged();
 
-    void serverIsAvailable();
-    void serverIsUnavailable();
+    void gotStatus(const DataObjects::DeviceStatus& devStatus);
 
     void configurationChanged();
 
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
+
+    friend class ServerRegistry;
+    void replaceConfiguration(const ServerConfiguration& conf);
+    void commitConfigurationUpdate();
 
 protected:
     virtual void updateServerAddress(); // Must be called last in overriden functions

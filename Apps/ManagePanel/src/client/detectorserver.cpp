@@ -20,6 +20,13 @@ struct DetectorServer::Impl
     std::vector<DetectorHandler>   detectors;
 
     QString lastErrorText;
+
+    void updateDetectorData(const DetectorHandler& hdl) {
+        if (!hdl.isValid()) {
+            return;
+        }
+        detectorInfoInterface.requestUpdateDetectorInfo(hdl->getConfiguration());
+    }
 };
 
 DetectorServer::DetectorServer(int64_t serverId, ServerRegistry *parent)
@@ -36,12 +43,21 @@ DetectorServer::~DetectorServer()
 
 bool DetectorServer::addDetector(const DataObjects::DetectorConfiguration &conf)
 {
-    auto pDetector = new Detector(this);
-    pDetector->setConfiguration(conf);
+    auto addResult = d->detectorInfoInterface.addDetectorInfo(conf);
+    if (!addResult.has_value()) {
+        return false;
+    }
+    auto confCopy = conf;
+    confCopy.system.id = addResult.value();
 
-    // TODO: Register detector in remote
+    auto pDetector = new Detector(this);
+    pDetector->replaceConfiguration(confCopy);
 
     DetectorHandler det(pDetector);
+    connect(pDetector, &Detector::configurationChanged,
+            this, [this, det](){
+                d->updateDetectorData(det);
+            });
     d->detectors.push_back(det);
     std::sort(d->detectors.begin(), d->detectors.end());
     emit detectorAdded(det);
@@ -57,7 +73,10 @@ void DetectorServer::removeDetector(const DataObjects::DetectorConfiguration &co
         return;
     }
 
-    // TODO: Remove detector in remote
+    auto removeResult = d->detectorInfoInterface.removeDetectorInfo(conf.system.id);
+    if (!removeResult) {
+        return;
+    }
 
     auto detHdl = *targetIt;
     emit detectorAboutToRemove(detHdl);
@@ -81,15 +100,22 @@ std::vector<DetectorHandler> DetectorServer::getDetectors() const
                     });
                     if (targetIt != d->detectors.end()) {
                         auto det = *targetIt;
-                        det->setConfiguration(info);
+                        det->blockSignals(true);
+                        det->replaceConfiguration(info);
+                        det->blockSignals(false);
                         std::sort(d->detectors.begin(), d->detectors.end());
                         continue;
                     }
                     auto pDetector = new Detector(const_cast<DetectorServer*>(this)); // wtf? const is not acceptable.
-                    pDetector->setConfiguration(info);
+                    pDetector->replaceConfiguration(info);
                     DetectorHandler det(pDetector);
                     d->detectors.push_back(det);
                     std::sort(d->detectors.begin(), d->detectors.end());
+
+                    connect(pDetector, &Detector::configurationChanged,
+                            this, [this, det](){
+                                d->updateDetectorData(det);
+                            });
                 }
                 loop.quit();
             });

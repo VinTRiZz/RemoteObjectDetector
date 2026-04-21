@@ -163,7 +163,7 @@ void ServerRegistry::addServerNoRegister(int64_t serverId, const ServerConfigura
         }
     });
 
-    pServer->setConfiguration(conf);
+    pServer->replaceConfiguration(conf);
     ServerHandler serv(pServer);
     d->servers.insert(serv);
     emit serverAdded(serv);

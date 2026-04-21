@@ -1,6 +1,8 @@
 #include "detectorinfomanager.hpp"
 
 #include <QNetworkReply>
+#include <QEventLoop>
+#include <QTimer>
 
 #include <Components/Logger/Logger.h>
 
@@ -15,6 +17,62 @@ DetectorInfoManager::DetectorInfoManager(QObject *parent)
     : HTTPClientBase{parent}
 {
 
+}
+
+std::optional<DataObjects::id_t> DetectorInfoManager::addDetectorInfo(const DataObjects::DetectorConfiguration &detectorConfig)
+{
+    auto infoRequest = createRequest(Protocol::API::QT::DETECTOR_INFO.c_str());
+    auto& requester = getRequester();
+    auto response = requester.post(infoRequest, QByteArray::fromStdString(detectorConfig.toJson()));
+
+    bool isOk {false};
+    DataObjects::id_t id {DataObjects::NULL_ID};
+    QString responseString;
+    connect(response, &QNetworkReply::finished,
+            this, [this, response, &isOk, &responseString](){
+                isOk = response->error() == QNetworkReply::NoError;
+                responseString = response->readAll();
+            });
+
+    QEventLoop loop;
+    QObject::connect(response, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    if (isOk) {
+        id = responseString.toLongLong();
+        COMPLOG_OK("[DetectorInfoManager] Added detector with id:", id);
+    } else {
+        COMPLOG_ERROR("[DetectorInfoManager] Add detector with id", detectorConfig.system.id, "failed:", responseString.toStdString());
+    }
+    return (isOk ? std::optional<DataObjects::id_t>(id) : std::nullopt);
+}
+
+bool DetectorInfoManager::removeDetectorInfo(DataObjects::id_t detectorId)
+{
+    auto infoRequest = createRequest(Protocol::API::QT::DETECTOR_INFO.c_str());
+    auto& requester = getRequester();
+    auto response = requester.deleteResource(infoRequest);
+
+    bool isOk {false};
+    std::string responseString;
+    connect(response, &QNetworkReply::finished,
+            this, [this, response, &isOk, &responseString](){
+                isOk = response->error() == QNetworkReply::NoError;
+                responseString = response->readAll().toStdString();
+            });
+
+    QEventLoop loop;
+    QObject::connect(response, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    if (isOk) {
+        COMPLOG_OK("[DetectorInfoManager] Removed detector with id:", detectorId);
+    } else {
+        COMPLOG_ERROR("[DetectorInfoManager] Remove detector with id", detectorId, "failed:", responseString);
+    }
+    return isOk;
 }
 
 void DetectorInfoManager::requestDetectorList()
@@ -42,7 +100,7 @@ void DetectorInfoManager::requestDetectorList()
     });
 }
 
-void DetectorInfoManager::requestDetectorInfo(DataObjects::id_t detectorId)
+void DetectorInfoManager::requestGetDetectorInfo(DataObjects::id_t detectorId)
 {
     auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(QString::number(detectorId)));
     auto& requester = getRequester();
@@ -56,8 +114,25 @@ void DetectorInfoManager::requestDetectorInfo(DataObjects::id_t detectorId)
             COMPLOG_WARNING("[DetectorInfoManager] Detector info parse error:", detectorConfig.getLastErrorString());
         }
 
-        emit responseDetectorInfo(isOk, detectorConfig);
+        emit responseGetDetectorInfo(isOk, detectorConfig);
     });
+}
+
+void DetectorInfoManager::requestUpdateDetectorInfo(const DataObjects::DetectorConfiguration &detectorConfig)
+{
+    auto detectorId = detectorConfig.system.id;
+
+    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(QString::number(detectorId)));
+    auto& requester = getRequester();
+    auto response = requester.put(infoRequest, QByteArray::fromStdString(detectorConfig.toJson()));
+    connect(response, &QNetworkReply::finished,
+            this, [this, response, detectorId](){
+                auto isOk = response->error() == QNetworkReply::NoError;
+                if (!isOk) {
+                    COMPLOG_ERROR("[DetectorInfoManager] Update detector with id", detectorId, "failed:", response->readAll().toStdString());
+                }
+                emit responseUpdateDetectorInfo(isOk, detectorId);
+            });
 }
 
 void DetectorInfoManager::requestDetectorInfoList()

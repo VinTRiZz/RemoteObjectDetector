@@ -2,9 +2,12 @@
 
 #include <QObject>
 
+#include <memory>
+#include <optional>
+
 #include <ROD/DetectorConfiguration.h>
 
-#include <memory>
+#include "common/commitableobject.hpp"
 
 namespace Web {
 
@@ -29,6 +32,11 @@ signals:
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
+
+    friend class DetectorServer;
+    void replaceConfiguration(const DataObjects::DetectorConfiguration& conf);
+    CommitableObject<DataObjects::DetectorConfiguration> getPendingConfiguration() const;
+    void commitConfigurationUpdate();
 };
 
 } // namespace Web
