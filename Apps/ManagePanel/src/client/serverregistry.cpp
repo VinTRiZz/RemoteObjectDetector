@@ -69,6 +69,14 @@ struct ServerRegistry::Impl
             COMPLOG_WARNING("Failed to register server:", conf.getName().toStdString());
         }
     }
+
+    bool updateServerConfiguration(int64_t id, const ServerConfiguration& conf) {
+        std::map<std::string, Database::DBCell> rowData;
+        rowData["host"]     = conf.getHost().toStdString();
+        rowData["port"]     = static_cast<Database::DBCellInteger>(conf.getPort());
+        rowData["name"]     = conf.getName().toStdString();
+        return serversTable->updateRow(std::move(rowData), std::string("id = ") + std::to_string(id));
+    }
 };
 
 ServerRegistry::ServerRegistry(QObject *parent)
@@ -101,7 +109,7 @@ void ServerRegistry::init()
         conf.setHost(std::get<Database::DBCellString>(serverRec[1]).value().c_str());
         conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]).value());
         conf.setName(std::get<Database::DBCellString>(serverRec[3]).value().c_str());
-        addServerNoRegister(conf);
+        addServerNoRegister(std::get<Database::DBCellInteger>(serverRec[0]).value(), conf);
     }
 
     COMPLOG_OK("ServerRegistry inited");
@@ -110,7 +118,8 @@ void ServerRegistry::init()
 bool ServerRegistry::addServer(const ServerConfiguration &conf)
 {
     d->registerServer(conf);
-    addServerNoRegister(conf);
+    auto nextId = std::get<Database::DBCellInteger>(d->serversTable->getRows({"MAX(id) + 1"}).front().front()).value();
+    addServerNoRegister(nextId, conf);
     return true;
 }
 
@@ -142,9 +151,16 @@ QString ServerRegistry::getLastErrorText() const
     return d->lastErrorText;
 }
 
-void ServerRegistry::addServerNoRegister(const ServerConfiguration &conf)
+void ServerRegistry::addServerNoRegister(int64_t serverId, const ServerConfiguration &conf)
 {
-    auto pServer = new Server(this);
+    auto pServer = new Server(serverId, this);
+    connect(pServer, &Server::configurationChanged,
+            this, [this, pServer](){
+        if (!d->updateServerConfiguration(pServer->getId(), pServer->getConfiguration())) {
+            COMPLOG_WARNING("Failed to update configuration of server:", pServer->getConfiguration().getName().toStdString());
+        }
+    });
+
     pServer->setConfiguration(conf);
     ServerHandler serv(pServer);
     d->servers.insert(serv);

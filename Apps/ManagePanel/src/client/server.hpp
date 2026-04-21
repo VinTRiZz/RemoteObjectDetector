@@ -22,15 +22,17 @@ class Server : public QObject
 {
     Q_OBJECT
 public:
-    explicit Server(ServerRegistry *parent = nullptr);
+    Server(int64_t serverId, ServerRegistry *parent = nullptr);
     ~Server();
+
+    int64_t getId() const;
 
     void ping();
     bool isServerAvailable() const; // Returns last ping result
 
-    bool setHost(const QString& hostname);
-    bool setPort(const uint16_t& port);
-    bool setName(const QString& name);
+    void setHost(const QString& hostname);
+    void setPort(const uint16_t& port);
+    void setName(const QString& name);
 
     void requestPoweroff() const;
     void requestReboot() const;
@@ -51,6 +53,8 @@ signals:
 
     void serverIsAvailable();
     void serverIsUnavailable();
+
+    void configurationChanged();
 
 private:
     struct Impl;

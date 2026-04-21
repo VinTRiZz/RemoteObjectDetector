@@ -39,7 +39,7 @@ private:
     struct Impl;
     std::shared_ptr<Impl> d;
 
-    void addServerNoRegister(const ServerConfiguration &conf);
+    void addServerNoRegister(int64_t serverId, const ServerConfiguration &conf);
 };
 
 } // namespace Web

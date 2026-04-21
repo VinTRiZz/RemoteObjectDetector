@@ -137,9 +137,9 @@ bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, i
         bool isDataChanged = false;
         switch (role)
         {
-        case R_host:    isDataChanged = pServer->setHost(value.toString()); break;
-        case R_port:    isDataChanged = pServer->setPort(value.toInt());    break;
-        case R_name:    isDataChanged = pServer->setName(value.toString()); break;
+        case R_host:    pServer->setHost(value.toString()); isDataChanged = true; break;
+        case R_port:    pServer->setPort(value.toInt());    isDataChanged = true; break;
+        case R_name:    pServer->setName(value.toString()); isDataChanged = true; break;
         }
         if (isDataChanged) {
             emit dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(columnCount() - 1), { Qt::DisplayRole });

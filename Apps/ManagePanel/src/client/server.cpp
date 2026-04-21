@@ -11,6 +11,8 @@ namespace Web {
 
 struct Server::Impl
 {
+    int64_t serverId {};
+
     ServerConfiguration configuration;
     std::set<DetectorHandler> detectors;
     bool cache_isServerAvailable {false};
@@ -27,16 +29,21 @@ struct Server::Impl
 
 };
 
-Server::Server(ServerRegistry *parent)
+Server::Server(int64_t serverId, ServerRegistry *parent)
     : QObject{parent},
     d {new Impl()}
 {
-
+    d->serverId = serverId;
 }
 
 Server::~Server()
 {
     // TODO: Disconnect if need
+}
+
+int64_t Server::getId() const
+{
+    return d->serverId;
 }
 
 void Server::ping()
@@ -57,25 +64,22 @@ bool Server::isServerAvailable() const
     return d->cache_isServerAvailable;
 }
 
-bool Server::setHost(const QString &hostname)
+void Server::setHost(const QString &hostname)
 {
     d->configuration.setHost(hostname);
-    // TODO: Update configuration
-    return true;
+    emit configurationChanged();
 }
 
-bool Server::setPort(const uint16_t &port)
+void Server::setPort(const uint16_t &port)
 {
     d->configuration.setPort(port);
-    // TODO: Update configuration
-    return true;
+    emit configurationChanged();
 }
 
-bool Server::setName(const QString &name)
+void Server::setName(const QString &name)
 {
     d->configuration.setName(name);
-    // TODO: Save changes
-    return true;
+    emit configurationChanged();
 }
 
 void Server::requestPoweroff() const
