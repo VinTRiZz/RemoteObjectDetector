@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
         QApplication a(argc, argv);
 
         auto& dirManager = Common::DirectoryManager::getInstance();
-        dirManager.setRootPath("ROD-ManagementPanel");
+        dirManager.setRootPath(CCR_APP_TARGET_NAME);
 
         COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
 

@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 
     // Configure directory manager
     auto& dirManager = Common::DirectoryManager::getInstance();
-    dirManager.setRootPath("ROD-DetectorEndpoint");
+    dirManager.setRootPath(CCR_APP_TARGET_NAME);
     COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
 
     // Get existing settings
