@@ -18,6 +18,22 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
 
     m_pDetectorTreeModel = new DetectorTreeModel(this);
     ui->treeViewDetectors->setModel(m_pDetectorTreeModel);
+
+    connect(ui->treeViewDetectors->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, [this](const QItemSelection &selected, const QItemSelection &deselected){
+                if (selected.empty()) {
+                    ui->stackedWidget->setCurrentIndex(0);
+                    return;
+                }
+                ui->stackedWidget->setCurrentIndex(1);
+                auto pDet = m_pDetectorTreeModel->getDetector(selected.indexes().front());
+                if (pDet.isValid()) {
+                    ui->detectorHandleForm->showConfiguration(pDet->getConfiguration());
+                } else {
+                    ui->detectorHandleForm->showConfiguration({});
+                }
+
+            });
 }
 
 DetectorManagementForm::~DetectorManagementForm()

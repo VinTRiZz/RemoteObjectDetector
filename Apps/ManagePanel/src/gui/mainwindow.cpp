@@ -73,7 +73,7 @@ void MainWindow::setupSignals()
                     ui->stackedWidget->setCurrentIndex(0); // Placeholder
                     return;
                 }
-                auto serverHdl = m_pServersModel->getServer(selected.indexes().front().row());
+                auto serverHdl = m_pServersModel->getServer(selected.indexes().front());
                 m_pDetectorsModel->setServer(serverHdl);
                 ui->stackedWidget->setCurrentIndex(serverHdl.isValid() ? 1 : 0);
                 ui->pushButtonManageDetectors->setEnabled(serverHdl.isValid());
@@ -96,7 +96,7 @@ void MainWindow::setupSignals()
     connect(ui->pushButtonManageDetectors, &QPushButton::clicked,
             this, [this](){
                 auto pDetectorForm = new DetectorManagementForm(this);
-                auto serverHdl = m_pServersModel->getServer(ui->treeViewServers->currentIndex().row());
+                auto serverHdl = m_pServersModel->getServer(ui->treeViewServers->currentIndex());
                 pDetectorForm->setServer(serverHdl);
                 pDetectorForm->setWindowFlags(pDetectorForm->windowFlags() | Qt::Window);
                 pDetectorForm->show();

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DetectorConfigurationWidget</class>
+ <widget class="QWidget" name="DetectorConfigurationWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>325</width>
+    <height>340</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <item>
+    <widget class="QLineEdit" name="lineEditName">
+     <property name="placeholderText">
+      <string>Custom name</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="lineEditLocation">
+     <property name="placeholderText">
+      <string>Location</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="plainTextEditDescription">
+     <property name="placeholderText">
+      <string>Description</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Registration date</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>1</number>
+      </property>
+      <property name="leftMargin">
+       <number>1</number>
+      </property>
+      <property name="topMargin">
+       <number>1</number>
+      </property>
+      <property name="rightMargin">
+       <number>1</number>
+      </property>
+      <property name="bottomMargin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QDateTimeEdit" name="dateTimeEditRegisterDate">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="displayFormat">
+         <string>hh:mm d.M.yyyy</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Last online</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>1</number>
+      </property>
+      <property name="leftMargin">
+       <number>1</number>
+      </property>
+      <property name="topMargin">
+       <number>1</number>
+      </property>
+      <property name="rightMargin">
+       <number>1</number>
+      </property>
+      <property name="bottomMargin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QDateTimeEdit" name="dateTimeEditLastOnline">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="displayFormat">
+         <string>hh:mm d.M.yyyy</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

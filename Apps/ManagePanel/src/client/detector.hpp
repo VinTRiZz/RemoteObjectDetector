@@ -19,6 +19,7 @@ public:
 
     const DataObjects::DetectorConfiguration& getConfiguration() const;
 
+    bool operator<(const Detector& det) const;
 signals:
     void configurationChanged();
 

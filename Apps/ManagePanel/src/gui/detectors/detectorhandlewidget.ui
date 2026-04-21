@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DetectorHandleWidget</class>
+ <widget class="QWidget" name="DetectorHandleWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>671</width>
+    <height>499</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QWidget" name="streamingWidget" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButtonStartStreaming">
+     <property name="text">
+      <string>Show camera view</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+     <item>
+      <widget class="SystemStatusWidget" name="detectorStatus" native="true"/>
+     </item>
+     <item>
+      <widget class="QWidget" name="detectionProcess" native="true"/>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SystemStatusWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/widgets/systemstatuswidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

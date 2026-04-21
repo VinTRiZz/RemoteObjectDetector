@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>191</width>
-    <height>271</height>
+    <width>312</width>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -82,214 +82,133 @@ unavailable</string>
         <number>1</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="title">
-          <string>Common</string>
+        <widget class="QLineEdit" name="lineEditUptime">
+         <property name="toolTip">
+          <string>Uptime</string>
+         </property>
+         <property name="text">
+          <string/>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>1</number>
-          </property>
-          <property name="leftMargin">
-           <number>1</number>
-          </property>
-          <property name="topMargin">
-           <number>1</number>
-          </property>
-          <property name="rightMargin">
-           <number>1</number>
-          </property>
-          <property name="bottomMargin">
-           <number>1</number>
-          </property>
-          <item>
-           <widget class="QLineEdit" name="lineEditUptime">
-            <property name="toolTip">
-             <string>Uptime</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="placeholderText">
-             <string>UPTIME</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonReboot">
-            <property name="text">
-             <string>Reboot</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonPoweroff">
-            <property name="text">
-             <string>Turn OFF</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="placeholderText">
+          <string>UPTIME</string>
+         </property>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>CPU</string>
+        <widget class="QPushButton" name="pushButtonReboot">
+         <property name="text">
+          <string>Reboot</string>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <property name="spacing">
-           <number>1</number>
-          </property>
-          <property name="leftMargin">
-           <number>1</number>
-          </property>
-          <property name="topMargin">
-           <number>1</number>
-          </property>
-          <property name="rightMargin">
-           <number>1</number>
-          </property>
-          <property name="bottomMargin">
-           <number>1</number>
-          </property>
-          <item>
-           <widget class="QSpinBox" name="spinBoxCPUCurrent">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="suffix">
-             <string> %</string>
-            </property>
-            <property name="prefix">
-             <string/>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spinBoxTempCurrent">
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="suffix">
-             <string> C</string>
-            </property>
-            <property name="prefix">
-             <string/>
-            </property>
-            <property name="minimum">
-             <number>-300</number>
-            </property>
-            <property name="maximum">
-             <number>1000</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Storage</string>
+        <widget class="QPushButton" name="pushButtonPoweroff">
+         <property name="text">
+          <string>Poweroff</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBoxCPUCurrent">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="spacing">
-           <number>1</number>
-          </property>
-          <property name="leftMargin">
-           <number>1</number>
-          </property>
-          <property name="topMargin">
-           <number>1</number>
-          </property>
-          <property name="rightMargin">
-           <number>1</number>
-          </property>
-          <property name="bottomMargin">
-           <number>1</number>
-          </property>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceFree">
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="prefix">
-             <string>Free: </string>
-            </property>
-            <property name="suffix">
-             <string> GiB</string>
-            </property>
-            <property name="maximum">
-             <double>5000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceTotal">
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="buttonSymbols">
-             <enum>QAbstractSpinBox::NoButtons</enum>
-            </property>
-            <property name="prefix">
-             <string>Total: </string>
-            </property>
-            <property name="suffix">
-             <string> GiB</string>
-            </property>
-            <property name="maximum">
-             <double>5000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="suffix">
+          <string> %</string>
+         </property>
+         <property name="prefix">
+          <string>CPU load: </string>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBoxTempCurrent">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="suffix">
+          <string> C</string>
+         </property>
+         <property name="prefix">
+          <string>CPU temp: </string>
+         </property>
+         <property name="minimum">
+          <number>-300</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceFree">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="prefix">
+          <string>Free disk space: </string>
+         </property>
+         <property name="suffix">
+          <string> GiB</string>
+         </property>
+         <property name="maximum">
+          <double>5000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="doubleSpinBoxSpaceTotal">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="prefix">
+          <string>Total disk space: </string>
+         </property>
+         <property name="suffix">
+          <string> GiB</string>
+         </property>
+         <property name="maximum">
+          <double>5000.000000000000000</double>
+         </property>
         </widget>
        </item>
       </layout>

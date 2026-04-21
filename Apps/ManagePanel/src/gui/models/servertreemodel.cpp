@@ -50,9 +50,8 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        auto serverIt = m_serversCache.begin();
-        std::advance(serverIt, index.row());
-        if (!serverIt->isValid()) {
+        auto pServer = getServer(index);
+        if (!pServer.isValid()) {
             return {"[INVALID]"};
         }
         switch (index.column())
@@ -78,22 +77,19 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
         if (index.column() != 0) {
             return {};
         }
-        auto serverIt = m_serversCache.begin();
-        std::advance(serverIt, index.row());
-        if (!serverIt->isValid()) {
+        auto pServer = getServer(index);
+        if (!pServer.isValid()) {
             return QColor(230, 70, 210); // TODO: Constants
         }
-        auto pServer = *serverIt;
         return pServer->isServerAvailable() ? QColor(110, 240, 170) : QColor(240, 120, 150); // TODO: Constants
     }
 
     if (role > Qt::UserRole) {
-        auto serverIt = m_serversCache.begin();
-        std::advance(serverIt, index.row());
-        if (!serverIt->isValid()) {
+        auto pServer = getServer(index);
+        if (!pServer.isValid()) {
             return {};
         }
-        auto& serverConf = (*serverIt)->getConfiguration();
+        auto& serverConf = pServer->getConfiguration();
         switch (role)
         {
         case R_host:    return serverConf.getHost();
@@ -111,12 +107,10 @@ bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, i
         return false;
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        auto serverIt = m_serversCache.begin();
-        std::advance(serverIt, index.row());
-        if (!serverIt->isValid()) {
-            return false;
+        auto pServer = getServer(index);
+        if (!pServer.isValid()) {
+            return {};
         }
-        auto pServer = *serverIt;
 
         switch (index.column())
         {
@@ -128,12 +122,10 @@ bool ServerTreeModel::setData(const QModelIndex &index, const QVariant &value, i
     }
 
     if (role > Qt::UserRole) {
-        auto serverIt = m_serversCache.begin();
-        std::advance(serverIt, index.row());
-        if (!serverIt->isValid()) {
+        auto pServer = getServer(index);
+        if (!pServer.isValid()) {
             return {};
         }
-        auto pServer = *serverIt;
         bool isDataChanged = false;
         switch (role)
         {
@@ -187,12 +179,12 @@ Web::ServerRegistry *ServerTreeModel::getServerRegistry() const
     return m_pServerRegistry;
 }
 
-Web::ServerHandler ServerTreeModel::getServer(int serverRow) const
+Web::ServerHandler ServerTreeModel::getServer(const QModelIndex &idx) const
 {
-    if (serverRow >= m_serversCache.size()) {
+    if (idx.row() >= rowCount() || idx.row() < 0) {
         return {};
     }
     auto sPos = m_serversCache.begin();
-    std::advance(sPos, serverRow);
+    std::advance(sPos, idx.row());
     return *sPos;
 }

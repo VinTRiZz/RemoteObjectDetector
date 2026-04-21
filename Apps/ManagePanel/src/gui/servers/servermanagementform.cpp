@@ -29,8 +29,8 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
             return;
         }
 
-        auto serverRow = selectedIdx.indexes().front().row();
-        auto serverConf = m_pServerTreeModel->getServer(serverRow);
+        auto serverIndex = selectedIdx.indexes().front();
+        auto serverConf = m_pServerTreeModel->getServer(serverIndex);
         processSelectedServer(serverConf);
     });
     connect(ui->pushButtonAddServer, &QPushButton::clicked,
@@ -51,7 +51,7 @@ ServerManagementForm::ServerManagementForm(QWidget *parent) :
         if (!m_pCurrentServerRegistry) {
             return;
         }
-        auto targetServer = m_pServerTreeModel->getServer(ui->treeViewServers->currentIndex().row());
+        auto targetServer = m_pServerTreeModel->getServer(ui->treeViewServers->currentIndex());
         if (!targetServer.isValid()) {
             return;
         }

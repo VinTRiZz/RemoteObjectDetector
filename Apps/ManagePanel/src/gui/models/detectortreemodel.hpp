@@ -39,6 +39,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     void setServer(const Web::ServerHandler& serv);
+    Web::DetectorHandler getDetector(const QModelIndex& idx) const;
 
 private:
     std::set<Web::DetectorHandler>  m_detectorsCache;

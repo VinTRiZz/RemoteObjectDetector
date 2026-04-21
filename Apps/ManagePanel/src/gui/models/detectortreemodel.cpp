@@ -8,6 +8,8 @@
 #include "client/server.hpp"
 #include "client/detector.hpp"
 
+static const int MODEL_COLUMN_COUNT {5};
+
 DetectorTreeModel::DetectorTreeModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
@@ -47,7 +49,7 @@ int DetectorTreeModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return 2;
+    return MODEL_COLUMN_COUNT;
 }
 
 QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
@@ -88,12 +90,11 @@ QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
     }
 
     if (role > Qt::UserRole) {
-        auto detectorIt = m_detectorsCache.begin();
-        std::advance(detectorIt, index.row());
-        if (!detectorIt->isValid()) {
+        auto pDetector = getDetector(index);
+        if (!pDetector.isValid()) {
             return {};
         }
-        auto& detectorConf = (*detectorIt )->getConfiguration();
+        auto& detectorConf = pDetector->getConfiguration();
 
         switch (role)
         {
@@ -123,4 +124,14 @@ void DetectorTreeModel::setServer(const Web::ServerHandler &serv)
         // TODO: Connect signals
     }
     endResetModel();
+}
+
+Web::DetectorHandler DetectorTreeModel::getDetector(const QModelIndex &idx) const
+{
+    if (idx.row() >= rowCount() || idx.row() < 0) {
+        return {};
+    }
+    auto detectorIt = m_detectorsCache.begin();
+    std::advance(detectorIt, idx.row());
+    return *detectorIt;
 }

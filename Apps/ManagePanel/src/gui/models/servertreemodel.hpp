@@ -35,7 +35,7 @@ public:
     void setServerRegistry(Web::ServerRegistry* pRegistry);
     Web::ServerRegistry* getServerRegistry() const;
 
-    Web::ServerHandler getServer(int serverRow) const;
+    Web::ServerHandler getServer(const QModelIndex& idx) const;
 
 private:
     std::set<Web::ServerHandler>    m_serversCache;

@@ -79,6 +79,8 @@ void DetectorInfoManager::requestDetectorInfoList()
                     }
                 } else {
                     COMPLOG_ERROR("[DetectorInfoManager] Failed to parse id list:", std::get<QString>(valueArray).toStdString());
+                    emit responseDetectorInfoList(false, {});
+                    return;
                 }
 
                 std::shared_ptr<std::vector<DataObjects::DetectorConfiguration> > configs =

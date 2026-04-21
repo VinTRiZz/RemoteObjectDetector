@@ -71,7 +71,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -88,19 +88,21 @@
          </layout>
         </widget>
         <widget class="QWidget" name="page_2">
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="geometry">
-           <rect>
-            <x>200</x>
-            <y>200</y>
-            <width>81</width>
-            <height>25</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Make boom!</string>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="DetectorConfigurationWidget" name="detectorHandleForm" native="true"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSaveDetectorInfo">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Save</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
@@ -109,6 +111,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DetectorConfigurationWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/detectors/detectorconfigurationwidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
