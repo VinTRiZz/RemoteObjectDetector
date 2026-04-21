@@ -1,5 +1,7 @@
 #include "servertreemodel.hpp"
 
+#include <QColor>
+
 #include "client/server.hpp"
 
 ServerTreeModel::ServerTreeModel(QObject *parent)
@@ -70,6 +72,19 @@ QVariant ServerTreeModel::data(const QModelIndex &index, int role) const
         case C_port:    return "Server connection listen port";
         }
         return {};
+    }
+
+    if (role == Qt::DecorationRole) {
+        if (index.column() != 0) {
+            return {};
+        }
+        auto serverIt = m_serversCache.begin();
+        std::advance(serverIt, index.row());
+        if (!serverIt->isValid()) {
+            return QColor(230, 70, 210); // TODO: Constants
+        }
+        auto pServer = *serverIt;
+        return pServer->isServerAvailable() ? QColor(110, 240, 170) : QColor(240, 120, 150); // TODO: Constants
     }
 
     if (role > Qt::UserRole) {
@@ -147,12 +162,6 @@ void ServerTreeModel::setServerRegistry(Web::ServerRegistry *pRegistry)
     }
     m_pServerRegistry = pRegistry;
     if (m_pServerRegistry) {
-        connect(m_pServerRegistry, &Web::ServerRegistry::initSucceed,
-            this, [this](){
-            beginResetModel();
-            m_serversCache = m_pServerRegistry->getServers();
-            endResetModel();
-        });
         connect(m_pServerRegistry, &Web::ServerRegistry::serverAdded,
                 this, [this](const auto& serverHdl){
                     // TODO: soft update, obviously

@@ -1,5 +1,7 @@
 #include "server.hpp"
 
+#include <QTcpSocket>
+
 #include "common/serverconfiguration.hpp"
 
 #include "serverregistry.hpp"
@@ -11,6 +13,18 @@ struct Server::Impl
 {
     ServerConfiguration configuration;
     std::set<DetectorHandler> detectors;
+    bool cache_isServerAvailable {false};
+
+    bool checkPort(const QString &host, quint16 port) const {
+        QTcpSocket socket;
+        socket.connectToHost(host, port);
+        if (socket.waitForConnected(1000)) {
+            socket.disconnectFromHost();
+            return true;
+        }
+        return false;
+    }
+
 };
 
 Server::Server(ServerRegistry *parent)
@@ -23,6 +37,24 @@ Server::Server(ServerRegistry *parent)
 Server::~Server()
 {
     // TODO: Disconnect if need
+}
+
+void Server::ping()
+{
+    QMetaObject::invokeMethod(this, [this](){
+        if (d->checkPort(d->configuration.getHost(), d->configuration.getPort())) {
+            d->cache_isServerAvailable = true;
+            emit serverIsAvailable();
+        } else {
+            d->cache_isServerAvailable = false;
+            emit serverIsUnavailable();
+        }
+    });
+}
+
+bool Server::isServerAvailable() const
+{
+    return d->cache_isServerAvailable;
 }
 
 bool Server::setHost(const QString &hostname)
@@ -110,13 +142,9 @@ bool Server::operator<(const Server &s) const
     return d->configuration < s.d->configuration;
 }
 
-bool Server::setConfiguration(const ServerConfiguration &conf)
+void Server::setConfiguration(const ServerConfiguration &conf)
 {
     d->configuration = conf;
-
-    // TODO: Check config if server is available
-
-    return true;
 }
 
 } // namespace Web

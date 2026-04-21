@@ -80,8 +80,11 @@ QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::DecorationRole) {
+        if (index.column() != 0) {
+            return {};
+        }
         auto isOnline = data(index, R_is_online).toBool();
-        return (isOnline ? QColor(130, 240, 190) : QColor(240, 120, 150));
+        return (isOnline ? QColor(110, 240, 170) : QColor(240, 120, 150)); // TODO: Constants
     }
 
     if (role > Qt::UserRole) {

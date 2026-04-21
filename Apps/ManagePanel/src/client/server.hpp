@@ -25,6 +25,9 @@ public:
     explicit Server(ServerRegistry *parent = nullptr);
     ~Server();
 
+    void ping();
+    bool isServerAvailable() const; // Returns last ping result
+
     bool setHost(const QString& hostname);
     bool setPort(const uint16_t& port);
     bool setName(const QString& name);
@@ -46,12 +49,15 @@ signals:
 
     void gotStatus(const DataObjects::DeviceStatus& devStatus);
 
+    void serverIsAvailable();
+    void serverIsUnavailable();
+
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
     friend class ServerRegistry;
-    bool setConfiguration(const ServerConfiguration& conf);
+    void setConfiguration(const ServerConfiguration& conf);
 };
 
 } // namespace Web

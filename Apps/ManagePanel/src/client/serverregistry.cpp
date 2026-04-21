@@ -68,8 +68,6 @@ struct ServerRegistry::Impl
         if (!serversTable->addRow(std::move(rowData))) {
             COMPLOG_WARNING("Failed to register server:", conf.getName().toStdString());
         }
-
-        COMPLOG_DEBUG("Registered server:", conf.getName().toStdString());
     }
 };
 
@@ -103,35 +101,16 @@ void ServerRegistry::init()
         conf.setHost(std::get<Database::DBCellString>(serverRec[1]).value().c_str());
         conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]).value());
         conf.setName(std::get<Database::DBCellString>(serverRec[3]).value().c_str());
-
-        auto pServer = new Server(this);
-        if (!pServer->setConfiguration(conf)) {
-            COMPLOG_ERROR("ServerRegistry: invalid config! Failed to configure server:", conf.getName().toStdString());
-            qApp->quit();
-            return;
-        }
-        ServerHandler serv(pServer);
-        d->servers.insert(serv);
+        addServerNoRegister(conf);
     }
 
-    emit initSucceed();
     COMPLOG_OK("ServerRegistry inited");
 }
 
 bool ServerRegistry::addServer(const ServerConfiguration &conf)
 {
-    auto pServer = new Server(this);
-    if (!pServer->setConfiguration(conf)) {
-        pServer->deleteLater();
-        d->lastErrorText = "Invalid server configuration";
-        return false;
-    }
-
     d->registerServer(conf);
-
-    ServerHandler serv(pServer);
-    d->servers.insert(serv);
-    emit serverAdded(serv);
+    addServerNoRegister(conf);
     return true;
 }
 
@@ -161,6 +140,16 @@ std::set<ServerHandler> ServerRegistry::getServers() const
 QString ServerRegistry::getLastErrorText() const
 {
     return d->lastErrorText;
+}
+
+void ServerRegistry::addServerNoRegister(const ServerConfiguration &conf)
+{
+    auto pServer = new Server(this);
+    pServer->setConfiguration(conf);
+    ServerHandler serv(pServer);
+    d->servers.insert(serv);
+    emit serverAdded(serv);
+    pServer->ping(); // Update state
 }
 
 } // namespace Web
