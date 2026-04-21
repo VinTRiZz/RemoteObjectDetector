@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <memory>
-#include <set>
 
 #include <ROD/DetectorConfiguration.h>
 #include <ROD/DeviceStatus.h>
@@ -38,17 +37,11 @@ public:
     void requestReboot() const;
     void requestStatus() const;
 
+    virtual void setConfiguration(const ServerConfiguration& conf);
     const ServerConfiguration& getConfiguration() const;
-
-    bool addDetector(const DataObjects::DetectorConfiguration& conf);
-    void removeDetector(const DataObjects::DetectorConfiguration& conf);
-    std::set<DetectorHandler> getDetectors() const;
 
     bool operator<(const Server& s) const;
 signals:
-    void detectorAdded(const DetectorHandler& hdl);
-    void detectorAboutToRemove(const DetectorHandler& hdl);
-
     void gotStatus(const DataObjects::DeviceStatus& devStatus);
 
     void serverIsAvailable();
@@ -60,8 +53,8 @@ private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
-    friend class ServerRegistry;
-    void setConfiguration(const ServerConfiguration& conf);
+protected:
+    virtual void updateServerAddress(); // Must be called last in overriden functions
 };
 
 } // namespace Web

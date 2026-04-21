@@ -23,6 +23,26 @@ public:
     explicit HandlerBase(PointerT* pTarget);
     ~HandlerBase() = default;
 
+    // Analog of std::static_pointer_cast
+    template <typename DerivedT>
+    std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>,
+                     DerivedT*>
+    cast();
+    template <typename DerivedT>
+    std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>,
+                     const DerivedT*>
+    cast() const;
+
+    // Analog of std::dynamic_pointer_cast
+    template <typename DerivedT>
+    std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>,
+                     DerivedT*>
+    cast_dynamic();
+    template <typename DerivedT>
+    std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>,
+                     const DerivedT*>
+    cast_dynamic() const;
+
     // Pointer access operators
     PointerT* operator->() noexcept(false);
     const PointerT* operator->() const;
@@ -47,11 +67,54 @@ protected:
     void invalidate();
 };
 
-
 // =============================== IMPLEMENTATION ===================================== //
 
 template<typename PointerT>
 inline HandlerBase<PointerT>::HandlerBase(PointerT *pTarget) { setPointer(pTarget); }
+
+template <typename PointerT>
+template <typename DerivedT>
+std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>, DerivedT*>
+HandlerBase<PointerT>::cast()
+{
+    if (!isValid()) {
+        throw std::runtime_error("Invalid pointer");
+    }
+    return static_cast<DerivedT*>(m_pTarget);
+}
+
+template <typename PointerT>
+template <typename DerivedT>
+std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>, const DerivedT*>
+HandlerBase<PointerT>::cast() const
+{
+    if (!isValid()) {
+        throw std::runtime_error("Invalid pointer");
+    }
+    return static_cast<const DerivedT*>(m_pTarget);
+}
+
+template <typename PointerT>
+template <typename DerivedT>
+std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>, DerivedT*>
+HandlerBase<PointerT>::cast_dynamic()
+{
+    if (!isValid()) {
+        throw std::runtime_error("Invalid pointer");
+    }
+    return dynamic_cast<DerivedT*>(m_pTarget);
+}
+
+template <typename PointerT>
+template <typename DerivedT>
+std::enable_if_t<std::is_base_of_v<PointerT, DerivedT> || std::is_base_of_v<DerivedT, PointerT>, const DerivedT*>
+HandlerBase<PointerT>::cast_dynamic() const
+{
+    if (!isValid()) {
+        throw std::runtime_error("Invalid pointer");
+    }
+    return dynamic_cast<const DerivedT*>(m_pTarget);
+}
 
 template<typename PointerT>
 inline PointerT *HandlerBase<PointerT>::operator->() noexcept(false) {

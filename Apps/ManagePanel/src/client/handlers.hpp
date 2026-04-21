@@ -29,7 +29,7 @@ public:
     using HandlerBase<Detector>::HandlerBase;
 
 private:
-    friend class Server; // For server handler updating
+    friend class DetectorServer; // For server handler updating
 };
 
 } // namespace Web

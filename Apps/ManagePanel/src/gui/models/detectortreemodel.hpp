@@ -4,7 +4,7 @@
 
 #include "client/handlers.hpp"
 
-#include <set>
+#include <vector>
 
 class DetectorInfoManager;
 
@@ -42,7 +42,7 @@ public:
     Web::DetectorHandler getDetector(const QModelIndex& idx) const;
 
 private:
-    std::set<Web::DetectorHandler>  m_detectorsCache;
-    Web::ServerHandler              m_currentServer;
+    std::vector<Web::DetectorHandler>   m_detectorsCache; // Sorted by server handler on getting
+    Web::ServerHandler                  m_currentServer;
 };
 

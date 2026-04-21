@@ -5,7 +5,7 @@
 
 #include <Components/Logger/Logger.h>
 
-#include "client/server.hpp"
+#include "client/detectorserver.hpp"
 #include "client/detector.hpp"
 
 static const int MODEL_COLUMN_COUNT {5};
@@ -117,12 +117,34 @@ void DetectorTreeModel::setServer(const Web::ServerHandler &serv)
     if (serv) {
         disconnect(serv.get(), nullptr, this, nullptr);
     }
-    m_currentServer = serv;
     m_detectorsCache.clear();
     if (serv) {
-        m_detectorsCache = m_currentServer->getDetectors();
-        // TODO: Connect signals
+        auto pDetServer = serv.cast_dynamic<Web::DetectorServer>();
+        if (!pDetServer) {
+            COMPLOG_WARNING("DetectorTreeModel: invalid server type (expected detector server)");
+            endResetModel();
+            return;
+        }
+        m_detectorsCache = pDetServer->getDetectors();
+        connect(pDetServer, &Web::DetectorServer::detectorAdded,
+                this, [this](const auto& detectorHdl){
+                    // TODO: soft update, obviously
+                    beginResetModel();
+                    m_detectorsCache.push_back(detectorHdl);
+                    std::sort(m_detectorsCache.begin(), m_detectorsCache.end());
+                    endResetModel();
+                });
+
+        connect(pDetServer, &Web::DetectorServer::detectorAboutToRemove,
+                this, [this](const auto& detectorHdl){
+                    // TODO: soft update, obviously
+                    beginResetModel();
+                    auto targetIt = std::find(m_detectorsCache.begin(), m_detectorsCache.end(), detectorHdl);
+                    m_detectorsCache.erase(targetIt);
+                    endResetModel();
+                });
     }
+    m_currentServer = serv;
     endResetModel();
 }
 

@@ -21,6 +21,12 @@ Detector::~Detector()
     // TODO: Disconnect if need
 }
 
+void Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
+{
+    d->detectorConfig = conf;
+    emit configurationChanged();
+}
+
 const DataObjects::DetectorConfiguration &Detector::getConfiguration() const
 {
     return d->detectorConfig;
@@ -33,11 +39,6 @@ bool Detector::operator<(const Detector &det) const
         return d->detectorConfig.system.id < det.d->detectorConfig.system.id;
     }
     return d->detectorConfig.info.name < det.d->detectorConfig.info.name;
-}
-
-void Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
-{
-    d->detectorConfig = conf;
 }
 
 } // namespace Web

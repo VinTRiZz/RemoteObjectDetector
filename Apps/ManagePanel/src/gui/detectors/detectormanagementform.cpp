@@ -9,6 +9,8 @@
 
 #include <Components/Logger/Logger.h>
 
+#include <QMessageBox>
+
 DetectorManagementForm::DetectorManagementForm(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DetectorManagementForm)
@@ -27,13 +29,22 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
                 }
                 ui->stackedWidget->setCurrentIndex(1);
                 auto pDet = m_pDetectorTreeModel->getDetector(selected.indexes().front());
-                if (pDet.isValid()) {
-                    ui->detectorHandleForm->showConfiguration(pDet->getConfiguration());
-                } else {
-                    ui->detectorHandleForm->showConfiguration({});
-                }
-
+                ui->detectorHandleForm->showConfiguration(pDet.isValid() ? pDet->getConfiguration() : DataObjects::DetectorConfiguration{});
             });
+
+    connect(ui->pushButtonSaveDetectorInfo, &QPushButton::clicked,
+            this, [this](){
+        auto selIndex = ui->treeViewDetectors->currentIndex();
+        if (!selIndex.isValid()) {
+            return;
+        }
+        auto pDet = m_pDetectorTreeModel->getDetector(selIndex);
+        if (!pDet.isValid()) {
+            QMessageBox::warning(this, "Detector data error", "Detector invalidated, failed to save changes");
+            return;
+        }
+        pDet->setConfiguration(ui->detectorHandleForm->readConfiguration());
+    });
 }
 
 DetectorManagementForm::~DetectorManagementForm()

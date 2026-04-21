@@ -17,6 +17,7 @@ public:
     explicit Detector(Server *parent = nullptr);
     ~Detector();
 
+    void setConfiguration(const DataObjects::DetectorConfiguration& conf);
     const DataObjects::DetectorConfiguration& getConfiguration() const;
 
     bool operator<(const Detector& det) const;
@@ -26,9 +27,6 @@ signals:
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
-
-    friend class Server;
-    void setConfiguration(const DataObjects::DetectorConfiguration& conf);
 };
 
 } // namespace Web

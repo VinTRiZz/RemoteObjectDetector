@@ -1,6 +1,7 @@
 #include "serverregistry.hpp"
 
 #include "server.hpp"
+#include "detectorserver.hpp"
 
 #include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>
@@ -153,7 +154,8 @@ QString ServerRegistry::getLastErrorText() const
 
 void ServerRegistry::addServerNoRegister(int64_t serverId, const ServerConfiguration &conf)
 {
-    auto pServer = new Server(serverId, this);
+    // TODO: Assume using configuration, what type of server it is
+    auto pServer = new DetectorServer(serverId, this);
     connect(pServer, &Server::configurationChanged,
             this, [this, pServer](){
         if (!d->updateServerConfiguration(pServer->getId(), pServer->getConfiguration())) {
