@@ -26,13 +26,9 @@ const DataObjects::DetectorConfiguration &Detector::getConfiguration() const
     return d->detectorConfig;
 }
 
-bool Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
+void Detector::setConfiguration(const DataObjects::DetectorConfiguration &conf)
 {
     d->detectorConfig = conf;
-
-    // TODO: Try add config on server
-
-    return true;
 }
 
 } // namespace Web

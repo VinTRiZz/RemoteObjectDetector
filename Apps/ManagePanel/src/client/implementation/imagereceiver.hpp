@@ -5,6 +5,9 @@
 
 #include <memory>
 
+namespace Web::Implementation
+{
+
 /**
  * @brief The ImageReceiver class Class for images receiving
  */
@@ -26,3 +29,5 @@ private:
     struct Impl;
     std::unique_ptr<Impl> d;
 };
+
+}

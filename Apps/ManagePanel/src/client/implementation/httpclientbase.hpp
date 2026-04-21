@@ -5,6 +5,9 @@
 
 #include <map>
 
+namespace Web::Implementation
+{
+
 class HTTPClientBase : public QObject
 {
     Q_OBJECT
@@ -58,3 +61,5 @@ protected:
     QNetworkRequest createRequest(const QString& target, const QStringList& args = {}) const;
     QNetworkAccessManager& getRequester();
 };
+
+}

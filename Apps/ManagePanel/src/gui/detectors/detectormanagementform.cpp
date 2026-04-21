@@ -2,7 +2,12 @@
 #include "ui_detectormanagementform.h"
 
 #include "client/server.hpp"
+#include "client/detector.hpp"
 #include "common/serverconfiguration.hpp"
+
+#include "gui/models/detectortreemodel.hpp"
+
+#include <Components/Logger/Logger.h>
 
 DetectorManagementForm::DetectorManagementForm(QWidget *parent)
     : QWidget(parent)
@@ -10,6 +15,9 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
 {
     ui->setupUi(this);
     ui->stackedWidget->setCurrentIndex(0); // Placeholder
+
+    m_pDetectorTreeModel = new DetectorTreeModel(this);
+    ui->treeViewDetectors->setModel(m_pDetectorTreeModel);
 }
 
 DetectorManagementForm::~DetectorManagementForm()
@@ -25,4 +33,6 @@ void DetectorManagementForm::setServer(const Web::ServerHandler &hdl)
         serverNameString = m_server.isValid() ? m_server->getConfiguration().getName() : "Invalid server";
     }
     setWindowTitle(QString("Detector management (%0)").arg(serverNameString));
+
+    m_pDetectorTreeModel->setServer(m_server);
 }

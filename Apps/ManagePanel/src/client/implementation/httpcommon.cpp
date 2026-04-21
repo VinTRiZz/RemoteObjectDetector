@@ -2,6 +2,9 @@
 
 #include <QJsonDocument>
 
+namespace Web::Implementation
+{
+
 namespace HTTPCommon
 {
 
@@ -34,6 +37,8 @@ std::variant<QString, QJsonArray> parseBodyArray(const QByteArray &arr)
         return err.errorString();
     }
     return document.array();
+}
+
 }
 
 }

@@ -6,6 +6,9 @@
 
 #include <Components/Logger/Logger.h>
 
+namespace Web::Implementation
+{
+
 ServerManager::ServerManager(QObject *parent)
     : HTTPClientBase{parent}
 {
@@ -42,7 +45,7 @@ void ServerManager::requestReboot()
     });
 }
 
-void ServerManager::requestShutdown()
+void ServerManager::requestPoweroff()
 {
     auto shutdownRequest = createRequest(QString::fromStdString(Protocol::API::QT::SERVER_POWER).arg(Protocol::API::PARAMATER_VALUES::POWER_OFF));
     auto& requester = getRequester();
@@ -52,4 +55,6 @@ void ServerManager::requestShutdown()
         auto isOk = response->error() == QNetworkReply::NoError;
         emit responseShutdown(isOk);
     });
+}
+
 }

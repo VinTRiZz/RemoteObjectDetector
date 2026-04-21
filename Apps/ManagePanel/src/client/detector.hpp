@@ -20,13 +20,14 @@ public:
     const DataObjects::DetectorConfiguration& getConfiguration() const;
 
 signals:
+    void configurationChanged();
 
 private:
     struct Impl;
     std::unique_ptr<Impl> d;
 
     friend class Server;
-    bool setConfiguration(const DataObjects::DetectorConfiguration& conf);
+    void setConfiguration(const DataObjects::DetectorConfiguration& conf);
 };
 
 } // namespace Web

@@ -60,6 +60,8 @@ QImage cvMatToQImage(const cv::Mat &mat) {
 
 }
 
+namespace Web::Implementation
+{
 
 struct ImageReceiver::Impl
 {
@@ -102,4 +104,6 @@ bool ImageReceiver::isListening() const
 void ImageReceiver::stopListen()
 {
     d->streamingServer.stop();
+}
+
 }

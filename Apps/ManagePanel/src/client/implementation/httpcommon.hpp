@@ -8,6 +8,9 @@
 
 #include <variant>
 
+namespace Web::Implementation
+{
+
 namespace HTTPCommon
 {
 
@@ -43,5 +46,7 @@ std::variant<QString, QJsonObject> parseBody(const QByteArray& arr);
  * @return                  String with error or parsed JSON on success
  */
 std::variant<QString, QJsonArray>  parseBodyArray(const QByteArray& arr);
+
+}
 
 }

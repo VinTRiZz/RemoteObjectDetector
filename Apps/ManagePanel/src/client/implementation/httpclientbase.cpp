@@ -10,6 +10,9 @@
 
 #include "httpcommon.hpp"
 
+namespace Web::Implementation
+{
+
 HTTPClientBase::HTTPClientBase(QObject *parent)
     : QObject{parent}
 {
@@ -75,4 +78,6 @@ QNetworkRequest HTTPClientBase::createRequest(const QString &target, const QStri
 QNetworkAccessManager &HTTPClientBase::getRequester()
 {
     return m_requester;
+}
+
 }
