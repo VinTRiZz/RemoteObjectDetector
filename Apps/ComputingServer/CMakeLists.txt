@@ -3,7 +3,7 @@ if (NOT ROD_BUILD_SERVER)
     return()
 endif()
 
-set(APP_TARGET_NAME ROD-CalculationServer)
+set(APP_TARGET_NAME ROD-ComputingServer)
 
 COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     ssl
