@@ -1,0 +1,65 @@
+    version: '3.8'
+
+services:
+    # Proxy
+    nginx:
+        image: nginx:alpine
+        container_name: nginx-proxy
+        ports:
+        - "9001:9001"
+        - "9002:9002"
+        environment:
+        - HTTP_BACKEND=backend-http:9001
+        - WS_BACKEND=backend-ws:9002
+        volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+        - ./nginx/includes/:/etc/nginx/includes/:ro
+        - ./nginx/html/:/usr/share/nginx/html/:ro
+        restart: unless-stopped
+        networks:
+        - outer-net
+        - internal-net
+
+    # PostgreSQL DB
+    database:
+        image: postgres:latest
+        container_name: db
+        ports:
+        - "5432:5432"
+        environment:
+        - POSTGRES_PASSWORD=12345678
+        - POSTGRES_USER=postgres
+        - POSTGRES_DB=postgres
+        networks:
+        - internal-net
+
+    # Image detection service
+    computeservice:
+        build:
+            context: .
+            dockerfile: Dockerfile_ComputeService
+        container_name: rod-service-compute
+        ports:
+        - "9001:9101"
+        networks:
+        - internal-net
+
+    # Detector controller service
+    computeservice:
+        build:
+            context: .
+            dockerfile: Dockerfile_DetectorControlService
+        container_name: rod-service-compute
+        ports:
+        - "9001:9101"
+        - "9002:9201"
+        networks:
+        - internal-net
+
+
+networks:
+    outer-net:
+        driver: bridge
+    internal-net:
+        driver: bridge
+        internal: true
