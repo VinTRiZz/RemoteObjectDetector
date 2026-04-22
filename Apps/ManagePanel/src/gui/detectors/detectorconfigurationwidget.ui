@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>325</width>
-    <height>340</height>
+    <width>502</width>
+    <height>516</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,6 +49,9 @@
       <string>Description</string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="comboBoxSoftwareVersion"/>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox">

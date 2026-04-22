@@ -13,7 +13,7 @@ DetectorSystemRecord::DetectorSystemRecord() :
 
 record_t DetectorSystemRecord::toRecord() const
 {
-    auto res = RecordBase::toRecord();
+    record_t res; // Ignore ID changing, it's not allowed
     res["register_date"] = m_registerDate;
     return res;
 }
@@ -21,7 +21,7 @@ record_t DetectorSystemRecord::toRecord() const
 void DetectorSystemRecord::initFromRecord(const record_t &iRecord)
 {
     RecordBase::initFromRecord(iRecord);
-    m_registerDate = std::get<int64_t>(iRecord.at("register_date"));
+    m_registerDate = std::get<int64_t>(iRecord.at("register_date").value_or(0));
 }
 
 void DetectorSystemRecord::setRegisterDate(int64_t val)
@@ -54,8 +54,8 @@ record_t DetectorOnlineRecord::toRecord() const
 void DetectorOnlineRecord::initFromRecord(const record_t &iRecord)
 {
     RecordBase::initFromRecord(iRecord);
-    m_totalOnline   = std::get<int64_t>(iRecord.at("total"));
-    m_lastOnlineUTC = std::get<int64_t>(iRecord.at("last_utc"));
+    m_totalOnline   = std::get<int64_t>(iRecord.at("total").value_or(0));
+    m_lastOnlineUTC = std::get<int64_t>(iRecord.at("last_utc").value_or(0));
 }
 
 void DetectorOnlineRecord::setLastOnline(int64_t val)
@@ -90,8 +90,8 @@ DetectorSoftwareRecord::DetectorSoftwareRecord() :
 record_t DetectorSoftwareRecord::toRecord() const
 {
     auto res = RecordBase::toRecord();
-    res["version_id"]   = m_versionId;
-    res["update_time_utc"]     = m_updateTimeUTC;
+    res["version_id"]           = m_versionId;
+    res["update_time_utc"]      = m_updateTimeUTC;
     return res;
 }
 
@@ -99,8 +99,8 @@ void DetectorSoftwareRecord::initFromRecord(const record_t &iRecord)
 {
     RecordBase::initFromRecord(iRecord);
     try {
-        m_versionId = std::get<int64_t>(iRecord.at("version_id"));
-        m_updateTimeUTC = std::get<int64_t>(iRecord.at("update_time_utc"));
+        m_versionId = std::get<int64_t>(iRecord.at("version_id").value_or(0));
+        m_updateTimeUTC = std::get<int64_t>(iRecord.at("update_time_utc").value_or(0));
     } catch (const std::bad_variant_access& ex) {
         m_versionId = DataObjects::NULL_ID;
         m_updateTimeUTC = {};
@@ -138,18 +138,34 @@ DetectorInfoRecord::DetectorInfoRecord() :
 record_t DetectorInfoRecord::toRecord() const
 {
     auto res = RecordBase::toRecord();
-    res["display_name"] = Encryption::encodeHex(m_displayName);
-    res["description"]  = Encryption::encodeHex(m_description);
-    res["location"]     = Encryption::encodeHex(m_location);
+    auto hexIfExist = [](auto& iv) -> recordValue_t {
+        if (iv.has_value()) {
+            return std::string("HEX-") + Encryption::encodeHex(iv.value());
+        }
+        else
+            return recordValue_t{};
+    };
+    res["display_name"] = hexIfExist(m_displayName);
+    res["description"]  = hexIfExist(m_description);
+    res["location"]     = hexIfExist(m_location);
     return res;
 }
 
 void DetectorInfoRecord::initFromRecord(const record_t &iRecord)
 {
     RecordBase::initFromRecord(iRecord);
-    m_displayName   = Encryption::decodeHex(std::get<std::string>(iRecord.at("display_name")));
-    m_description   = Encryption::decodeHex(std::get<std::string>(iRecord.at("description")));
-    m_location      = Encryption::decodeHex(std::get<std::string>(iRecord.at("location")));
+    auto dehexIfExist = [](auto& iv) -> ExtraClasses::JOptional<std::string> {
+        if (iv.has_value() && !std::holds_alternative<std::monostate>(iv.value())) {
+            auto vstr = std::get<std::string>(iv.value());
+            vstr.erase(vstr.begin(), vstr.begin() + 4); // HEX-
+            return Encryption::decodeHex(vstr);
+        }
+        else
+            return std::nullopt;
+    };
+    m_displayName   = dehexIfExist(iRecord.at("display_name"));
+    m_description   = dehexIfExist(iRecord.at("description"));
+    m_location      = dehexIfExist(iRecord.at("location"));
 }
 
 void DetectorInfoRecord::setDisplayName(const std::string &name)
@@ -159,7 +175,7 @@ void DetectorInfoRecord::setDisplayName(const std::string &name)
 
 std::string DetectorInfoRecord::getDisplayName() const
 {
-    return m_displayName;
+    return m_displayName.value_or("");
 }
 
 void DetectorInfoRecord::setDescription(const std::string &descr)
@@ -169,7 +185,7 @@ void DetectorInfoRecord::setDescription(const std::string &descr)
 
 std::string DetectorInfoRecord::getDescription() const
 {
-    return m_description;
+    return m_description.value_or("");
 }
 
 void DetectorInfoRecord::setLocation(const std::string &location)
@@ -179,23 +195,26 @@ void DetectorInfoRecord::setLocation(const std::string &location)
 
 std::string DetectorInfoRecord::getLocation() const
 {
-    return m_location;
+    return m_location.value_or("");
 }
 
 DetectorConfigRecords_t toRecords(const DataObjects::DetectorConfiguration &detConf) {
-    DetectorSystemRecord      recordSys;
+    DetectorSystemRecord recordSys;
     recordSys.setId(detConf.system.id);
     recordSys.setRegisterDate(detConf.system.registerDateUTC);
 
-    DetectorOnlineRecord      recordOnline;
+    DetectorOnlineRecord recordOnline;
+    recordOnline.setId(detConf.system.id);
     recordOnline.setTotalOnline(detConf.online.totalOnlineTime);
     recordOnline.setLastOnline(detConf.online.lastOnlineTimeUTC);
 
-    DetectorSoftwareRecord    recordSoftware;
+    DetectorSoftwareRecord recordSoftware;
+    recordSoftware.setId(detConf.system.id);
     recordSoftware.setVersionId(detConf.software.versionId);
     recordSoftware.setUpdateTime(detConf.software.updateTimeUTC);
 
-    DetectorInfoRecord        recordInfo;
+    DetectorInfoRecord recordInfo;
+    recordInfo.setId(detConf.system.id);
     recordInfo.setDisplayName(detConf.info.name);
     recordInfo.setDescription(detConf.info.description);
     recordInfo.setLocation(detConf.info.location);

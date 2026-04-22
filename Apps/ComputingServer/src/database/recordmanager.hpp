@@ -43,14 +43,16 @@ public:
     template <bool isSync = true, typename T>
     std::enable_if_t<std::is_base_of_v<RecordBase, std::decay_t<T> >, bool>
     updateRecord(const T& iValue) {
-        return updateRecord(isSync, iValue.getTable(), std::string(iValue.getIdColumn().data()) + " = " + std::to_string(iValue.getId()), iValue.toRecord());
+        return updateRecord(isSync, iValue.getTable(),
+                            std::string(iValue.getIdColumn().data()) + " = " + (iValue.getId().has_value() ? std::to_string(iValue.getId().value()) : "NULL"),
+                            iValue.toRecord());
     }
 
 
     template <typename T>
     bool removeRecord(DataObjects::id_t recId, bool isSync = true) {
         T infoRec; // TODO: set table name as static data?
-        return removeRecord(isSync, infoRec.getTable(), std::string(infoRec.getIdColumn()) + " = " + std::to_string(recId));
+        return removeRecord(isSync, infoRec.getTable(), std::string(infoRec.getIdColumn()) + " = " + (recId.has_value() ? std::to_string(recId.value()) : "NULL"));
     }
 
     template <bool isSync = true, typename T>

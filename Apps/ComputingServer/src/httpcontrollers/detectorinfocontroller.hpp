@@ -14,7 +14,10 @@ class DetectorInfoController : public drogon::HttpController<DetectorInfoControl
 public:
     METHOD_LIST_BEGIN
         ADD_METHOD_TO(DetectorInfoController::processGetList,       Protocol::API::DROGON::DETECTOR_GET_ID_LIST,    drogon::Get);
+        ADD_METHOD_TO(DetectorInfoController::processAddInfo,       Protocol::API::DROGON::DETECTOR_INFO,           drogon::Post);
         ADD_METHOD_TO(DetectorInfoController::processGetInfo,       Protocol::API::DROGON::DETECTOR_INFO,           drogon::Get);
+        ADD_METHOD_TO(DetectorInfoController::processUpdateInfo,    Protocol::API::DROGON::DETECTOR_INFO,           drogon::Put);
+        ADD_METHOD_TO(DetectorInfoController::processRemoveInfo,    Protocol::API::DROGON::DETECTOR_INFO,           drogon::Delete);
         ADD_METHOD_TO(DetectorInfoController::processGetStatus,     Protocol::API::DROGON::DETECTOR_STATUS,         drogon::Get);
     METHOD_LIST_END
 
@@ -25,13 +28,22 @@ public:
     void processGetList(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback);
 
+    void processAddInfo(const drogon::HttpRequestPtr &req,
+                        ResponseCallback_t &&callback,
+                        const DataObjects::id_t::type detectorId);
     void processGetInfo(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const DataObjects::id_t detectorId);
+                        const DataObjects::id_t::type detectorId);
+    void processUpdateInfo(const drogon::HttpRequestPtr &req,
+                        ResponseCallback_t &&callback,
+                        const DataObjects::id_t::type detectorId);
+    void processRemoveInfo(const drogon::HttpRequestPtr &req,
+                           ResponseCallback_t &&callback,
+                           const DataObjects::id_t::type detectorId);
 
     void processGetStatus(const drogon::HttpRequestPtr &req,
                           ResponseCallback_t &&callback,
-                          const DataObjects::id_t detectorId);
+                          const DataObjects::id_t::type detectorId);
 
 private:
     DetectorInfoManager m_deviceInfoManager;

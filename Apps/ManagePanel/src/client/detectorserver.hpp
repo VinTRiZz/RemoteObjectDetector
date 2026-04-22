@@ -14,7 +14,8 @@ public:
     ~DetectorServer();
 
     bool addDetector(const DataObjects::DetectorConfiguration& conf);
-    void removeDetector(const DataObjects::DetectorConfiguration& conf);
+    bool removeDetector(const DataObjects::id_t &detId);
+    bool removeDetector(const DetectorHandler &hdl);
     std::vector<DetectorHandler> getDetectors() const;
 
     QString getLastErrorText() const;

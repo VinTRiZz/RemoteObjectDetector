@@ -24,9 +24,13 @@ std::string DetectorConfiguration::toJson() const
     res["security"]["token"] = security.token;
 
     // Сериализация Info
-    res["info"]["name"]         = Encryption::encodeHex(info.name);
-    res["info"]["description"]  = Encryption::encodeHex(info.description);
-    res["info"]["location"]     = Encryption::encodeHex(info.location);
+    auto hexIfExist = [](auto& iv){ if (iv.has_value()) return nlohmann::json(Encryption::encodeHex(iv.value())); else return nlohmann::json(); };
+    res["info"]["name"]         = hexIfExist(info.name);
+    res["info"]["description"]  = hexIfExist(info.description);
+    res["info"]["location"]     = hexIfExist(info.location);
+
+    res["software"]["version_id"]       = software.versionId;
+    res["software"]["updateTimeUTC"]    = software.updateTimeUTC;
 
     return res.dump();
 }
@@ -37,7 +41,8 @@ bool DetectorConfiguration::readJson(const std::string &iString)
     {
         nlohmann::json iJson = nlohmann::json::parse(iString);
 
-        system.id               = iJson["system"]["id"].get<id_t>();
+        auto& idj = iJson["system"]["id"];
+        system.id               = idj.is_null() ? NULL_ID : id_t{idj.get<id_t::type>()};
         system.registerDateUTC  = iJson["system"]["registerDateUTC"].get<int64_t>();
 
         online.lastOnlineTimeUTC    = iJson["online"]["lastOnlineTimeUTC"].get<int64_t>();
@@ -45,9 +50,13 @@ bool DetectorConfiguration::readJson(const std::string &iString)
 
         security.token = iJson["security"]["token"].get<std::string>();
 
-        info.name       = Encryption::decodeHex(iJson["info"]["name"].get<std::string>());
-        info.description= Encryption::decodeHex(iJson["info"]["description"].get<std::string>());
-        info.location   = Encryption::decodeHex(iJson["info"]["location"].get<std::string>());
+        auto dehexIfExist = [](auto& iv) -> ExtraClasses::JOptional<std::string> { if (iv.is_null()) return std::nullopt; else return Encryption::decodeHex(iv); };
+        info.name       = dehexIfExist(iJson["info"]["name"]);
+        info.description= dehexIfExist(iJson["info"]["description"]);
+        info.location   = dehexIfExist(iJson["info"]["location"]);
+
+        software.versionId      = iJson["software"]["version_id"];
+        software.updateTimeUTC  = iJson["software"]["updateTimeUTC"];
 
         m_error.setErrorCode(ErrorCodes::NoError);
         return true;

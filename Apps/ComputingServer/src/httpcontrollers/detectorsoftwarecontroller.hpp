@@ -33,19 +33,19 @@ public:
 
     void processGetSoftVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const DataObjects::id_t& deviceId);
+                        const DataObjects::id_t::type& deviceId);
 
     void processAddVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback);
 
     void processSetSoftVersion(const drogon::HttpRequestPtr &req,
                                ResponseCallback_t &&callback,
-                               const DataObjects::id_t& deviceId,
-                               const DataObjects::id_t& versionId);
+                               const DataObjects::id_t::type& deviceId,
+                               const DataObjects::id_t::type& versionId);
 
     void processRemoveVersion(const drogon::HttpRequestPtr &req,
                         ResponseCallback_t &&callback,
-                        const DataObjects::id_t& versionId);
+                        const DataObjects::id_t::type& versionId);
 
     std::shared_ptr<DetectorCommandProcessor> getDetectorCommandProcessor() const;
 

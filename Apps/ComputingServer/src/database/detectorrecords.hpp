@@ -101,9 +101,9 @@ public:
     std::string getLocation() const;
 
 private:
-    std::string m_displayName;
-    std::string m_description;
-    std::string m_location;
+    std::optional<std::string> m_displayName;
+    std::optional<std::string> m_description;
+    std::optional<std::string> m_location;
 };
 
 

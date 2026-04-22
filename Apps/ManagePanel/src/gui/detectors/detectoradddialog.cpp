@@ -9,7 +9,7 @@ DetectorAddDialog::DetectorAddDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->configurationWidget->setOnlineVisible(false);
+    ui->configurationWidget->setCreateMode(false);
 
     DataObjects::DetectorConfiguration conf;
     conf.system.registerDateUTC = QDateTime::currentSecsSinceEpoch();

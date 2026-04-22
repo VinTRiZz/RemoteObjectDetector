@@ -64,6 +64,9 @@ int main(int argc, char* argv[]) {
 
     // Start server
     ServerEndpoint server(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Data) / "local.db");
+#ifdef DEBUG_BUILD_MODE
+    server.start(wsPort, httpAPIPort, streamingUDPPort); // For exception handling
+#else
     try {
         server.start(wsPort, httpAPIPort, streamingUDPPort);
     } catch (const std::exception& ex) {
@@ -85,5 +88,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "CRITICAL: UNKNOWN EXCEPTION" << std::endl;
         return APP_EXITCODE_UNKNOWN_EXCEPTION;
     }
+#endif // Release build
     return APP_EXITCODE_OK;
 }

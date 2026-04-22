@@ -15,27 +15,29 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
     for (auto& row : execResult) {
         record_t record;
         for (size_t i = 0; i < row.size(); ++i) {
+            auto colname = execResult.columnName(i);
+
             // Use deduced type
             if (columnTypes[i] != 0) {
                 switch (columnTypes[i])
                 {
                 case 1:
-                    row[i].isNull() ? record[execResult.columnName(i)] = int64_t{} : record[execResult.columnName(i)] = row[i].as<int64_t>();
+                    row[i].isNull() ? record[colname] = std::nullopt : record[colname] = row[i].as<int64_t>();
                     break; // Integer
 
                 case 3:
-                    row[i].isNull() ? record[execResult.columnName(i)] = double{} : record[execResult.columnName(i)] = row[i].as<double>();
+                    row[i].isNull() ? record[colname] = std::nullopt : record[colname] = row[i].as<double>();
                     break; // Double
 
                 case 4:
-                    row[i].isNull() ? record[execResult.columnName(i)] = std::string{} : record[execResult.columnName(i)] = row[i].as<std::string>();
+                    row[i].isNull() ? record[colname] = std::nullopt : record[colname] = row[i].as<std::string>();
                     break; // String
                 }
                 continue;
             }
 
             if (row[i].isNull()) {
-                record[execResult.columnName(i)] = {};
+                record[colname] = {};
                 continue;
             }
 
@@ -47,7 +49,7 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
                 if (convEndPos != strVal.length()) {
                     throw std::invalid_argument("len end not reached");
                 }
-                record[execResult.columnName(i)] = convRes;
+                record[colname] = convRes;
                 columnTypes[i] = 1;
 
             } catch (const std::invalid_argument& ex) {
@@ -57,11 +59,11 @@ static std::vector<record_t> resultToRecords(const drogon::orm::Result& execResu
                     if (convEndPos != strVal.length()) {
                         throw std::invalid_argument("len end not reached");
                     }
-                    record[execResult.columnName(i)] = doubleV;
+                    record[colname] = doubleV;
                     columnTypes[i] = 2;
 
                 } catch (const std::invalid_argument& ex) {
-                    record[execResult.columnName(i)] = strVal;
+                    record[colname] = strVal;
                     columnTypes[i] = 3;
                 }
             }
@@ -111,7 +113,8 @@ std::vector<DataObjects::id_t> RecordManager::getAvailableRecords(const std::str
         auto execRes = m_pClient->execSqlSync(std::string("SELECT ") + recordIdColumn.data() + " FROM " + tableName.data());
         auto rows = resultToRecords(execRes);
         for (auto& r : rows) {
-            res.push_back(std::get<int64_t>(r.at(recordIdColumn.data())));
+            auto& idVal = r.at(recordIdColumn.data());
+            res.push_back(idVal.has_value() ? DataObjects::id_t(std::get<int64_t>(idVal.value())) : DataObjects::NULL_ID);
         }
     } catch (const drogon::orm::DrogonDbException& ex) {
         COMPLOG_ERROR("[RecordManager] Record get exist exec error:", ex.base().what());
@@ -129,7 +132,8 @@ DataObjects::id_t RecordManager::addRecord(bool isSync, const std::string_view &
                 return DataObjects::NULL_ID;
             }
             auto recordInfo = resultToRecords(execRes);
-            return std::get<int64_t>(recordInfo[0].at(idColumnName.data()));
+            auto& idVal = recordInfo[0].at(idColumnName.data());
+            return idVal.has_value() ? DataObjects::id_t(std::get<int64_t>(idVal.value())) : DataObjects::NULL_ID;
         } catch (const drogon::orm::DrogonDbException& ex) {
             COMPLOG_ERROR("[RecordManager] Record add exec error:", ex.base().what());
             return DataObjects::NULL_ID;
@@ -149,7 +153,8 @@ bool RecordManager::updateRecord(bool isSync, const std::string_view& tableName,
 {
     if (isSync) {
         try {
-            m_pClient->execSqlSync(createUpdateQuery(tableName, whereCondition, valueMap));
+            auto res = m_pClient->execSqlSync(createUpdateQuery(tableName, whereCondition, valueMap));
+            return (res.affectedRows() == 1);
         } catch (const drogon::orm::DrogonDbException& ex) {
             COMPLOG_ERROR("[RecordManager] Record update exec error:", ex.base().what());
             return false;
@@ -180,7 +185,7 @@ bool RecordManager::removeRecord(bool isSync, const std::string_view &tableName,
 
 std::map<std::string, recordValue_t> RecordManager::getRecord(bool isSync, const std::string_view &tableName, const std::string_view &idColumnName, DataObjects::id_t recordId) const
 {
-    std::string query = std::string("SELECT * FROM ") + tableName.data() + " WHERE " + idColumnName.data() + " = " + std::to_string(recordId);
+    std::string query = std::string("SELECT * FROM ") + tableName.data() + " WHERE " + idColumnName.data() + " = " + (recordId.has_value() ? std::to_string(recordId.value()) : "NULL");
     try {
         auto res = m_pClient->execSqlSync(query);
         auto records = resultToRecords(res);
@@ -208,22 +213,23 @@ std::string RecordManager::createConnectionString() const
 
 std::string RecordManager::cellDataToString(const recordValue_t &val) const
 {
+    if (!val.has_value() || std::holds_alternative<std::monostate>(val.value())) {
+        return "NULL";
+    }
     return std::visit([](auto& v) -> std::string {
         using valueType_t = std::decay_t<decltype(v)>;
         if constexpr (std::is_same_v<valueType_t, std::string>) {
-            return v;
-        } else
-            if constexpr (std::is_same_v<valueType_t, DataObjects::id_t>) {
+            return std::string("'") + v + "'";
+        } else if constexpr (std::is_same_v<valueType_t, int64_t>) {
                 if (v == DataObjects::NULL_ID) {
                     return "NULL";
                 }
                 return std::to_string(v);
-            } else
-                if constexpr (std::is_same_v<valueType_t, double>) {
+        } else if constexpr (std::is_same_v<valueType_t, double>) {
                     return std::to_string(v);
                 }
         return {};
-    }, val);
+    }, val.value());
 }
 
 std::string RecordManager::createInsertQuery(const std::string_view &tableName, const std::map<std::string, recordValue_t> &valueMap, const std::string_view& idColumnName) const

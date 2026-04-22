@@ -25,7 +25,7 @@ struct DetectorServer::Impl
         if (!hdl.isValid()) {
             return;
         }
-        detectorInfoInterface.requestUpdateDetectorInfo(hdl->getConfiguration());
+        detectorInfoInterface.requestUpdateDetectorInfo(hdl->getPendingConfiguration());
     }
 };
 
@@ -33,7 +33,15 @@ DetectorServer::DetectorServer(int64_t serverId, ServerRegistry *parent)
     : Server{serverId, parent},
     d {new Impl()}
 {
-
+    connect(&d->detectorInfoInterface, &DetectorInfoManager::responseUpdateDetectorInfo,
+                  this, [this](bool isOk, auto detId){
+        for (auto& det : d->detectors) {
+            if (det.isValid() && det->getConfiguration().system.id == detId) {
+                det->commitConfigurationUpdate();
+                return;
+            }
+        }
+    });
 }
 
 DetectorServer::~DetectorServer()
@@ -45,6 +53,7 @@ bool DetectorServer::addDetector(const DataObjects::DetectorConfiguration &conf)
 {
     auto addResult = d->detectorInfoInterface.addDetectorInfo(conf);
     if (!addResult.has_value()) {
+        d->lastErrorText = d->detectorInfoInterface.getLastErrorText();
         return false;
     }
     auto confCopy = conf;
@@ -64,18 +73,20 @@ bool DetectorServer::addDetector(const DataObjects::DetectorConfiguration &conf)
     return true;
 }
 
-void DetectorServer::removeDetector(const DataObjects::DetectorConfiguration &conf)
+bool DetectorServer::removeDetector(const DataObjects::id_t &detId)
 {
-    auto targetIt = std::find_if(d->detectors.begin(), d->detectors.end(), [&conf](const auto& detectorHdl){
-        return (detectorHdl->getConfiguration() == conf);
+    auto targetIt = std::find_if(d->detectors.begin(), d->detectors.end(), [detId](const auto& detectorHdl){
+        return (detectorHdl->getConfiguration().system.id == detId);
     });
     if (targetIt == d->detectors.end()) {
-        return;
+        d->lastErrorText = "No such detector or it's just removed";
+        return false;
     }
 
-    auto removeResult = d->detectorInfoInterface.removeDetectorInfo(conf.system.id);
+    auto removeResult = d->detectorInfoInterface.removeDetectorInfo(detId);
     if (!removeResult) {
-        return;
+        d->lastErrorText = d->detectorInfoInterface.getLastErrorText();
+        return false;
     }
 
     auto detHdl = *targetIt;
@@ -86,6 +97,13 @@ void DetectorServer::removeDetector(const DataObjects::DetectorConfiguration &co
     auto pDet = detHdl.get();
     detHdl.invalidate();
     pDet->deleteLater();
+
+    return true;
+}
+
+bool DetectorServer::removeDetector(const DetectorHandler &hdl)
+{
+    return removeDetector(hdl->getConfiguration().system.id);
 }
 
 std::vector<DetectorHandler> DetectorServer::getDetectors() const
@@ -94,9 +112,10 @@ std::vector<DetectorHandler> DetectorServer::getDetectors() const
 
     connect(&d->detectorInfoInterface, &DetectorInfoManager::responseDetectorInfoList,
             &loop, [&loop, this](bool isOk, const auto& infos) {
+
                 for (auto& info : infos) {
                     auto targetIt = std::find_if(d->detectors.begin(), d->detectors.end(), [&info](const auto& detectorHdl){
-                        return (detectorHdl->getConfiguration() == info);
+                        return (detectorHdl->getConfiguration().system.id == info.system.id);
                     });
                     if (targetIt != d->detectors.end()) {
                         auto det = *targetIt;
@@ -106,6 +125,7 @@ std::vector<DetectorHandler> DetectorServer::getDetectors() const
                         std::sort(d->detectors.begin(), d->detectors.end());
                         continue;
                     }
+
                     auto pDetector = new Detector(const_cast<DetectorServer*>(this)); // wtf? const is not acceptable.
                     pDetector->replaceConfiguration(info);
                     DetectorHandler det(pDetector);

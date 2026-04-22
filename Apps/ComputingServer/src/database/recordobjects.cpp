@@ -28,7 +28,12 @@ record_t RecordBase::toRecord() const
 
 void RecordBase::initFromRecord(const record_t &iRecord)
 {
-    m_id = std::get<int64_t>(iRecord.at(m_idColumnName));
+    auto& idVal = iRecord.at(m_idColumnName);
+    if (idVal.has_value()) {
+        m_id = std::get<int64_t>(idVal.value());
+    } else {
+        m_id = DataObjects::NULL_ID;
+    }
 }
 
 void RecordBase::setId(DataObjects::id_t id)

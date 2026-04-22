@@ -98,7 +98,7 @@ QVariant DetectorTreeModel::data(const QModelIndex &index, int role) const
 
         switch (role)
         {
-        case R_id:              return QVariant::fromValue(detectorConf.system.id);
+        case R_id:              return QVariant::fromValue(detectorConf.system.id.has_value() ? QString::number(detectorConf.system.id.value()) : "NULL");
         case R_name:            return QString::fromStdString(detectorConf.info.name);
         case R_description:     return QString::fromStdString(detectorConf.info.description);
         case R_location:        return QString::fromStdString(detectorConf.info.location);

@@ -34,7 +34,7 @@ const DataObjects::DetectorConfiguration &Detector::getConfiguration() const
 
 bool Detector::operator<(const Detector &det) const
 {
-    if (d->config->info.name.empty() ||
+    if (!d->config->info.name.has_value() ||
         d->config->info.name == det.d->config->info.name) {
         return d->config->system.id < det.d->config->system.id;
     }
@@ -48,14 +48,15 @@ void Detector::replaceConfiguration(const DataObjects::DetectorConfiguration &co
     emit visibleDataChanged();
 }
 
-CommitableObject<DataObjects::DetectorConfiguration> Detector::getPendingConfiguration() const
+const DataObjects::DetectorConfiguration& Detector::getPendingConfiguration() const
 {
-    return d->config;
+    return *d->config;
 }
 
 void Detector::commitConfigurationUpdate()
 {
     d->config.commit();
+    emit visibleDataChanged();
 }
 
 } // namespace Web

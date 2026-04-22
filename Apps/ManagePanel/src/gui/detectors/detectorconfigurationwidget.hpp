@@ -16,11 +16,13 @@ public:
     explicit DetectorConfigurationWidget(QWidget *parent = nullptr);
     ~DetectorConfigurationWidget();
 
-    void setOnlineVisible(bool isOnlineVisible);
+    void setCreateMode(bool isCreateMode);
 
     void showConfiguration(const DataObjects::DetectorConfiguration& conf);
-    DataObjects::DetectorConfiguration readConfiguration() const;
+    DataObjects::DetectorConfiguration readConfiguration();
 
 private:
     Ui::DetectorConfigurationWidget *ui;
+
+    DataObjects::DetectorConfiguration m_conf;
 };

@@ -27,11 +27,13 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
             this, [this](const QItemSelection &selected, const QItemSelection &deselected){
                 if (selected.empty()) {
                     ui->stackedWidget->setCurrentIndex(0);
+                    ui->pushButtonRemoveDetector->setEnabled(false);
                     return;
                 }
                 ui->stackedWidget->setCurrentIndex(1);
                 auto pDet = m_pDetectorTreeModel->getDetector(selected.indexes().front());
                 ui->detectorHandleForm->showConfiguration(pDet.isValid() ? pDet->getConfiguration() : DataObjects::DetectorConfiguration{});
+                ui->pushButtonRemoveDetector->setEnabled(true);
             });
 
     connect(ui->pushButtonSaveDetectorInfo, &QPushButton::clicked,
@@ -62,6 +64,18 @@ DetectorManagementForm::DetectorManagementForm(QWidget *parent)
             QMessageBox::critical(this, "Detector add error", pDetServer->getLastErrorText());
         }
     });
+    connect(ui->pushButtonRemoveDetector, &QPushButton::clicked,
+            this, [this](){
+                if (!m_server) {
+                    return;
+                }
+                auto idx = ui->treeViewDetectors->currentIndex();
+                auto targetDet = m_pDetectorTreeModel->getDetector(idx);
+                auto pDetServer = m_server.cast<Web::DetectorServer>();
+                if (!pDetServer || !targetDet.isValid() || !pDetServer->removeDetector(targetDet)) {
+                    QMessageBox::critical(this, "Detector remove error", pDetServer->getLastErrorText());
+                }
+            });
 }
 
 DetectorManagementForm::~DetectorManagementForm()

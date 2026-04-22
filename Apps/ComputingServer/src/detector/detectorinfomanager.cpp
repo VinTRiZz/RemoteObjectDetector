@@ -18,7 +18,10 @@ void DetectorInfoManager::updateDetectorsInfo()
     auto idVect = m_pRecordManager->getAvailableRecords(tmpr.getTable(), tmpr.getIdColumn());
     m_detectors.reserve(idVect.size());
     for (auto id : idVect) {
-        m_detectors.emplace(id, getRecord(id));
+        if (!id.has_value()) {
+            continue;
+        }
+        m_detectors.emplace(id.value(), getRecord(id));
     }
     COMPLOG_INFO("Loaded info about", m_detectors.size(), "detectors");
 }
@@ -35,11 +38,30 @@ std::vector<DataObjects::id_t> DetectorInfoManager::getDetectorList() const
 
 std::optional<DataObjects::DetectorConfiguration> DetectorInfoManager::getDetectorInfo(const DataObjects::id_t &id)
 {
-    auto targetIt = m_detectors.find(id);
+    if (!id.has_value()) {
+        return std::nullopt;
+    }
+    auto targetIt = m_detectors.find(id.value());
     if (targetIt == m_detectors.end()) {
         return std::nullopt;
     }
     return targetIt->second;
+}
+
+DataObjects::id_t DetectorInfoManager::addDetector(const DataObjects::DetectorConfiguration &detectorConfig)
+{
+    // Get ID of inserted one
+    auto detInfoCopy = detectorConfig;
+    auto detectorInfoCopy = Database::toRecords(detInfoCopy);
+    auto createdId = m_pRecordManager->addRecord(std::get<Database::DetectorSystemRecord>(detectorInfoCopy));
+    if (!createdId.has_value()) {
+        return std::nullopt;
+    }
+    detInfoCopy.system.id = createdId.value();
+    m_detectors[createdId.value()] = detInfoCopy;
+
+    // Update inserted values (they are inserted by triggers)
+    return (updateDetectorData(detInfoCopy) ? createdId : std::nullopt);
 }
 
 bool DetectorInfoManager::updateDetectorData(const DataObjects::DetectorConfiguration &detectorConfig)
@@ -49,7 +71,7 @@ bool DetectorInfoManager::updateDetectorData(const DataObjects::DetectorConfigur
         return false;
     }
 
-    bool isSucceed = false;
+    bool isSucceed = true;
     auto updateRecord = [&isSucceed, this](auto& rec){
         if (!isSucceed) {
             return;
@@ -70,9 +92,12 @@ bool DetectorInfoManager::updateDetectorData(const DataObjects::DetectorConfigur
 
 bool DetectorInfoManager::removeDetectorData(DataObjects::id_t id)
 {
+    if (!id.has_value()) {
+        return false;
+    }
     auto remRes = m_pRecordManager->removeRecord<Database::DetectorSystemRecord>(id);
     if (remRes) {
-        m_detectors.erase(id);
+        m_detectors.erase(id.value());
     }
     return remRes;
 }
@@ -85,25 +110,4 @@ DataObjects::DetectorConfiguration DetectorInfoManager::getRecord(DataObjects::i
         m_pRecordManager->getRecord<true, Database::DetectorSoftwareRecord>(id),
         m_pRecordManager->getRecord<true, Database::DetectorInfoRecord>(id)
         ));
-}
-
-bool DetectorInfoManager::save(const DataObjects::DetectorConfiguration &detectorConfig)
-{
-    bool isSucceed = false;
-    auto saveRecord = [&isSucceed, this](auto& rec){
-        if (!isSucceed) {
-            return;
-        }
-        isSucceed = m_pRecordManager->addRecord(rec);
-    };
-    auto saveConfig = [updateRecord = std::move(saveRecord)](auto&&... records) -> void {
-        (updateRecord(records), ...);
-    };
-
-    auto detectorInfo = Database::toRecords(detectorConfig);
-    std::apply(saveConfig, detectorInfo);
-    if (isSucceed) {
-        m_detectors[detectorConfig.system.id] = detectorConfig;
-    }
-    return isSucceed;
 }

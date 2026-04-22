@@ -35,7 +35,7 @@ private:
 
     friend class DetectorServer;
     void replaceConfiguration(const DataObjects::DetectorConfiguration& conf);
-    CommitableObject<DataObjects::DetectorConfiguration> getPendingConfiguration() const;
+    const DataObjects::DetectorConfiguration &getPendingConfiguration() const;
     void commitConfigurationUpdate();
 };
 

@@ -38,9 +38,9 @@ public:
 
     struct Info
     {
-        std::string name;
-        std::string description;
-        std::string location;
+        ExtraClasses::JOptional<std::string> name;
+        ExtraClasses::JOptional<std::string> description;
+        ExtraClasses::JOptional<std::string> location;
     };
     Info info;
 

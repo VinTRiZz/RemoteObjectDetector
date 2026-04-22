@@ -13,32 +13,42 @@ DetectorConfigurationWidget::~DetectorConfigurationWidget()
     delete ui;
 }
 
-void DetectorConfigurationWidget::setOnlineVisible(bool isOnlineVisible)
+void DetectorConfigurationWidget::setCreateMode(bool isCreateMode)
 {
-    ui->groupBoxOnline->setVisible(isOnlineVisible);
+    ui->groupBoxOnline->setVisible(isCreateMode);
+    ui->comboBoxSoftwareVersion->setVisible(isCreateMode);
 }
 
 void DetectorConfigurationWidget::showConfiguration(const DataObjects::DetectorConfiguration &conf)
 {
-    ui->lineEditName->setText(conf.info.name.c_str());
-    ui->lineEditLocation->setText(conf.info.location.c_str());
-    ui->plainTextEditDescription->setPlainText(conf.info.description.c_str());
+    m_conf = conf;
 
-    ui->dateTimeEditRegisterDate->setDateTime(QDateTime::fromTime_t(conf.system.registerDateUTC));
-    ui->dateTimeEditLastOnline->setDateTime(QDateTime::fromTime_t(conf.online.lastOnlineTimeUTC));
+    // Info
+    ui->lineEditName->setText(m_conf.info.name->c_str());
+    ui->lineEditLocation->setText(m_conf.info.location->c_str());
+    ui->plainTextEditDescription->setPlainText(m_conf.info.description->c_str());
+
+    // Times
+    ui->dateTimeEditRegisterDate->setDateTime(QDateTime::fromTime_t(m_conf.system.registerDateUTC));
+    ui->dateTimeEditLastOnline->setDateTime(QDateTime::fromTime_t(m_conf.online.lastOnlineTimeUTC));
+
+    // TODO: Handle version
 }
 
-DataObjects::DetectorConfiguration DetectorConfigurationWidget::readConfiguration() const
+DataObjects::DetectorConfiguration DetectorConfigurationWidget::readConfiguration()
 {
-    DataObjects::DetectorConfiguration res;
+    // Info
+    m_conf.info.name = ui->lineEditName->text().toStdString();
+    m_conf.info.location = ui->lineEditLocation->text().toStdString();
+    m_conf.info.description = ui->plainTextEditDescription->toPlainText().toStdString();
 
-    res.info.name = ui->lineEditName->text().toStdString();
-    res.info.location = ui->lineEditLocation->text().toStdString();
-    res.info.description = ui->plainTextEditDescription->toPlainText().toStdString();
+    // Times
+    m_conf.system.registerDateUTC = ui->dateTimeEditRegisterDate->dateTime().toTime_t();
+    m_conf.online.lastOnlineTimeUTC = ui->dateTimeEditLastOnline->dateTime().toTime_t();
 
-    res.system.registerDateUTC = ui->dateTimeEditRegisterDate->dateTime().toTime_t();
+    // TODO: Handle version
+    m_conf.software.versionId = 1; // DEBUG
+    m_conf.software.updateTimeUTC = 0;
 
-    res.online.lastOnlineTimeUTC = ui->dateTimeEditLastOnline->dateTime().toTime_t();
-
-    return res;
+    return m_conf;
 }

@@ -9,7 +9,7 @@
 namespace Database {
 
 // Common
-using recordValue_t = std::variant<std::string, int64_t, double>;
+using recordValue_t = std::optional<std::variant<std::monostate, std::string, int64_t, double> >;
 using record_t = std::map<std::string, recordValue_t>;
 
 /**

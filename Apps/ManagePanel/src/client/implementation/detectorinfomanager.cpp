@@ -19,10 +19,16 @@ DetectorInfoManager::DetectorInfoManager(QObject *parent)
 
 }
 
-std::optional<DataObjects::id_t> DetectorInfoManager::addDetectorInfo(const DataObjects::DetectorConfiguration &detectorConfig)
+QString DetectorInfoManager::getLastErrorText() const
 {
-    auto infoRequest = createRequest(Protocol::API::QT::DETECTOR_INFO.c_str());
+    return m_lastErrorText;
+}
+
+DataObjects::id_t DetectorInfoManager::addDetectorInfo(const DataObjects::DetectorConfiguration &detectorConfig)
+{
+    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg("0"));
     auto& requester = getRequester();
+    infoRequest.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
     auto response = requester.post(infoRequest, QByteArray::fromStdString(detectorConfig.toJson()));
 
     bool isOk {false};
@@ -44,13 +50,14 @@ std::optional<DataObjects::id_t> DetectorInfoManager::addDetectorInfo(const Data
         COMPLOG_OK("[DetectorInfoManager] Added detector with id:", id);
     } else {
         COMPLOG_ERROR("[DetectorInfoManager] Add detector with id", detectorConfig.system.id, "failed:", responseString.toStdString());
+        m_lastErrorText = responseString;
     }
-    return (isOk ? std::optional<DataObjects::id_t>(id) : std::nullopt);
+    return (isOk ? DataObjects::id_t(id) : std::nullopt);
 }
 
 bool DetectorInfoManager::removeDetectorInfo(DataObjects::id_t detectorId)
 {
-    auto infoRequest = createRequest(Protocol::API::QT::DETECTOR_INFO.c_str());
+    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(detectorId.has_value() ? QString::number(detectorId.value()) : "0"));
     auto& requester = getRequester();
     auto response = requester.deleteResource(infoRequest);
 
@@ -71,6 +78,7 @@ bool DetectorInfoManager::removeDetectorInfo(DataObjects::id_t detectorId)
         COMPLOG_OK("[DetectorInfoManager] Removed detector with id:", detectorId);
     } else {
         COMPLOG_ERROR("[DetectorInfoManager] Remove detector with id", detectorId, "failed:", responseString);
+        m_lastErrorText = responseString.c_str();
     }
     return isOk;
 }
@@ -102,7 +110,7 @@ void DetectorInfoManager::requestDetectorList()
 
 void DetectorInfoManager::requestGetDetectorInfo(DataObjects::id_t detectorId)
 {
-    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(QString::number(detectorId)));
+    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(detectorId.has_value() ? QString::number(detectorId.value()) : "0"));
     auto& requester = getRequester();
     auto response = requester.get(infoRequest);
     connect(response, &QNetworkReply::finished,
@@ -122,9 +130,11 @@ void DetectorInfoManager::requestUpdateDetectorInfo(const DataObjects::DetectorC
 {
     auto detectorId = detectorConfig.system.id;
 
-    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(QString::number(detectorId)));
+    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(detectorId.has_value() ? QString::number(detectorId.value()) : "0"));
+    infoRequest.setHeader(QNetworkRequest::KnownHeaders::ContentTypeHeader, "application/json");
     auto& requester = getRequester();
     auto response = requester.put(infoRequest, QByteArray::fromStdString(detectorConfig.toJson()));
+
     connect(response, &QNetworkReply::finished,
             this, [this, response, detectorId](){
                 auto isOk = response->error() == QNetworkReply::NoError;
@@ -154,6 +164,7 @@ void DetectorInfoManager::requestDetectorInfoList()
                     }
                 } else {
                     COMPLOG_ERROR("[DetectorInfoManager] Failed to parse id list:", std::get<QString>(valueArray).toStdString());
+                    m_lastErrorText = "Detector list process failed";
                     emit responseDetectorInfoList(false, {});
                     return;
                 }
@@ -164,7 +175,7 @@ void DetectorInfoManager::requestDetectorInfoList()
 
                 std::size_t totalAmount = idVect.size();
                 for (auto& id : idVect) {
-                    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(QString::number(id)));
+                    auto infoRequest = createRequest(QString::fromStdString(Protocol::API::QT::DETECTOR_INFO).arg(id.has_value() ? QString::number(id.value()) : "0"));
                     auto& requester = getRequester();
                     auto response = requester.get(infoRequest);
                     connect(response, &QNetworkReply::finished,
@@ -174,6 +185,7 @@ void DetectorInfoManager::requestDetectorInfoList()
 
                                 if (!detectorConfig.readJson(response->readAll().toStdString())) {
                                     COMPLOG_WARNING("[DetectorInfoManager] Detector info parse error:", detectorConfig.getLastErrorString());
+                                    m_lastErrorText = "Response process failed";
                                     emit responseDetectorInfoList(false, {});
                                     return;
                                 }

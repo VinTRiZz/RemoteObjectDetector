@@ -16,7 +16,10 @@ class DetectorInfoManager : public HTTPClientBase
 public:
     explicit DetectorInfoManager(QObject *parent = nullptr);
 
-    std::optional<DataObjects::id_t> addDetectorInfo(const DataObjects::DetectorConfiguration& detectorConfig);
+    // TODO: set as Error object
+    QString getLastErrorText() const;
+
+    DataObjects::id_t addDetectorInfo(const DataObjects::DetectorConfiguration& detectorConfig);
     bool removeDetectorInfo(DataObjects::id_t detectorId);
 
 public slots:
@@ -32,6 +35,9 @@ signals:
 
     void responseGetDetectorInfo(bool isOk, const DataObjects::DetectorConfiguration& detectorConfig);
     void responseUpdateDetectorInfo(bool isOk, const DataObjects::id_t& detectorId);
+
+private:
+    QString m_lastErrorText;
 };
 
 }
