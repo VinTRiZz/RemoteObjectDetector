@@ -32,7 +32,6 @@ CREATE TABLE versions.meta(
 
 
 -- Create software table
-DROP TABLE detector.software;
 CREATE TABLE detector.software(
 	detector_id 	BIGINT 	NOT NULL UNIQUE,
 	version_id 		BIGINT,
