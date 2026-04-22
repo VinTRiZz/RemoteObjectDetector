@@ -1,4 +1,4 @@
 add_subdirectory(ManagePanel)
 add_subdirectory(DetectorEndpoint)
 add_subdirectory(ComputingServer)
-add_subdirectory(DataServer)
+add_subdirectory(DetectorControlServer)

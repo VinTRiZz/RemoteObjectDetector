@@ -1,0 +1,7 @@
+COMPONENTS_CCR_CONFIGURE_LIBRARY(Servers ${CMAKE_CURRENT_LIST_DIR}
+    boost_serialization
+    drogon
+)
+
+COMPONENTS_LINK_COMPONENT(Servers Logger)
+COMPONENTS_LINK_COMPONENT(Servers ExtraClasses)
