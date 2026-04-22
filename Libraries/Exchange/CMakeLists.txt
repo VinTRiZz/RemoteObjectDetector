@@ -11,3 +11,10 @@ FILE(GLOB EXTRA_HEADERS "${CMAKE_CURRENT_LIST_DIR}/tests/extra/*")
 FILE(GLOB TEST_SOURCES "${CMAKE_CURRENT_LIST_DIR}/tests/*.cpp")
 
 COMPONENTS_CCR_ADD_TEST(Exchange ${EXTRA_HEADERS} ${TEST_SOURCES})
+
+target_precompile_headers(Exchange PUBLIC
+    "src/events.hpp"
+    "src/httpconstants.hpp"
+    "src/imagepacket.hpp"
+    "src/sendableimage.hpp"
+)

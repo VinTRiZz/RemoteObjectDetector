@@ -37,9 +37,6 @@
 [submodule "Components-SystemProcessing"]
         path = ComponentsSystem/Components-SystemProcessing
         url = https://github.com/VinTRiZz/Components-SystemProcessing.git
-[submodule "Components-Thread"]
-        path = ComponentsSystem/Components-Thread
-        url = https://github.com/VinTRiZz/Components-Thread.git
 [submodule "ComponentsSystem/Components-Network"]
 	path = ComponentsSystem/Components-Network
 	url = https://github.com/VinTRiZz/Components-Network.git

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "httpclientbase.hpp"
-#include <ROD/Protocol.h>
-#include <ROD/DeviceStatus.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/DataObjects/DeviceStatus.h>
 
 namespace Web::Implementation
 {

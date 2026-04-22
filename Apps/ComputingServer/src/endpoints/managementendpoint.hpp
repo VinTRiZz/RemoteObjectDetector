@@ -2,8 +2,8 @@
 
 #include <drogon/drogon.h>
 
-#include "abstractendpoint.hpp"
-#include "database/recordmanager.hpp"
+#include <ROD/Servers/AbstractEndpoint.h>
+#include <ROD/Servers/Records.h>
 
 #include <Components/SystemProcessing/StatusManager.h>
 

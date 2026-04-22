@@ -3,10 +3,9 @@
 #include <string>
 #include <map>
 
-#include <ROD/Protocol.h>
-#include <ROD/Error.h>
-
-#include "common/servercommon.hpp"
+#include <ROD/Exchange/Events.h>
+#include <ROD/DataObjects/Error.h>
+#include <ROD/Servers/Records.h>
 
 /**
  * @brief The DeviceSoftwareManager class   Manager of device software versions, stored on a server

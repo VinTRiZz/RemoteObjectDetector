@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/Servers/EventProcessor.h>
 
 class ServerEventProcessor : public Protocol::EventProcessor
 {

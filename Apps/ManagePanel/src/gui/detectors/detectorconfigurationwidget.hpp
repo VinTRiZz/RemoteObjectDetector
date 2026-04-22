@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include <ROD/DetectorConfiguration.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
 
 namespace Ui {
 class DetectorConfigurationWidget;

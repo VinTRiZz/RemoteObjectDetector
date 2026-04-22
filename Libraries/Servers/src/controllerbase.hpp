@@ -2,6 +2,8 @@
 
 #include <drogon/drogon.h>
 
+#include <ROD/Exchange/HTTP.h>
+
 class ControllerBase
 {
 public:

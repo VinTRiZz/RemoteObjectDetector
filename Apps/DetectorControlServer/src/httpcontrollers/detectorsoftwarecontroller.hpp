@@ -2,12 +2,12 @@
 
 #include <drogon/drogon.h>
 
-#include "controllerbase.hpp"
+#include <ROD/Servers/ControllerBase.h>
 
 #include "eventprocessors/detectorcommandprocessor.hpp"
-#include "common/servercommon.hpp"
+#include <ROD/Servers/Constants.h>
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 
 /**
  * @brief The DetectorSoftwareController class Контроллер, отвечающий за версию ПО, установленную на устройствах

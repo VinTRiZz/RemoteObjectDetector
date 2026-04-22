@@ -2,8 +2,8 @@
 
 #include "httpclientbase.hpp"
 
-#include <ROD/Types.h>
-#include <ROD/DetectorConfiguration.h>
+#include <ROD/DataObjects/TypeDefinitions.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
 
 #include <optional>
 

@@ -6,7 +6,8 @@
 
 #include <Components/Logger/Logger.h>
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/Exchange/HTTP.h>
 
 #include "httpcommon.hpp"
 

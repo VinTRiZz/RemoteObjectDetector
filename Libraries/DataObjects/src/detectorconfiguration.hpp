@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include <ROD/Types.h>
-#include <ROD/Error.h>
+#include <ROD/DataObjects/TypeDefinitions.h>
+#include <ROD/DataObjects/Error.h>
 #include "serializableobject.hpp"
 
 namespace DataObjects

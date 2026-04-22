@@ -2,11 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "eventprocessors/detectorcommandprocessor.hpp"
-
-#include "httpcontrollers/detectorinfocontroller.hpp"
 #include "httpcontrollers/servercontroller.hpp"
-#include "httpcontrollers/detectorsoftwarecontroller.hpp"
 
 namespace Management
 {
@@ -32,15 +28,8 @@ void Endpoint::start(uint16_t port)
     // 1 thread for status, 1 for management panel requests
     drogon::app().setThreadNum(2);
 
-    auto pDetectorCommandProcessor = std::dynamic_pointer_cast<DetectorCommandProcessor>(m_pEventProcessor);
-
     // Настройка контроллеров
     drogon::app().registerController(std::make_shared<ServerController>());
-    drogon::app().registerController(std::make_shared<DetectorSoftwareController>());
-
-    auto pDetectorInfoController = std::make_shared<DetectorInfoController>();
-    pDetectorInfoController->setRecordManager(m_pRecordManager);
-    drogon::app().registerController(pDetectorInfoController);
 
     // Server info
     drogon::app().setServerHeaderField("Management server");

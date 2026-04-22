@@ -1,6 +1,6 @@
 #include "serverendpoint.hpp"
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 #include <ROD/ImageProcessing/Utility.h>
 
 #include <Components/Logger/Logger.h>
@@ -8,14 +8,11 @@
 #include <Components/Common/Utils.h>
 #include <Components/Common/DirectoryManager.h>
 
-#include "detectoreventendpoint.hpp"
 #include "detectorstreamendpoint.hpp"
 #include "managementendpoint.hpp"
 
 #include "eventprocessors/servereventprocessor.hpp"
-#include "eventprocessors/detectoreventprocessor.hpp"
-
-#include "database/recordmanager.hpp"
+#include <ROD/Servers/Records.h>
 
 struct ServerEndpoint::Impl
 {
@@ -24,10 +21,8 @@ struct ServerEndpoint::Impl
 
     // Processors for events
     std::shared_ptr<ServerEventProcessor>       serverEventProcessor    { std::make_shared<ServerEventProcessor>() };
-    std::shared_ptr<DetectorEventProcessor>     detectorEventProcessor  { std::make_shared<DetectorEventProcessor>() };
 
     // Endpoints
-    DetectorEventEndpoint       detectorEventEndpoint;
     DetectorStreamEndpoint      detectorStreamingEndpoint;
     Management::Endpoint        managementEndpoint;
 };
@@ -78,10 +73,6 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
     d->recordManager->setUser("server", "serv_auth_password");
     d->recordManager->init();
 
-    // In other threads
-    d->detectorEventEndpoint.setEventProcessor(d->detectorEventProcessor);
-    d->detectorEventEndpoint.start(wsEventPort);
-
     // Image stream processor
     d->detectorStreamingEndpoint.setImageReceivedCallback([](auto&& receivedImage) -> void {
         COMPLOG_DEBUG("Received image from:", receivedImage.getSenderId(), "with id:", receivedImage.getId());
@@ -112,7 +103,7 @@ bool ServerEndpoint::isWorking() const
     if (d.get() == nullptr) {
         return false;
     }
-    return (d->detectorEventEndpoint.isWorking() || d->managementEndpoint.isWorking());
+    return (d->detectorStreamingEndpoint.isWorking() || d->managementEndpoint.isWorking());
 }
 
 void ServerEndpoint::stop()
@@ -120,6 +111,6 @@ void ServerEndpoint::stop()
     if (!isWorking()) {
         return;
     }
-    d->detectorEventEndpoint.stop();
+    d->detectorStreamingEndpoint.stop();
     d->managementEndpoint.stop();
 }

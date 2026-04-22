@@ -4,7 +4,7 @@
 #include <variant>
 #include <map>
 
-#include <ROD/Types.h>
+#include <ROD/DataObjects/TypeDefinitions.h>
 
 namespace Database {
 

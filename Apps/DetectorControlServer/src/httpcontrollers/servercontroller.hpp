@@ -4,9 +4,9 @@
 
 #include <Components/SystemProcessing/StatusManager.h>
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 
-#include "controllerbase.hpp"
+#include <ROD/Servers/ControllerBase.h>
 
 class ServerEventProcessor;
 

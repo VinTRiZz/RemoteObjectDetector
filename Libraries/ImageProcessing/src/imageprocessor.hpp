@@ -6,7 +6,7 @@
 #include <functional>
 #include <memory>
 
-#include <ROD/DetectionObject.h>
+#include <ROD/DataObjects/DetectionObject.h>
 
 #include "common.hpp"
 

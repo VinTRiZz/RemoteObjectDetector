@@ -5,7 +5,8 @@
 #include <ROD/ImageProcessing/CameraAdaptor.h>
 #include <ROD/ImageProcessing/ImageProcessor.h>
 #include <ROD/ImageProcessing/VideoReader.h>
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/Exchange/SendableImage.h>
 
 #include <Components/Logger/Logger.h>
 #include <Components/Common/DirectoryManager.h>

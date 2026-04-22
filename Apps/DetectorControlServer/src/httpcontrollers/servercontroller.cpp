@@ -2,8 +2,8 @@
 
 #include <Components/Logger/Logger.h>
 
-#include <ROD/Protocol.h>
-#include <ROD/DeviceStatus.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/DataObjects/DeviceStatus.h>
 
 #include <nlohmann/json.hpp>
 

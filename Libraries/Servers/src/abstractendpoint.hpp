@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/Servers/EventProcessor.h>
 
 class AbstractEndpoint
 {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 
 #include <optional>
 
 #include "detector/devicesoftwaremanager.hpp"
-#include "common/servercommon.hpp"
+#include <ROD/Servers/EventProcessor.h>
 
 class DetectorCommandProcessor : public Protocol::EventProcessor
 {

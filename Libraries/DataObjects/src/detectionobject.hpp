@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <ROD/Types.h>
+#include <ROD/DataObjects/TypeDefinitions.h>
 
 namespace DataObjects
 {

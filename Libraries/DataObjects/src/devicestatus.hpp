@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ROD/Error.h>
+#include <ROD/DataObjects/Error.h>
 #include "serializableobject.hpp"
 
 #include <string>

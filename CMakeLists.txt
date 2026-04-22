@@ -28,6 +28,8 @@ endif()
 
 add_subdirectory(ComponentsSystem)
 
+COMPONENTS_CCR_ENABLE_LTO()
+
 # Build options (for making on target device)
 option (ROD_BUILD_MANAGE_PANEL ON)
 option (ROD_BUILD_DETECTOR ON)

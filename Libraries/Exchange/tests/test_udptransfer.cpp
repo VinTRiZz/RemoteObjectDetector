@@ -2,8 +2,9 @@
 
 #include "extra/transfertester.cpp"
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 #include <ROD/ImageProcessing/Utility.h>
+#include <ROD/Exchange/SendableImage.h>
 
 
 using checkpair_t = std::pair<Protocol::SendableImage, ImageProcessing::ImageData_t >;

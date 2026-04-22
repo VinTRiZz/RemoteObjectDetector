@@ -1,11 +1,12 @@
 #pragma once
 
-#include "abstractendpoint.hpp"
+#include <ROD/Servers/AbstractEndpoint.h>
 
 #include <Components/Network/ServerUDP.h>
 #include <Components/Network/ClientUDP.h>
 
 #include <ROD/ImageProcessing/ImageProcessor.h>
+#include <ROD/Exchange/SendableImage.h>
 
 #include <map>
 #include <set>

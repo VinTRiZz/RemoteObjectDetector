@@ -2,7 +2,7 @@
 
 #include <QDialog>
 
-#include <ROD/DetectorConfiguration.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
 
 namespace Ui {
 class DetectorAddDialog;

@@ -2,7 +2,8 @@
 
 #include <QNetworkReply>
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
+#include <ROD/Exchange/HTTP.h>
 
 #include <Components/Logger/Logger.h>
 

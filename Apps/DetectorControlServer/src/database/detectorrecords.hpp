@@ -1,8 +1,8 @@
 #pragma once
 
-#include "recordobjects.hpp"
+#include <ROD/Servers/Records.h>
 
-#include <ROD/DetectorConfiguration.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
 
 namespace Database
 {

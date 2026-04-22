@@ -5,7 +5,7 @@
 
 #include <Components/Filework/Common.h>
 
-#include "common/servercommon.hpp"
+#include <ROD/Servers/Constants.h>
 
 DeviceSoftwareManager::DeviceSoftwareManager() {
     // TODO: Read-up and insert files
@@ -34,7 +34,7 @@ bool DeviceSoftwareManager::addVersionFile(const std::string &localFilepath, con
         return false;
     }
 
-    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(ServerCommon::DIRTYPE_SOFT_VERSIONS);
+    auto versionsDir = Common::DirectoryManager::getDirectoryStatic(Constants::DIRTYPE_SOFT_VERSIONS);
     auto copyRes = std::filesystem::copy_file(localFilepath, versionsDir / fileMd5Hash);
     if (!copyRes) {
         COMPLOG_ERROR("[DeviceSoftwareManager] Failed to copy file:", localFilepath);

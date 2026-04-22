@@ -1,7 +1,7 @@
 #pragma once
 
-#include "abstractendpoint.hpp"
-#include <ROD/Protocol.h>
+#include <ROD/Servers/AbstractEndpoint.h>
+#include <ROD/Exchange/Events.h>
 
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_no_tls.hpp>

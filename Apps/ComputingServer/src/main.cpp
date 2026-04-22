@@ -4,7 +4,7 @@
 #include <boost/program_options.hpp>
 
 #include "endpoints/serverendpoint.hpp"
-#include "common/servercommon.hpp"
+#include <ROD/Servers/Constants.h>
 
 #include <filesystem>
 #include <iostream>
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     // Configure updates dir
     auto softVersionsDir = dirManager.getDirectory(Common::DirectoryManager::Data) / "versions";
     std::filesystem::create_directory(softVersionsDir);
-    dirManager.registerDirectory(ServerCommon::DIRTYPE_SOFT_VERSIONS, softVersionsDir);
+    dirManager.registerDirectory(Constants::DIRTYPE_SOFT_VERSIONS, softVersionsDir);
 
     // Start server
     ServerEndpoint server(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Data) / "local.db");

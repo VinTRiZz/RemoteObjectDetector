@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 
-#include <ROD/DetectorConfiguration.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
 
 #include "common/commitableobject.hpp"
 

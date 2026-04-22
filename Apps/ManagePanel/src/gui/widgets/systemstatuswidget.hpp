@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include <ROD/DeviceStatus.h>
+#include <ROD/DataObjects/DeviceStatus.h>
 
 namespace Ui {
 class SystemStatusWidget;

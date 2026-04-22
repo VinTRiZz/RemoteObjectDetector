@@ -1,6 +1,6 @@
 #include "serverendpoint.hpp"
 
-#include <ROD/Protocol.h>
+#include <ROD/Exchange/Events.h>
 #include <ROD/ImageProcessing/Utility.h>
 
 #include <Components/Logger/Logger.h>
@@ -15,7 +15,7 @@
 #include "eventprocessors/servereventprocessor.hpp"
 #include "eventprocessors/detectoreventprocessor.hpp"
 
-#include "database/recordmanager.hpp"
+#include <ROD/Servers/Records.h>
 
 struct ServerEndpoint::Impl
 {

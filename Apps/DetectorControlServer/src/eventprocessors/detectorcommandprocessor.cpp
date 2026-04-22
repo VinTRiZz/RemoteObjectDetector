@@ -4,7 +4,7 @@
 #include <Components/Common/DirectoryManager.h>
 #include <Components/Filework/Common.h>
 
-#include "common/servercommon.hpp"
+#include <ROD/Servers/Constants.h>
 
 DetectorCommandProcessor::DetectorCommandProcessor(DeviceSoftwareManager &deviceSoftManager) :
     EventProcessor(),

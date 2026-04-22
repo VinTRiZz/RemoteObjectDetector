@@ -2,9 +2,8 @@
 
 #include <Components/Database/SQlite.h>
 
-#include <ROD/DetectorConfiguration.h>
-
-#include "database/recordmanager.hpp"
+#include <ROD/DataObjects/DetectorConfiguration.h>
+#include <ROD/Servers/Records.h>
 
 class DetectorInfoManager
 {

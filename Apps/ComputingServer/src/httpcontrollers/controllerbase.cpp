@@ -1,4 +1,4 @@
-#include "controllerbase.hpp"
+#include <ROD/Servers/ControllerBase.h>
 
 void ControllerBase::sendTextMessage(drogon::HttpStatusCode status, const std::string &textMsg, ResponseCallback_t &&cbk) const
 {

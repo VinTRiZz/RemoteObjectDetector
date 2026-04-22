@@ -4,8 +4,8 @@
 #include <memory>
 #include <optional>
 
-#include <ROD/DetectorConfiguration.h>
-#include <ROD/DeviceStatus.h>
+#include <ROD/DataObjects/DetectorConfiguration.h>
+#include <ROD/DataObjects/DeviceStatus.h>
 
 #include "handlers.hpp"
 #include "common/commitableobject.hpp"
