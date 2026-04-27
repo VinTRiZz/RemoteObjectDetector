@@ -8,6 +8,4 @@ target_precompile_headers(DataObjects PUBLIC
     "src/detectionobject.hpp"
     "src/detectorconfiguration.hpp"
     "src/serializableobject.hpp"
-
-    <Components/ExtraClasses/JOptional.h>
 )
