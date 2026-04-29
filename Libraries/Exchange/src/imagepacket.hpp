@@ -5,8 +5,8 @@
 
 #include <ROD/ImageProcessing/Common.h>
 
-namespace boost::serialization {
-class access;
+namespace bitsery {
+class Access;
 }
 
 namespace Protocol {
@@ -54,19 +54,9 @@ private:
     std::vector<uint8_t>            m_imageHash {};
     ImageProcessing::ImageData_t    m_payload {};
 
-    template<class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ar & m_senderId;
-        ar & m_shotId;
-        ar & m_fragmentStartByte;
-
-        // TODO: Separate fields if good solution
-        ar & m_imageHash;
-        ar & m_totalImageSize;
-
-        ar & m_payload;
-    }
-    friend class boost::serialization::access;
+    friend struct bitsery::Access;
+    template <typename Archivator>
+    void serialize(Archivator& archivator);
 
 public:
     // UDP Minimal Transporting Unit sizes

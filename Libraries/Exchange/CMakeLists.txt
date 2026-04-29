@@ -1,5 +1,6 @@
 COMPONENTS_CCR_CONFIGURE_LIBRARY(Exchange ${CMAKE_CURRENT_LIST_DIR}
-    boost_serialization
+    # Serialization
+    bitsery_headers
 )
 
 COMPONENTS_LINK_COMPONENT(Exchange Logger)

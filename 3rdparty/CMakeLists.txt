@@ -11,6 +11,11 @@ if (ROD_BUILD_SERVER OR ROD_BUILD_DETECTOR)
     set( BUILD_EXAMPLES OFF CACHE BOOL "Extra 3rdparty function" FORCE)
     add_subdirectory(websocketpp)
     message(STATUS "3rdparty: websocketpp added")
+
+    add_subdirectory(bitsery)
+    add_library(bitsery_headers INTERFACE)
+    target_include_directories(bitsery_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bitsery/include)
+    message(STATUS "3rdparty: bitsery lib added")
 endif()
 
 

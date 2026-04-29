@@ -43,3 +43,6 @@
 [submodule "3rdparty/oneTBB"]
 	path = 3rdparty/oneTBB
 	url = https://github.com/uxlfoundation/oneTBB.git
+[submodule "3rdparty/bitsery"]
+	path = 3rdparty/bitsery
+	url = https://github.com/fraillt/bitsery.git

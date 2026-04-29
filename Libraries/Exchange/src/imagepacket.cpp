@@ -1,16 +1,12 @@
 #include "imagepacket.hpp"
 
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/archive_exception.hpp>
-#include <boost/serialization/vector.hpp>
-
-#include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/iostreams/stream.hpp>
-
 #include <Components/Logger/Logger.h>
 
 #include <ROD/ImageProcessing/Utility.h>
+
+#include <bitsery/bitsery.h>
+#include <bitsery/adapter/buffer.h>
+#include <bitsery/traits/vector.h>
 
 using namespace ImageProcessing;
 
@@ -33,42 +29,25 @@ Payload             |   Calculated  |  ...........  |   Image bytes
 
 */
 
+
 namespace Protocol {
 
+/**
+ * @brief serialize Serialization for bitsery
+ * @param s
+ * @param o
+ */
+template <typename Archivator>
+void ImagePacket::serialize(Archivator& archivator) {
+    archivator.value8b(m_senderId);
+    archivator.value8b(m_shotId);
+    archivator.value8b(m_totalImageSize);
+    archivator.value8b(m_fragmentStartByte);
+    archivator.container1b(m_imageHash, 64);
+    archivator.container1b(m_payload, MTU_PAYLOAD_SIZE);
+}
+
 static bool s_isLoggingEnabled {false};
-
-/**
- * @brief The vector_istreambuf class Extra class for reading data from std::vector
- */
-struct vector_istreambuf : std::streambuf {
-    vector_istreambuf(const std::vector<uint8_t>& v) {
-        auto* data = reinterpret_cast<char*>(const_cast<uint8_t*>(v.data()));
-        setg(data, data, data + v.size());
-    }
-};
-
-/**
- * @brief The vector_ostreambuf class Extra class for writing data to std::vector
- */
-struct vector_ostreambuf : std::streambuf {
-    explicit vector_ostreambuf(std::vector<uint8_t>& v) : vec(v) {}
-
-protected:
-    int_type overflow(int_type c) override {
-        if (c != traits_type::eof()) {
-            vec.push_back(static_cast<uint8_t>(c));
-        }
-        return c;
-    }
-
-    std::streamsize xsputn(const char* s, std::streamsize n) override {
-        vec.insert(vec.end(), s, s + n);
-        return n;
-    }
-
-private:
-    std::vector<uint8_t>& vec;
-};
 
 void ImagePacket::setLoggingEnabled(bool isLoggingEnabled)
 {
@@ -149,28 +128,40 @@ const ImageData_t &ImagePacket::getPayload() const
     return m_payload;
 }
 
+/*
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ar & m_senderId;
+        ar & m_shotId;
+        ar & m_fragmentStartByte;
+
+        // TODO: Separate fields if good solution
+        ar & m_imageHash;
+        ar & m_totalImageSize;
+
+        ar & m_payload;
+    }
+*/
+
 bool ImagePacket::initFromPacketPart(const std::vector<uint8_t> &iData)
 {
     if (iData.empty()) return false;
-
-    vector_istreambuf isb(iData);
-    std::istream is(&isb);
     try {
-        boost::archive::binary_iarchive ia(is);
-        ia >> *this;
+        auto state = bitsery::quickDeserialization<bitsery::InputBufferAdapter<std::vector<uint8_t> > >({iData.begin(), iData.size()}, *this);
+
+        if (state.first != bitsery::ReaderError::NoError || state.second) {
+            COMPLOG_WARNING("Failed to deserialize packet:", static_cast<int>(state.first));
+            return false;
+        }
 
         if (m_payload.size() > MTU_PAYLOAD_SIZE) {
             throw std::invalid_argument("Serialized payload size is more, than allowed");
         }
 
         return true;
-    } catch (const boost::archive::archive_exception& e) {
-        if (s_isLoggingEnabled) {
-            COMPLOG_WARNING("(archivator error) Failed to deserialize packet:", e.what());
-        }
     } catch (const std::exception& e) {
         if (s_isLoggingEnabled) {
-            COMPLOG_WARNING("(Unknown error) Failed to deserialize packet:", e.what());
+            COMPLOG_WARNING("Failed to deserialize packet:", e.what());
         }
     }
     *this = {}; // Reset self
@@ -181,18 +172,15 @@ std::vector<uint8_t> ImagePacket::convertToPacketPart() const
 {
     std::vector<uint8_t> oData;
     oData.reserve(MTU_SIZE);
-    vector_ostreambuf os(oData);
     try {
-        boost::archive::binary_oarchive oa(os);
-        oa << *this;
-        return oData;
-    } catch (const boost::archive::archive_exception& e) {
-        if (s_isLoggingEnabled) {
-            COMPLOG_WARNING("(archivator error) Failed to deserialize packet:", e.what());
+        auto writtenSize = bitsery::quickSerialization<bitsery::OutputBufferAdapter<std::vector<uint8_t>>>(oData, *this);
+        if (writtenSize < 1) {
+            return {};
         }
+        return oData;
     } catch (const std::exception& e) {
         if (s_isLoggingEnabled) {
-            COMPLOG_WARNING("(Unknown error) Failed to deserialize packet:", e.what());
+            COMPLOG_WARNING("Failed to deserialize packet:", e.what());
         }
     }
     return {};
