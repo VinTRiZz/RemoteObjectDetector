@@ -16,14 +16,12 @@ int main(int argc, char* argv[]) {
     // Address and ports
     std::string serverAddress {};
     long long eventPortLL     {};
-    long long streamingPortLL {};
 
     // Program options setup
     bpo::options_description desc;
     desc.add_options()
             ("host,-h",         bpo::value(&serverAddress),     "Address of a server in IPv4 format. In config value: address")
             ("event-port,-e",   bpo::value(&eventPortLL),       "WSS device event port. In config value: address")
-            ("stream-port,-s",  bpo::value(&streamingPortLL),   "UDP streaming port. In config value: address")
             ("debug,-d",                                        "Start in debug mode (send test data insead of camera)")
             ;
 
@@ -71,7 +69,6 @@ int main(int argc, char* argv[]) {
     // Setup settings
     serverAddress   = (serverAddress.empty() && addressSetting->getValue().has_value()) ? addressSetting->getValueString() : serverAddress;
     eventPortLL     = (eventPortLL == 0 && eventPortSetting->getValue().has_value()) ? std::get<long long>(eventPortSetting->getValue().value()) : eventPortLL;
-    streamingPortLL = (streamingPortLL == 0 && streamingPortSetting->getValue().has_value()) ? std::get<long long>(streamingPortSetting->getValue().value()) : streamingPortLL;
 
     // Check event port
     if (eventPortLL < 0 || eventPortLL > 65535) {
@@ -79,13 +76,6 @@ int main(int argc, char* argv[]) {
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
     uint16_t eventPort {static_cast<uint16_t>(eventPortLL)};
-
-    // Check streaming port
-    if (streamingPortLL < 0 || streamingPortLL > 65535 || streamingPortLL == eventPortLL) {
-      COMPLOG_ERROR("Invalid port for streaming:", streamingPortLL);
-      return APP_EXITCODE_CONFIGURATION_ERROR;
-    }
-    uint16_t streamingUDPPort {static_cast<uint16_t>(streamingPortLL)};
 
     // Get device id
     if (!pDevIdSetting->getValue().has_value() || !std::get<long long>(pDevIdSetting->getValue().value())) {

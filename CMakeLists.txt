@@ -10,6 +10,7 @@ project(
     VERSION 1.0.0
     LANGUAGES C CXX
 )
+enable_testing() # Required for ctest (CI/CD)
 
 
 # TODO: How to move it into CMake component????
