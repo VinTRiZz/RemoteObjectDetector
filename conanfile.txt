@@ -1,0 +1,24 @@
+# ============================================================================
+# Conan 2.x dependency definition for RemoteObjectDetector
+# ============================================================================
+#
+# Consumed through the Components Conan module:
+#
+#   COMPONENTS_CCR_CONAN_SETUP(CONANFILE "${CMAKE_CURRENT_SOURCE_DIR}/conanfile.txt")
+#
+# Scope: only the Boost libraries are managed by Conan. All other dependencies
+# (oneTBB, websocketpp, bitsery, drogon, gtest, Qt, OpenSSL, libsodium,
+# SQLite3, ...) stay vendored / system-provided as before.
+#
+# Manual command-line install (mirrors what the module does):
+#   conan install . -of=build/conan --build=missing -s build_type=Debug
+#   cmake -S . -B build/Debug -DCMAKE_PREFIX_PATH=$PWD/build/conan
+#
+# Adjust the Boost version to one available for your profile on ConanCenter.
+# ============================================================================
+
+[requires]
+boost/1.84.0
+
+[generators]
+CMakeDeps

@@ -1,6 +1,6 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
-#include <Components/Common/ApplicationSettings.h>
+#include <Components/Ecosystem/DirectoryManager.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
 
 #include "gui/mainwindow.hpp"
 #include <QApplication>
@@ -15,9 +15,9 @@ int main(int argc, char* argv[]) {
         auto& dirManager = Common::DirectoryManager::getInstance();
         dirManager.setRootPath(CCR_APP_TARGET_NAME);
 
-        COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+        COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
-        appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryManager::Config) / "default.ini");
+        appSettings.loadSettings(dirManager.getDirectory(Common::Config) / "default.ini");
 
         a.setApplicationName(PROJECT_NAME_STRING);
         a.setApplicationDisplayName(PROJECT_NAME_STRING);

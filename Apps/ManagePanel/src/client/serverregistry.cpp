@@ -4,7 +4,7 @@
 #include "detectorserver.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Database/SQlite.h>
 
 #include <QApplication>
@@ -96,7 +96,7 @@ void ServerRegistry::init()
 {
     COMPLOG_INFO("ServerRegistry init started...");
 
-    auto dataDir = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::Data);
+    auto dataDir = Common::DirectoryManager::getDirectoryStatic(Common::Data);
     d->db.setDatabase(dataDir / "local.db");
     if (!d->createTable()) {
         COMPLOG_ERROR("ServerRegistry: failed to create servers table");
@@ -107,10 +107,10 @@ void ServerRegistry::init()
     auto records = d->serversTable->getRows({"id", "host", "port", "name"}, {}, "id ASC");
     for (auto& serverRec : records) {
         ServerConfiguration conf;
-        conf.setHost(std::get<Database::DBCellString>(serverRec[1]).value().c_str());
-        conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]).value());
-        conf.setName(std::get<Database::DBCellString>(serverRec[3]).value().c_str());
-        addServerNoRegister(std::get<Database::DBCellInteger>(serverRec[0]).value(), conf);
+        conf.setHost(std::get<Database::DBCellString>(serverRec[1]).c_str());
+        conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]));
+        conf.setName(std::get<Database::DBCellString>(serverRec[3]).c_str());
+        addServerNoRegister(std::get<Database::DBCellInteger>(serverRec[0]), conf);
     }
 
     COMPLOG_OK("ServerRegistry inited");
@@ -119,7 +119,7 @@ void ServerRegistry::init()
 bool ServerRegistry::addServer(const ServerConfiguration &conf)
 {
     d->registerServer(conf);
-    auto nextId = std::get<Database::DBCellInteger>(d->serversTable->getRows({"MAX(id) + 1"}).front().front()).value();
+    auto nextId = std::get<Database::DBCellInteger>(d->serversTable->getRows({"MAX(id) + 1"}).front().front());
     addServerNoRegister(nextId, conf);
     return true;
 }

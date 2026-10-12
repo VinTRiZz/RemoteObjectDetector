@@ -1,7 +1,7 @@
 #include "detectorsoftwarecontroller.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 
 #include <nlohmann/json.hpp>
 
@@ -49,7 +49,7 @@ void DetectorSoftwareController::processAddVersion(
 
     // Try to save file
     auto &file = files[0];
-    auto resfilePath = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::Temporary);
+    auto resfilePath = Common::DirectoryManager::getDirectoryStatic(Common::Temporary);
     if (file.save(resfilePath) != 0) {
         sendTextMessage(drogon::k500InternalServerError, "Failed to save file", std::move(callback));
         return;

@@ -40,6 +40,16 @@ set( ROD_BUILD_DETECTOR ON CACHE BOOL "Default detector building enable" FORCE)
 
 set( ROD_DATA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/DATA" )
 
-COMPONENTS_CCR_FIND_LIBRARY(boost_system)
-COMPONENTS_CCR_FIND_LIBRARY(boost_thread)
+# Conan 2.x dependency bootstrap (defined in Components-CMake).
+# It is a no-op when Conan / the conanfile is missing
+# or when an external tool (Qt Creator) already configured Conan.
+COMPONENTS_CCR_CONAN_SETUP(
+    CONANFILE "${CMAKE_CURRENT_SOURCE_DIR}/conanfile.txt"
+    BUILD     "missing"
+)
+
+# Boost: resolved through Conan when it is active, otherwise from the system
+COMPONENTS_CCR_CONAN_FIND_LIBRARY(boost_system)
+COMPONENTS_CCR_CONAN_FIND_LIBRARY(boost_thread)
+COMPONENTS_CCR_CONAN_FIND_LIBRARY(boost_program_options)
 COMPONENTS_CCR_DEFINE_PROJECT(${PROJECT_NAME} ${PROJECT_VERSION} 3rdparty Libraries Apps)

@@ -1,6 +1,6 @@
 #include "devicesoftwaremanager.hpp"
 
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Logger/Logger.h>
 
 #include <Components/Filework/Common.h>

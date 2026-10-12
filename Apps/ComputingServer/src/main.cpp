@@ -1,5 +1,5 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 
 #include <boost/program_options.hpp>
 
@@ -55,15 +55,15 @@ int main(int argc, char* argv[]) {
     // Setup root of application and logging
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(CCR_APP_TARGET_NAME);
-    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
     // Configure updates dir
-    auto softVersionsDir = dirManager.getDirectory(Common::DirectoryManager::Data) / "versions";
+    auto softVersionsDir = dirManager.getDirectory(Common::Data) / "versions";
     std::filesystem::create_directory(softVersionsDir);
     dirManager.registerDirectory(Constants::DIRTYPE_SOFT_VERSIONS, softVersionsDir);
 
     // Start server
-    ServerEndpoint server(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Data) / "local.db");
+    ServerEndpoint server(dirManager.getDirectory(Common::DirectoryType::Data) / "local.db");
 #ifdef DEBUG_BUILD_MODE
     server.start(wsPort, httpAPIPort, streamingUDPPort); // For exception handling
 #else

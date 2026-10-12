@@ -1,6 +1,6 @@
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
-#include <Components/Common/ApplicationSettings.h>
+#include <Components/Ecosystem/DirectoryManager.h>
+#include <Components/Ecosystem/ApplicationSettings.h>
 
 #include <boost/program_options.hpp>
 
@@ -41,11 +41,11 @@ int main(int argc, char* argv[]) {
     // Configure directory manager
     auto& dirManager = Common::DirectoryManager::getInstance();
     dirManager.setRootPath(CCR_APP_TARGET_NAME);
-    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::DirectoryManager::Logs));
+    COMPLOG_SET_LOGSDIR(dirManager.getDirectory(Common::Logs));
 
     // Get existing settings
     auto& appSettings = Common::ApplicationSettings::getInstance();
-    appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryManager::DirectoryType::Config) / "config.ini");
+    appSettings.loadSettings(dirManager.getDirectory(Common::DirectoryType::Config) / "config.ini");
 
     const auto CONNECTION_CONFIG_SECTION_NAME = "CONNECTION_CONFIG";
     auto addressSetting = appSettings.getSetting(CONNECTION_CONFIG_SECTION_NAME, "address");
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
     appSettings.saveSettings(); // For creating empty config file
 
     // Setup settings
-    serverAddress   = (serverAddress.empty() && addressSetting->getValue().has_value()) ? addressSetting->getValueString() : serverAddress;
-    eventPortLL     = (eventPortLL == 0 && eventPortSetting->getValue().has_value()) ? std::get<long long>(eventPortSetting->getValue().value()) : eventPortLL;
+    serverAddress   = (serverAddress.empty() && addressSetting->isSet()) ? addressSetting->getValueString() : serverAddress;
+    eventPortLL     = (eventPortLL == 0 && eventPortSetting->isSet()) ? eventPortSetting->getValue<int64_t>() : eventPortLL;
 
     // Check event port
     if (eventPortLL < 0 || eventPortLL > 65535) {
@@ -78,14 +78,15 @@ int main(int argc, char* argv[]) {
     uint16_t eventPort {static_cast<uint16_t>(eventPortLL)};
 
     // Get device id
-    if (!pDevIdSetting->getValue().has_value() || !std::get<long long>(pDevIdSetting->getValue().value())) {
+    auto did = pDevIdSetting->getValue<int64_t>();
+    if (!pDevIdSetting->isSet() || (did < 1)) {
         COMPLOG_ERROR("Failed to configure endpoint: no token set or it's invalid (must be integer >=1)");
         return APP_EXITCODE_CONFIGURATION_ERROR;
     }
 
     // Start endpoint using parameters
     // DetectorEndpoint endpoint;
-    // endpoint.setDeviceId(std::get<long long>(pDevIdSetting->getValue().value()));
+    // endpoint.setDeviceId(std::get<long long>(pDevIdSetting->isSet()));
     // endpoint.setDebugMode(vm.count("debug") != 0);
     // try {
     //     if (!endpoint.start(serverAddress, streamingUDPPort, eventPort)) {

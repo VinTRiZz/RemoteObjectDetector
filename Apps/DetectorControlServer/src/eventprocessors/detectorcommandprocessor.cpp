@@ -1,7 +1,7 @@
 #include "detectorcommandprocessor.hpp"
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Filework/Common.h>
 
 #include <ROD/Servers/Constants.h>

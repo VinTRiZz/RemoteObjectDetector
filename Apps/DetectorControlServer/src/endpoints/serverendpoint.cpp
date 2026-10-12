@@ -5,8 +5,8 @@
 
 #include <Components/Logger/Logger.h>
 #include <Components/Filework/Common.h>
-#include <Components/Common/Utils.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/Utility.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 
 #include "detectoreventendpoint.hpp"
 #include "detectorstreamendpoint.hpp"
@@ -35,7 +35,7 @@ struct ServerEndpoint::Impl
 ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
     m_dbPath {dbPath}
 {
-    auto backupFile = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryManager::DirectoryType::Backup) / (std::string("backup_") + Common::getCurrentTimestampFormatted());
+    auto backupFile = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryType::Backup) / (std::string("backup_") + Common::getCurrentTimestampFormatted());
     if (Filework::Common::copyFile(m_dbPath, backupFile)) {
         COMPLOG_INFO("Created backup of database");
     }
@@ -87,7 +87,7 @@ void ServerEndpoint::start(uint16_t wsEventPort, uint16_t httpAPIPort, uint16_t 
         COMPLOG_DEBUG("Received image from:", receivedImage.getSenderId(), "with id:", receivedImage.getId());
 
         auto& dirManager = Common::DirectoryManager::getInstance();
-        auto dataDir = dirManager.getDirectory(Common::DirectoryManager::Data);
+        auto dataDir = dirManager.getDirectory(Common::Data);
         auto saveFile = dataDir / (std::to_string(receivedImage.getId()) + ".png");
         ImageProcessing::Utility::saveImage(receivedImage.getImage(), saveFile);
     });

@@ -9,7 +9,7 @@
 #include <ROD/Exchange/SendableImage.h>
 
 #include <Components/Logger/Logger.h>
-#include <Components/Common/DirectoryManager.h>
+#include <Components/Ecosystem/DirectoryManager.h>
 #include <Components/Network/ClientUDP.h>
 
 #include <thread>
@@ -55,7 +55,7 @@ void DetectorEndpoint::setDebugMode(bool isDebug)
         d->debugVideoReader = std::make_unique<ImageProcessing::VideoReader>();
 
         auto& dirManager = Common::DirectoryManager::getInstance();
-        auto dataDir = dirManager.getDirectory(Common::DirectoryManager::Data);
+        auto dataDir = dirManager.getDirectory(Common::Data);
         if (!d->debugVideoReader->setVideofile(dataDir / "translation_test.mp4")) {
             throw std::runtime_error("Did not found debug video item. Reinstall app, or copy nessesary file");
         }
