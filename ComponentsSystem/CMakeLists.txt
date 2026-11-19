@@ -1,5 +1,4 @@
 add_subdirectory(Components-CMake)
-add_subdirectory(Components-Core)
 add_subdirectory(Components-Logger)
 add_subdirectory(Components-Common)
 add_subdirectory(Components-ExtraClasses)
