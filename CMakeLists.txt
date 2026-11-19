@@ -13,7 +13,6 @@ project(
 enable_testing() # Required for ctest (CI/CD)
 
 
-# TODO: How to move it into CMake component????
 # Installation
 set(INSTALL_DESTINATION_PREFIX
     "${CMAKE_CURRENT_LIST_DIR}/BIN"
@@ -23,18 +22,14 @@ set(CMAKE_INSTALL_PREFIX
 )
 set_property(GLOBAL PROPERTY COMPONENTS_INSTALL_PATH ${INSTALL_DESTINATION_PREFIX})
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    add_compile_definitions(DEBUG_BUILD_MODE)
-endif()
-
 add_subdirectory(ComponentsSystem)
 
 COMPONENTS_CCR_ENABLE_LTO()
 
 # Build options (for making on target device)
-option (ROD_BUILD_MANAGE_PANEL ON)
+option (ROD_BUILD_MANAGE_PANEL OFF)
 option (ROD_BUILD_DETECTOR ON)
-option (ROD_BUILD_SERVER ON)
+option (ROD_BUILD_SERVER OFF)
 
 set( ROD_BUILD_DETECTOR ON CACHE BOOL "Default detector building enable" FORCE)
 

@@ -1,3 +1,11 @@
+set_property(GLOBAL PROPERTY COMPONENTS_COMPONENT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(GLOBAL PROPERTY COMPONENTS_INSTALL_PATH ${INSTALL_DESTINATION_PREFIX})
+
+set( COMPONENTS_SW_database_sqlite ON CACHE BOOL "Components-Database SQLite3 using" FORCE)
+set( COMPONENTS_SW_encryption_rsa ON CACHE BOOL "Components-Encryption RSA using" FORCE)
+set( COMPONENTS_SW_qtcustom_orm ON CACHE BOOL "Components-Qt-Custom ORM using" FORCE)
+set( COMPONENTS_SW_qtcustom_secure ON CACHE BOOL "Components-Qt-Custom secure tools using" FORCE)
+
 add_subdirectory(Components-CMake)
 add_subdirectory(Components-Logger)
 add_subdirectory(Components-Common)

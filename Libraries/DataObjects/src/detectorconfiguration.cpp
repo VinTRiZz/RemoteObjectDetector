@@ -12,19 +12,25 @@ std::string DetectorConfiguration::toJson() const
 {
     nlohmann::json res;
 
-    // Сериализация SystemInfo
+    // SystemInfo
     res["system"]["id"] = system.id;
     res["system"]["registerDateUTC"] = system.registerDateUTC;
 
-    // Сериализация OnlineInfo
+    // OnlineInfo
     res["online"]["lastOnlineTimeUTC"] = online.lastOnlineTimeUTC;
     res["online"]["totalOnlineTime"] = online.totalOnlineTime;
 
-    // Сериализация Security
+    // Security
     res["security"]["token"] = security.token;
 
-    // Сериализация Info
-    auto hexIfExist = [](auto& iv){ if (iv.has_value()) return nlohmann::json(Encryption::encodeHex(iv.value())); else return nlohmann::json(); };
+    // Info
+    auto hexIfExist = [](auto& iv){
+        if (iv.has_value()) {
+            return nlohmann::json(Encryption::encodeHex(iv.value()).value_or(""));
+        } else {
+            return nlohmann::json();
+        }
+    };
     res["info"]["name"]         = hexIfExist(info.name);
     res["info"]["description"]  = hexIfExist(info.description);
     res["info"]["location"]     = hexIfExist(info.location);
@@ -50,7 +56,13 @@ bool DetectorConfiguration::readJson(const std::string &iString)
 
         security.token = iJson["security"]["token"].get<std::string>();
 
-        auto dehexIfExist = [](auto& iv) -> ExtraClasses::JOptional<std::string> { if (iv.is_null()) return std::nullopt; else return Encryption::decodeHex(iv); };
+        auto dehexIfExist = [](auto& iv) -> ExtraClasses::JOptional<std::string> {
+            if (iv.is_null()) {
+                return std::nullopt;
+            } else {
+                return Encryption::decodeHex(iv).value_or("");
+            }
+        };
         info.name       = dehexIfExist(iJson["info"]["name"]);
         info.description= dehexIfExist(iJson["info"]["description"]);
         info.location   = dehexIfExist(iJson["info"]["location"]);

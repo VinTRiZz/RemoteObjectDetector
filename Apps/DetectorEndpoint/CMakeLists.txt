@@ -5,7 +5,7 @@ endif()
 
 set(APP_TARGET_NAME ROD-DetectorEndpoint)
 
-COMPONENTS_CCR_FIND_LIBRARY(OpenCV)
+find_package(OpenCV REQUIRED)
 
 COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     boost_system
