@@ -1,5 +1,9 @@
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM TRUE)
 
+add_subdirectory(bitsery)
+add_library(bitsery_headers INTERFACE)
+target_include_directories(bitsery_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bitsery/include)
+message(STATUS "3rdparty: bitsery lib added")
 
 if (ROD_BUILD_SERVER OR ROD_BUILD_DETECTOR)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--undefined-version")
@@ -12,10 +16,6 @@ if (ROD_BUILD_SERVER OR ROD_BUILD_DETECTOR)
     add_subdirectory(websocketpp)
     message(STATUS "3rdparty: websocketpp added")
 
-    add_subdirectory(bitsery)
-    add_library(bitsery_headers INTERFACE)
-    target_include_directories(bitsery_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bitsery/include)
-    message(STATUS "3rdparty: bitsery lib added")
 endif()
 
 

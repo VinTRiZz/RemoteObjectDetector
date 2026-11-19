@@ -31,8 +31,6 @@ option (ROD_BUILD_MANAGE_PANEL OFF)
 option (ROD_BUILD_DETECTOR ON)
 option (ROD_BUILD_SERVER OFF)
 
-set( ROD_BUILD_DETECTOR ON CACHE BOOL "Default detector building enable" FORCE)
-
 set( ROD_DATA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/DATA" )
 
 # Conan 2.x dependency bootstrap (defined in Components-CMake).

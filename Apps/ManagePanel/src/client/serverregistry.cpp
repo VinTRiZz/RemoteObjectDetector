@@ -5,78 +5,98 @@
 
 #include <Components/Logger/Logger.h>
 #include <Components/Ecosystem/DirectoryManager.h>
-#include <Components/Database/SQlite.h>
 
 #include <QApplication>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QString>
+#include <QUuid>
+#include <QVariant>
 
 namespace Web {
 
 struct ServerRegistry::Impl
 {
-    Database::SQLiteDatabase db;
-    std::unique_ptr<Database::SQLiteTable> serversTable;
+    QSqlDatabase db;
+    QString      connectionName;
 
     std::set<ServerHandler> servers;
 
     QString lastErrorText;
 
-    bool createTable() {
-        serversTable = std::make_unique<Database::SQLiteTable>(db);
-        serversTable->setTable("servers");
-        if (serversTable->isTableExist()) {
-            return true;
-        }
-
-        std::list<Database::SQLiteTable::ColumnInfo> cols;
-
-        Database::SQLiteTable::ColumnInfo col;
-        col.name = "id";
-        col.defaultValue = {};
-        col.canBeNull = false;
-        col.isPrimaryKey = true;
-        col.type = Database::CT_INTEGER;
-        cols.push_back(col);
-
-        col = {};
-        col.name = "host";
-        col.defaultValue = {};
-        col.canBeNull = false;
-        col.type = Database::CT_TEXT;
-        cols.push_back(col);
-
-        col = {};
-        col.name = "name";
-        col.defaultValue = {};
-        col.canBeNull = false;
-        col.type = Database::CT_TEXT;
-        cols.push_back(col);
-
-        col = {};
-        col.name = "port";
-        col.defaultValue = {};
-        col.canBeNull = false;
-        col.type = Database::CT_INTEGER;
-        cols.push_back(col);
-
-        return serversTable->create(cols);
+    Impl()
+        : connectionName(QStringLiteral("ServerRegistry_%1")
+                             .arg(QUuid::createUuid().toString(QUuid::WithoutBraces)))
+    {
     }
 
-    void registerServer(const ServerConfiguration& conf) {
-        std::map<std::string, Database::DBCell> rowData;
-        rowData["host"]     = conf.getHost().toStdString();
-        rowData["port"]     = static_cast<Database::DBCellInteger>(conf.getPort());
-        rowData["name"]     = conf.getName().toStdString();
-        if (!serversTable->addRow(std::move(rowData))) {
-            COMPLOG_WARNING("Failed to register server:", conf.getName().toStdString());
+    ~Impl()
+    {
+        if (db.isValid()) {
+            db.close();
         }
+        db = QSqlDatabase();
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    bool openDatabase(const QString& databasePath) {
+        if (!QSqlDatabase::isDriverAvailable(QStringLiteral("QSQLITE"))) {
+            lastErrorText = QStringLiteral("SQLite driver is not available");
+            return false;
+        }
+
+        db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
+        db.setDatabaseName(databasePath);
+        if (!db.open()) {
+            lastErrorText = db.lastError().text();
+            return false;
+        }
+        return true;
+    }
+
+    bool createTable() {
+        QSqlQuery query(db);
+        if (!query.exec(QStringLiteral(
+                "CREATE TABLE IF NOT EXISTS servers ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "host TEXT NOT NULL, "
+                "name TEXT NOT NULL, "
+                "port INTEGER NOT NULL)"))) {
+            lastErrorText = query.lastError().text();
+            return false;
+        }
+        return true;
+    }
+
+    bool registerServer(const ServerConfiguration& conf, int64_t& assignedId) {
+        QSqlQuery query(db);
+        query.prepare(QStringLiteral(
+            "INSERT INTO servers (host, name, port) VALUES (:host, :name, :port)"));
+        query.bindValue(QStringLiteral(":host"), conf.getHost());
+        query.bindValue(QStringLiteral(":name"), conf.getName());
+        query.bindValue(QStringLiteral(":port"), static_cast<int>(conf.getPort()));
+        if (!query.exec()) {
+            lastErrorText = query.lastError().text();
+            return false;
+        }
+        assignedId = query.lastInsertId().toLongLong();
+        return true;
     }
 
     bool updateServerConfiguration(int64_t id, const ServerConfiguration& conf) {
-        std::map<std::string, Database::DBCell> rowData;
-        rowData["host"]     = conf.getHost().toStdString();
-        rowData["port"]     = static_cast<Database::DBCellInteger>(conf.getPort());
-        rowData["name"]     = conf.getName().toStdString();
-        return serversTable->updateRow(std::move(rowData), std::string("id = ") + std::to_string(id));
+        QSqlQuery query(db);
+        query.prepare(QStringLiteral(
+            "UPDATE servers SET host = :host, name = :name, port = :port WHERE id = :id"));
+        query.bindValue(QStringLiteral(":host"), conf.getHost());
+        query.bindValue(QStringLiteral(":name"), conf.getName());
+        query.bindValue(QStringLiteral(":port"), static_cast<int>(conf.getPort()));
+        query.bindValue(QStringLiteral(":id"), static_cast<qlonglong>(id));
+        if (!query.exec()) {
+            lastErrorText = query.lastError().text();
+            return false;
+        }
+        return true;
     }
 };
 
@@ -97,20 +117,32 @@ void ServerRegistry::init()
     COMPLOG_INFO("ServerRegistry init started...");
 
     auto dataDir = Common::DirectoryManager::getDirectoryStatic(Common::Data);
-    d->db.setDatabase(dataDir / "local.db");
-    if (!d->createTable()) {
-        COMPLOG_ERROR("ServerRegistry: failed to create servers table");
+    const auto databasePath = QString::fromStdString((dataDir / "local.db").string());
+    if (!d->openDatabase(databasePath)) {
+        COMPLOG_ERROR("ServerRegistry: failed to open database", databasePath.toStdString(),
+                      "reason:", d->lastErrorText.toStdString());
         qApp->quit(); // Bad, but required (app must not work with this trouble)
         return;
     }
 
-    auto records = d->serversTable->getRows({"id", "host", "port", "name"}, {}, "id ASC");
-    for (auto& serverRec : records) {
-        ServerConfiguration conf;
-        conf.setHost(std::get<Database::DBCellString>(serverRec[1]).c_str());
-        conf.setPort(std::get<Database::DBCellInteger>(serverRec[2]));
-        conf.setName(std::get<Database::DBCellString>(serverRec[3]).c_str());
-        addServerNoRegister(std::get<Database::DBCellInteger>(serverRec[0]), conf);
+    if (!d->createTable()) {
+        COMPLOG_ERROR("ServerRegistry: failed to create servers table", d->lastErrorText.toStdString());
+        qApp->quit(); // Bad, but required (app must not work with this trouble)
+        return;
+    }
+
+    QSqlQuery query(d->db);
+    if (!query.exec(QStringLiteral("SELECT id, host, port, name FROM servers ORDER BY id ASC"))) {
+        d->lastErrorText = query.lastError().text();
+        COMPLOG_WARNING("ServerRegistry: failed to load servers:", d->lastErrorText.toStdString());
+    } else {
+        while (query.next()) {
+            ServerConfiguration conf;
+            conf.setHost(query.value(1).toString());
+            conf.setPort(static_cast<uint16_t>(query.value(2).toInt()));
+            conf.setName(query.value(3).toString());
+            addServerNoRegister(query.value(0).toLongLong(), conf);
+        }
     }
 
     COMPLOG_OK("ServerRegistry inited");
@@ -118,9 +150,13 @@ void ServerRegistry::init()
 
 bool ServerRegistry::addServer(const ServerConfiguration &conf)
 {
-    d->registerServer(conf);
-    auto nextId = std::get<Database::DBCellInteger>(d->serversTable->getRows({"MAX(id) + 1"}).front().front());
-    addServerNoRegister(nextId, conf);
+    int64_t serverId {0};
+    if (!d->registerServer(conf, serverId)) {
+        COMPLOG_WARNING("Failed to register server:", conf.getName().toStdString(),
+                        d->lastErrorText.toStdString());
+        return false;
+    }
+    addServerNoRegister(serverId, conf);
     return true;
 }
 
@@ -159,7 +195,9 @@ void ServerRegistry::addServerNoRegister(int64_t serverId, const ServerConfigura
     connect(pServer, &Server::configurationChanged,
             this, [this, pServer](){
         if (!d->updateServerConfiguration(pServer->getId(), pServer->getConfiguration())) {
-            COMPLOG_WARNING("Failed to update configuration of server:", pServer->getConfiguration().getName().toStdString());
+            COMPLOG_WARNING("Failed to update configuration of server:",
+                            pServer->getConfiguration().getName().toStdString(),
+                            d->lastErrorText.toStdString());
         }
     });
 

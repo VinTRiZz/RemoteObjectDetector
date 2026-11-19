@@ -8,13 +8,13 @@ COMPONENTS_LINK_COMPONENT(${LIB_TARGET_NAME} Logger)
 COMPONENTS_LINK_COMPONENT(${LIB_TARGET_NAME} ExtraClasses)
 
 set(ROD_LIBRARIES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../Libraries)
-COMPONENTS_CCR_LINK_LIBRARY(Servers Exchange ${ROD_LIBRARIES_ROOT}/Exchange)
-COMPONENTS_CCR_LINK_LIBRARY(Servers DataObjects ${ROD_LIBRARIES_ROOT}/DataObjects)
+COMPONENTS_CCR_LINK_LIBRARY(${LIB_TARGET_NAME} Exchange ${ROD_LIBRARIES_ROOT}/Exchange)
+COMPONENTS_CCR_LINK_LIBRARY(${LIB_TARGET_NAME} DataObjects ${ROD_LIBRARIES_ROOT}/DataObjects)
 
 if (${ROD_BUILD_SERVER})
-    target_link_libraries(${LIB_TARGET_NAME} drogon)
+    target_link_libraries(${LIB_TARGET_NAME} PRIVATE drogon)
 else()
-    COMPONENTS_REMOVE_SOURCES(Servers
+    COMPONENTS_REMOVE_SOURCES(${LIB_TARGET_NAME}
             "${CMAKE_CURRENT_SOURCE_DIR}/src/controllerbase.cpp"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/controllerbase.hpp"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/database/recordmanager.cpp"

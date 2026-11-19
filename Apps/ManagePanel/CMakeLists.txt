@@ -3,20 +3,15 @@ if (NOT ROD_BUILD_MANAGE_PANEL)
     return()
 endif()
 
-COMPONENTS_CCR_ADD_QT(5 Core Widgets Network)
-
-# TODO: How to move it into CMake component????
-# Qt configuration
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+COMPONENTS_CCR_ADD_QT(5 Core Widgets Network Sql)
 
 set(APP_TARGET_NAME ROD-ManagePanel)
 
-COMPONENTS_CCR_FIND_LIBRARY(OpenCV)
+find_package(OpenCV REQUIRED)
 COMPONENTS_CCR_CONFIGURE_APP(${APP_TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}
     Qt5::Widgets
     Qt5::Network
+    Qt5::Sql
 
     opencv_core
     opencv_imgcodecs
@@ -36,4 +31,3 @@ COMPONENTS_LINK_COMPONENT(${APP_TARGET_NAME} Network)
 set(ROD_LIBRARIES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../Libraries)
 COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} DataObjects ${ROD_LIBRARIES_ROOT}/DataObjects)
 COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} Exchange ${ROD_LIBRARIES_ROOT}/Exchange)
-COMPONENTS_CCR_LINK_LIBRARY(${APP_TARGET_NAME} ImageProcessing ${ROD_LIBRARIES_ROOT}/ImageProcessing)
