@@ -140,7 +140,7 @@ record_t DetectorInfoRecord::toRecord() const
     auto res = RecordBase::toRecord();
     auto hexIfExist = [](auto& iv) -> recordValue_t {
         if (iv.has_value()) {
-            return std::string("HEX-") + Encryption::encodeHex(iv.value());
+            return std::string("HEX-") + Encryption::encodeHex(iv.value()).value_or("");
         }
         else
             return recordValue_t{};
@@ -158,7 +158,7 @@ void DetectorInfoRecord::initFromRecord(const record_t &iRecord)
         if (iv.has_value() && !std::holds_alternative<std::monostate>(iv.value())) {
             auto vstr = std::get<std::string>(iv.value());
             vstr.erase(vstr.begin(), vstr.begin() + 4); // HEX-
-            return Encryption::decodeHex(vstr);
+            return Encryption::decodeHex(vstr).value_or("");
         }
         else
             return std::nullopt;

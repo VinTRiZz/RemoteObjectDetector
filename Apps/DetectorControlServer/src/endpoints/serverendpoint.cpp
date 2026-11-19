@@ -36,7 +36,7 @@ ServerEndpoint::ServerEndpoint(const std::string &dbPath) :
     m_dbPath {dbPath}
 {
     auto backupFile = Common::DirectoryManager::getDirectoryStatic(Common::DirectoryType::Backup) / (std::string("backup_") + Common::getCurrentTimestampFormatted());
-    if (Filework::Common::copyFile(m_dbPath, backupFile)) {
+    if (std::filesystem::copy_file(m_dbPath, backupFile, std::filesystem::copy_options::skip_existing)) {
         COMPLOG_INFO("Created backup of database");
     }
 }
