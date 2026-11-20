@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(
     RemoteObjectDetector
-    VERSION 1.0.0
+    VERSION 1.15.0000
     LANGUAGES C CXX
 )
 enable_testing() # Required for ctest (CI/CD)
